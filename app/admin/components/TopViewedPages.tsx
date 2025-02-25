@@ -1,0 +1,45 @@
+import Table from "@/components/Table";
+import { TableCell, TableRow } from "@/components/ui/table";
+import Link from "next/link";
+import React from "react";
+
+interface Props {
+  topViewedPages: { page: string; href: string; views: number }[];
+}
+
+const TopViewedPages = ({ topViewedPages }: Props) => {
+  return (
+    <div className="card col-span-3 p-6">
+      <p className="font-medium">Top Pages</p>
+
+      <Table
+        columns={columns}
+        data={topViewedPages}
+        renderRows={renderRows}
+        noDataMessage="No Data Available"
+      />
+    </div>
+  );
+};
+
+const renderRows = (data: { page: string; href: string; views: number }) => {
+  return (
+    <TableRow className="text-xs text-gray-500 odd:bg-slate-50" key={data.href}>
+      <TableCell>
+        <Link dir="rtl" href={data.href}>
+          {data.page.length > 45 ? data.page.slice(0, 45) + "...." : data.page}
+        </Link>{" "}
+      </TableCell>
+      <TableCell className="text-right">
+        {data.views.toLocaleString("en-US")}
+      </TableCell>
+    </TableRow>
+  );
+};
+
+const columns = [
+  { label: "Page", className: "text-left" },
+  { label: "Views", className: "w-[50px]" },
+];
+
+export default TopViewedPages;
