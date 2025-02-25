@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { getSessionUser } from "@/data/user";
+import { getSessionAdmin } from "@/data/admin";
 import AdminUserBar from "./AdminUserBar";
 
 const DashboardHeader = async () => {
-  const sessionUser = await getSessionUser();
+  const sessionUser = await getSessionAdmin();
 
   return (
     <div className=" flex justify-between items-center">

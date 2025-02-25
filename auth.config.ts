@@ -1,7 +1,7 @@
 import { UserRole } from "@prisma/client";
 import { DefaultSession, NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { getUserByIdentifier } from "./data/user";
+import { getAdminByIdentifier } from "./data/admin";
 
 declare module "next-auth" {
   interface Session {
@@ -47,7 +47,7 @@ export default {
           throw new Error("Invalid Credentials");
         }
 
-        const user = await getUserByIdentifier(identifier);
+        const user = await getAdminByIdentifier(identifier);
         if (!user) throw new Error("User Not Found");
 
         return { id: user.id.toString(), role: user.role };

@@ -8,22 +8,23 @@ datasource db {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  phone         String         @unique
-  email         String         @unique
-  role          UserRole       @default(STUDENT)
-  nationalId    String         @unique
-  joinedAt      DateTime       @default(now())
-  adminPassword AdminPassword?
+  id         Int      @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  phone      String   @unique
+  email      String   @unique
+  nationalId String   @unique
+  joinedAt   DateTime @default(now())
 }
 
-model AdminPassword {
-  id       String @id @default(uuid())
-  password String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   Int    @unique
+model Admin {
+  id          String    @id @default(uuid())
+  name        String
+  displayName String
+  password    String
+  phone       String    @unique
+  email       String    @unique
+  role        AdminRole
 }
 
 model Otp {
@@ -41,9 +42,8 @@ enum OtpType {
   EMAIL
 }
 
-enum UserRole {
-  STUDENT
-  TUTOR
+enum AdminRole {
   ADMIN
   AUTHOR
+  TUTOR
 }
