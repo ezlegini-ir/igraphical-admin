@@ -20,18 +20,24 @@ export type LoginFormType = z.infer<typeof loginFormSchema>;
 // --------------
 
 export const otpFormSchema = z.object({
-  otp: z.string().min(6, { message: "کد احراز هویت 5 رقمی می باشد" }),
+  otp: z.string().min(6),
 });
 export type OtpType = z.infer<typeof otpFormSchema>;
 
 //! POSTS
 export const postFormSchema = z.object({
-  title: z.string(),
-  url: z.string(),
+  title: z.string().min(1),
+  url: z.string().min(1),
   image: z.instanceof(File),
-  content: z.string(),
+  content: z.string().min(1),
   categories: z.array(z.string()),
   status: z.enum(["0", "1"]),
-  author: z.string(),
+  author: z.string().min(1),
 });
 export type PostFormType = z.infer<typeof postFormSchema>;
+// --------------
+export const categoryFormSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().min(1),
+});
+export type CategoryFormType = z.infer<typeof categoryFormSchema>;

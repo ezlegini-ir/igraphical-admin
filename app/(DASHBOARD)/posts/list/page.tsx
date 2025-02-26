@@ -2,6 +2,9 @@ import React from "react";
 import PostsList from "./PostsList";
 import { coursePic } from "@/public";
 import { sort } from "fast-sort";
+import Search from "@/components/Search";
+import Filter from "@/components/Filter";
+import NewButton from "@/components/NewButton";
 interface Props {
   searchParams: Promise<{ page: string; filer: string; search: string }>;
 }
@@ -11,7 +14,31 @@ const totalPosts = 15;
 const page = async ({ searchParams }: Props) => {
   const { page, filer, search } = await searchParams;
 
-  return <PostsList posts={posts} totalPosts={totalPosts} />;
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
+        <h3>Posts</h3>
+        <div className="flex gap-3 justify-between items-center">
+          <Search />
+
+          <Filter
+            defaultValue="all"
+            placeholder="All Posts"
+            options={[
+              { label: "All Posts", value: "all" },
+              { label: "Published", value: "published" },
+              { label: "Drafts", value: "drafts" },
+              { label: "My Posts", value: "my-posts" },
+            ]}
+          />
+
+          <NewButton href="/posts/new" />
+        </div>
+      </div>
+
+      <PostsList posts={posts} totalPosts={totalPosts} />
+    </div>
+  );
 };
 
 export default page;

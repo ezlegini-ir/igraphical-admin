@@ -1,4 +1,4 @@
-import PostForm from "@/components/forms/dashboard/PostForm";
+import PostForm from "@/components/forms/dashboard/post/PostForm";
 import React from "react";
 
 const page = () => {
