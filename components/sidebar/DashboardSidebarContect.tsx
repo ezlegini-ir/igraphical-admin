@@ -1,22 +1,13 @@
 import { scrollbarStyles } from "@/app/layout";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import sideBarMenuItems from "@/data/menu";
-import { ChartNoAxesCombined, ChevronRight } from "lucide-react";
+import { ChartNoAxesCombined } from "lucide-react";
 import Link from "next/link";
 import SideBarMenu from "./SideBarMenu";
 
@@ -48,7 +39,7 @@ const DashboardSidebarContent = () => {
 };
 
 const headerMenuItems = [
-  { label: "Dashboard", href: "/dashboard", icon: ChartNoAxesCombined },
+  { label: "Dashboard", href: "/", icon: ChartNoAxesCombined },
   // { label: "Contacts", href: "/dashboard/contacts", icon: Phone },
 ];
 

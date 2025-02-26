@@ -22,8 +22,6 @@ import { usePathname } from "next/navigation";
 
 const SideBarMenu = () => {
   const pathName = usePathname();
-  console.log(pathName);
-  console.log(sideBarMenuItems[0].subMenuItems[0].tabName);
 
   return (
     <>
@@ -43,12 +41,17 @@ const SideBarMenu = () => {
                       <SidebarMenuButton className="text-base py-5">
                         <div className="flex justify-between items-center w-full ">
                           <span className="flex items-center gap-2.5">
-                            <tab.tabIcon
-                              className="text-primary"
-                              size={17}
-                              strokeWidth={2.5}
-                            />
-                            {tab.tabName}
+                            <Link
+                              href={tab.tabHref}
+                              className="flex items-center gap-3"
+                            >
+                              <tab.tabIcon
+                                className="text-primary"
+                                size={17}
+                                strokeWidth={2.5}
+                              />
+                              {tab.tabName}
+                            </Link>
                           </span>
                           <span>
                             {tab.subMenuItems.length > 0 && (
