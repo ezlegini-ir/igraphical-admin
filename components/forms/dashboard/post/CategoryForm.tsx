@@ -1,6 +1,5 @@
 "use client";
 
-import { verifyLogin } from "@/app/actions/login/verify-login";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
@@ -18,15 +17,9 @@ import { Input } from "@/components/ui/input";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
-import {
-  CategoryFormType,
-  LoginFormType,
-  categoryFormSchema,
-  loginFormSchema,
-} from "@/lib/validationSchema";
+import { CategoryFormType, categoryFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 
 interface Props {

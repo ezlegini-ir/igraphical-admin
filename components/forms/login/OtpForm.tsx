@@ -1,7 +1,7 @@
 "use client";
 
-import { authenticator } from "@/app/actions/login/authenticator";
-import { verifyOtp } from "@/app/actions/login/verify-otp";
+import { authenticator } from "@/actions/login/authenticator";
+import { verifyOtp } from "@/actions/login/verify-otp";
 import CountdownTimer from "@/components/CountDown";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";

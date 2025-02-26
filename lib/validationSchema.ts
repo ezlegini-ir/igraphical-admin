@@ -49,3 +49,15 @@ export const commentFormSchema = z.object({
   post: z.string(),
 });
 export type CommentFormType = z.infer<typeof commentFormSchema>;
+
+//! ADMINS
+export const adminRoles = ["ADMIN", "AUTHOR"] as const;
+export const adminFormSchema = z.object({
+  name: z.string().min(1),
+  displayName: z.string().min(1),
+  role: z.enum(adminRoles),
+  email: z.string().min(1),
+  phone: z.string().min(1),
+  password: z.string().optional(),
+});
+export type AdminFormType = z.infer<typeof adminFormSchema>;

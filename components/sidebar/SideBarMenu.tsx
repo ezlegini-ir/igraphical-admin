@@ -38,12 +38,16 @@ const SideBarMenu = () => {
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton className="text-base py-5">
-                        <div className="flex justify-between items-center w-full ">
+                      <SidebarMenuButton
+                        className={`text-base py-5 ${
+                          pathName.includes("/" + tab.tabHref) && "bg-slate-100"
+                        }`}
+                      >
+                        <div className="flex justify-between items-center w-full">
                           <span className="flex items-center gap-2.5">
                             <Link
                               href={tab.tabHref}
-                              className="flex items-center gap-3"
+                              className={`flex items-center gap-3`}
                             >
                               <tab.tabIcon
                                 className="text-primary"

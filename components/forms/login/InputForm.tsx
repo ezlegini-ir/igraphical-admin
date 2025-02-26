@@ -1,6 +1,6 @@
 "use client";
 
-import { verifyLogin } from "@/app/actions/login/verify-login";
+import { verifyLogin } from "@/actions/login/verify-login";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";

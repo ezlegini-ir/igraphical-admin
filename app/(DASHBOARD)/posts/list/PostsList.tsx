@@ -1,14 +1,11 @@
-import NewButton from "@/components/NewButton";
+import EditButton from "@/components/EditButton";
 import Pagination from "@/components/Pagination";
-import Filter from "@/components/Filter";
 import Table from "@/components/Table";
 import { TableCell, TableRow } from "@/components/ui/table";
+import ViewButton from "@/components/ViewButton";
 import { placeHolder } from "@/public";
 import Image from "next/image";
 import Link from "next/link";
-import Search from "@/components/Search";
-import EditButton from "@/components/EditButton";
-import ViewButton from "@/components/ViewButton";
 
 interface Props {
   posts: {

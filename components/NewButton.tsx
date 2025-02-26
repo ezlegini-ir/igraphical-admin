@@ -3,11 +3,11 @@ import React from "react";
 import { Button } from "./ui/button";
 
 const NewButton = ({
-  href,
+  href = "",
   title = "New",
   className,
 }: {
-  href: string;
+  href?: string;
   title?: string;
   className?: string;
 }) => {

@@ -2,7 +2,6 @@ import EditButton from "@/components/EditButton";
 import CategoryForm from "@/components/forms/dashboard/post/CategoryForm";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,

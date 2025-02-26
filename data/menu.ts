@@ -35,7 +35,7 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Courses",
-        tabHref: "",
+        tabHref: "courses",
         tabIcon: TvMinimalPlay,
         subMenuItems: [
           { label: "new", href: "courses/new", icon: FilePlus },
@@ -46,7 +46,7 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Announcements",
-        tabHref: "",
+        tabHref: "announcements",
         tabIcon: GalleryHorizontal,
         subMenuItems: [
           { label: "Sliders", href: "announcements", icon: LayoutDashboard },
@@ -61,7 +61,7 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Payments",
-        tabHref: "",
+        tabHref: "payments",
         tabIcon: CreditCard,
         subMenuItems: [
           { label: "List", href: "payments/list", icon: List },
@@ -70,7 +70,7 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Marketing",
-        tabHref: "",
+        tabHref: "marketing",
         tabIcon: Percent,
         subMenuItems: [
           { label: "Discount Codes", href: "invoices/list", icon: List },
@@ -79,7 +79,7 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Statistics",
-        tabHref: "",
+        tabHref: "statistics",
         tabIcon: ChartBarBig,
         subMenuItems: [
           { label: "Overview", href: "statistics", icon: LayoutDashboard },
@@ -88,6 +88,7 @@ const sideBarMenuItems = [
       },
       // {
       //   tabName: "Exports",
+      // tabHref: "exports",
       //   tabIcon: FolderInput,
       //   subMenuItems: [
       //     { label: "Dashboard", href: "exports", icon: LayoutDashboard },
@@ -103,19 +104,19 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Tickets",
-        tabHref: "",
+        tabHref: "tickets",
         tabIcon: MessageCircle,
         subMenuItems: [{ label: "New", href: "tickets/new", icon: List }],
       },
       {
         tabName: "Contacts",
-        tabHref: "",
+        tabHref: "contacts",
         tabIcon: Phone,
         subMenuItems: [{ label: "List", href: "contacts/list", icon: List }],
       },
       // {
       //   tabName: "SMS",
-      // tabHref: "",
+      // tabHref: "sms",
       //   tabIcon: Mail,
       //   subMenuItems: [
       //     { label: "Send SMS", href: "help-desk/tickets", icon: List },
@@ -123,7 +124,7 @@ const sideBarMenuItems = [
       // },
       // {
       //   tabName: "EMAIL",
-      // tabHref: "",
+      // tabHref: "email",
       //   tabIcon: AtSign,
       //   subMenuItems: [
       //     { label: "Inbox", href: "contacts/list", icon: List },
@@ -138,7 +139,7 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Students",
-        tabHref: "",
+        tabHref: "students",
         tabIcon: Users,
         subMenuItems: [
           { label: "List", href: "students/list", icon: List },
@@ -147,13 +148,13 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Tutors",
-        tabHref: "",
+        tabHref: "tutors",
         tabIcon: GraduationCap,
         subMenuItems: [{ label: "List", href: "tutors/list", icon: List }],
       },
       {
         tabName: "Admins",
-        tabHref: "",
+        tabHref: "admins",
         tabIcon: UserRoundCheck,
         subMenuItems: [
           // { label: "New", href: "admins/list", icon: List },

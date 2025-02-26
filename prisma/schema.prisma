@@ -45,5 +45,4 @@ enum OtpType {
 enum AdminRole {
   ADMIN
   AUTHOR
-  TUTOR
 }

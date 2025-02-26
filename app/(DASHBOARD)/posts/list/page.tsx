@@ -1,10 +1,8 @@
-import React from "react";
-import PostsList from "./PostsList";
-import { coursePic } from "@/public";
-import { sort } from "fast-sort";
-import Search from "@/components/Search";
 import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
+import Search from "@/components/Search";
+import { coursePic } from "@/public";
+import PostsList from "./PostsList";
 interface Props {
   searchParams: Promise<{ page: string; filer: string; search: string }>;
 }
@@ -12,7 +10,7 @@ interface Props {
 const totalPosts = 15;
 
 const page = async ({ searchParams }: Props) => {
-  const { page, filer, search } = await searchParams;
+  // const { page, filer, search } = await searchParams;
 
   return (
     <div className="space-y-3">
