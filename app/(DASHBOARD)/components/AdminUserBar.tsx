@@ -44,7 +44,7 @@ const UserBar = () => {
 
           <div className="flex flex-col">
             {menuItems.map((item, index) => (
-              <Link key={index} href={`/dashboard/${item.href}`}>
+              <Link key={index} href={`/${item.href}`}>
                 <Button className="w-full justify-start" variant={"ghost"}>
                   <item.icon />
                   <span>{item.label}</span>
@@ -81,7 +81,7 @@ const UserBar = () => {
 };
 
 const menuItems = [
-  { label: "Dashboard", href: "dashboard", icon: ChartNoAxesCombined },
+  { label: "Dashboard", href: "", icon: ChartNoAxesCombined },
   { label: "Announcements", href: "announcements", icon: GalleryHorizontal },
   { label: "Tickets", href: "tickets", icon: MessageCircle },
   { label: "New Post", href: "posts/new", icon: FilePlus2 },

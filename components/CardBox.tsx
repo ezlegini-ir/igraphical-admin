@@ -16,7 +16,7 @@ const CardBox = ({
   className?: string;
 }) => {
   return (
-    <div className={`card p-0 ${className}`}>
+    <div className={`card px-0 py-0 space-y-0 ${className}`}>
       <div className="p-3 py-2 flex justify-between items-center h-11">
         <Title title={title} />
 

@@ -28,7 +28,6 @@ interface Props {
 
 const InputForm = ({ setLoginStep, setIdentifier }: Props) => {
   // HOOKS
-  const router = useRouter();
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
 
