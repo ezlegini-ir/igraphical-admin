@@ -15,11 +15,6 @@ body {
     direction: ltr;
     unicode-bidi: plaintext;
   }
-
-  ::selection {
-    background-color: #f7a335;
-    color: white;
-  }
 }
 
 /* THIS SOLVES ISSUE WITH SHADCN LAYOUT SHIFT */

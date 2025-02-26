@@ -20,7 +20,11 @@ const DeleteButton = ({ id, onDelete }: Props) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant={"outline"} className="w-full flex gap-2" type="button">
+        <Button
+          variant={"destructive"}
+          className="w-full flex gap-2"
+          type="button"
+        >
           {/* {<Loader loading={loading} />} */}
           Delete
         </Button>

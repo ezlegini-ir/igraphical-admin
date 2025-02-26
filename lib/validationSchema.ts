@@ -41,3 +41,11 @@ export const categoryFormSchema = z.object({
   url: z.string().min(1),
 });
 export type CategoryFormType = z.infer<typeof categoryFormSchema>;
+// --------------
+export const commentFormSchema = z.object({
+  content: z.string().min(1),
+  user: z.string(),
+  date: z.date(),
+  post: z.string(),
+});
+export type CommentFormType = z.infer<typeof commentFormSchema>;

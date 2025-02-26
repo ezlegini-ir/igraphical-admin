@@ -34,7 +34,7 @@ const dashboardSideBarMenuItems = [
           { label: "new", href: "posts/new", icon: FilePlus },
           { label: "List", href: "posts/list", icon: List },
           { label: "Categories", href: "posts/categories", icon: Tag },
-          { label: "Reviews", href: "posts/reviews", icon: Star },
+          { label: "Comments", href: "posts/comments", icon: Star },
         ],
       },
       {
