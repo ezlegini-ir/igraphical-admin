@@ -13,7 +13,7 @@ export default async function Layout({
         <DashboardSidebar />
 
         <SidebarInset className="bg-[#fafafa]">
-          <main className="w-full  mx-auto p-4 px-12 space-y-4 ">
+          <main className="w-full  mx-auto p-3 lg:px-12 lg:p-4 space-y-4 ">
             <DashboardHeader />
             <div>{children}</div>
           </main>

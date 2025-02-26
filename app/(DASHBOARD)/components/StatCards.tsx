@@ -1,7 +1,7 @@
 "use client";
 
 import { CreditCard, MessageCircle, Users } from "lucide-react";
-import StatCard from "../components/StatCard";
+import StatCard from "./StatCard";
 import { calculateSum } from "@/lib/calculate";
 
 type statsDataType = {

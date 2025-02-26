@@ -23,6 +23,7 @@
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "fast-sort": "^3.4.1",
     "input-otp": "^1.4.2",
     "kavenegar": "^1.1.4",
     "lucide-react": "^0.475.0",

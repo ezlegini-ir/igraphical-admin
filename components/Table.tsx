@@ -1,26 +1,38 @@
 import React, { ReactNode } from "react";
 import { TableBody, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Table as MyTable } from "@/components/ui/table";
-import { Frown } from "lucide-react";
+import { ChevronsUpDown, Frown } from "lucide-react";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
 interface Props {
   columns: { label: string; className?: string }[];
   data: any[];
   renderRows: (item: any) => ReactNode;
-  noDataMessage: string;
+  noDataMessage?: string;
 }
 
-const Table = ({ columns, data, renderRows, noDataMessage }: Props) => {
+const Table = ({
+  columns,
+  data,
+  renderRows,
+  noDataMessage = "No Data Available",
+}: Props) => {
   return (
     <>
       <MyTable>
         <TableHeader>
           <TableRow className="text-gray-500 text-sm text-right">
             {columns.map((column, index) => (
-              <TableHead
-                key={index}
-                className={`text-right ${column.className}`}
-              >
+              <TableHead key={index} className={`${column.className}`}>
+                {/* <Link href={`?sort=${column.label}`}>
+                  <Button
+                    variant={"link"}
+                    className="p-0 gap-0 text-gray-500 hover:text-primary"
+                  >
+                    <ChevronsUpDown className="scale-75" /> {column.label}
+                  </Button>
+                </Link> */}
                 {column.label}
               </TableHead>
             ))}

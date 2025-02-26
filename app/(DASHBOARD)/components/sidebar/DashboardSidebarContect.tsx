@@ -22,7 +22,6 @@ import Link from "next/link";
 const DashboardSidebarContent = () => {
   return (
     <SidebarContent
-      dir="ltr"
       className={`${scrollbarStyles} ${scrollBarStyleOverwrite} pb-10 gap-0`}
     >
       <SidebarGroup>
@@ -76,7 +75,7 @@ const DashboardSidebarContent = () => {
                       <SidebarMenuSub className="text-sm font-medium py-2">
                         {tab.subMenuItems.map((sub, index) => (
                           <Link
-                            href={`/dashboard/${sub.href}`}
+                            href={`/${sub.href}`}
                             key={index}
                             className="px-3 py-1.5 hover:bg-slate-100 rounded-sm"
                           >
