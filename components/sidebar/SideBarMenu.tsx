@@ -1,11 +1,11 @@
-import { scrollbarStyles } from "@/app/layout";
+"use client";
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -15,39 +15,26 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import dashboardSideBarMenuItems from "@/data/menu";
-import { ChartNoAxesCombined, ChevronRight } from "lucide-react";
+import sideBarMenuItems from "@/data/menu";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-const DashboardSidebarContent = () => {
+const SideBarMenu = () => {
+  const pathName = usePathname();
+  console.log(pathName);
+  console.log(sideBarMenuItems[0].subMenuItems[0].tabName);
+
   return (
-    <SidebarContent
-      className={`${scrollbarStyles} ${scrollBarStyleOverwrite} pb-10 gap-0`}
-    >
-      <SidebarGroup>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {headerMenuItems.map((item, index) => (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton size={"lg"} asChild className="px-3">
-                  <Link href={item.href}>
-                    <item.icon className="scale-125 mr-2" />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-
-      {dashboardSideBarMenuItems.map((group, index) => (
+    <>
+      {sideBarMenuItems.map((group, index) => (
         <SidebarGroup key={index}>
           <SidebarGroupLabel>{group.groupName}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {group.subMenuItems.map((tab, index) => (
                 <Collapsible
+                  defaultOpen={pathName.includes(tab.tabName.toLowerCase())}
                   key={index}
                   className="group/collapsible text-gray-500"
                 >
@@ -73,13 +60,18 @@ const DashboardSidebarContent = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub className="text-sm font-medium py-2">
-                        {tab.subMenuItems.map((sub, index) => (
+                        {tab.subMenuItems.map((item, index) => (
                           <Link
-                            href={`/${sub.href}`}
+                            href={`/${item.href}`}
                             key={index}
-                            className="px-3 py-1.5 hover:bg-slate-100 rounded-sm"
+                            className={`${
+                              pathName === "/" + item.href &&
+                              "bg-slate-100 text-primary font-medium"
+                            }  px-3 py-1.5 hover:bg-slate-100 rounded-sm`}
                           >
-                            <SidebarMenuSubItem>{sub.label}</SidebarMenuSubItem>
+                            <SidebarMenuSubItem>
+                              {item.label}
+                            </SidebarMenuSubItem>
                           </Link>
                         ))}
                       </SidebarMenuSub>
@@ -91,17 +83,8 @@ const DashboardSidebarContent = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       ))}
-    </SidebarContent>
+    </>
   );
 };
 
-const headerMenuItems = [
-  { label: "Dashboard", href: "/dashboard", icon: ChartNoAxesCombined },
-  // { label: "Contacts", href: "/dashboard/contacts", icon: Phone },
-];
-
-export default DashboardSidebarContent;
-
-const scrollBarStyleOverwrite = `[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-slate-200 overflow-y-auto
- hover:[&::-webkit-scrollbar-thumb]:bg-slate-300
-`;
+export default SideBarMenu;

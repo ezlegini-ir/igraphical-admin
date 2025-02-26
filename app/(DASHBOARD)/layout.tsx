@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import DashboardHeader from "./components/DashboardHeader";
-import DashboardSidebar from "./components/sidebar/Dashboard-Sidebar";
+import DashboardHeader from "../../components/DashboardHeader";
+import DashboardSidebar from "../../components/sidebar/Dashboard-Sidebar";
 
 export default async function Layout({
   children,

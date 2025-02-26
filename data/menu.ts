@@ -22,7 +22,7 @@ import {
   Users,
 } from "lucide-react";
 
-const dashboardSideBarMenuItems = [
+const sideBarMenuItems = [
   {
     groupName: "Content Management",
     subMenuItems: [
@@ -175,4 +175,4 @@ const dashboardSideBarMenuItems = [
   },
 ];
 
-export default dashboardSideBarMenuItems;
+export default sideBarMenuItems;

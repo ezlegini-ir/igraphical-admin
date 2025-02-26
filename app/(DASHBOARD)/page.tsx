@@ -1,11 +1,11 @@
-import GraduateVsEnrolled from "./components/GraduateVsEnrolled";
-import RecentComments from "./components/RecentComments";
-import RecentReviews from "./components/RecentReviews";
-import StatCards from "./components/StatCards";
-import TopDataCards from "./components/TopDataCards";
-import TopViewedPages from "./components/TopViewedPages";
-import ViewsChart from "./components/ViewsChart";
-import ViewsTable from "./components/ViewTable";
+import GraduateVsEnrolled from "../../components/GraduateVsEnrolled";
+import RecentComments from "../../components/RecentComments";
+import RecentReviews from "../../components/RecentReviews";
+import StatCards from "../../components/StatCards";
+import TopDataCards from "../../components/TopDataCards";
+import TopViewedPages from "../../components/TopViewedPages";
+import ViewsChart from "../../components/ViewsChart";
+import ViewsTable from "../../components/ViewTable";
 
 const page = () => {
   return (

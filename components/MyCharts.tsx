@@ -1,4 +1,4 @@
-import { StatCardProps } from "@/app/(DASHBOARD)/components/StatCard";
+import { StatCardProps } from "@/components/StatCard";
 import {
   ChartConfig,
   ChartContainer,
