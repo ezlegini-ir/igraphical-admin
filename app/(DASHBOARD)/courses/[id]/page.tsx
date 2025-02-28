@@ -12,7 +12,7 @@ const page = async ({ params }: Props) => {
 
   return (
     <div className="space-y-3">
-      <h3>Create New Course</h3>
+      <h3>Update Course</h3>
 
       <CourseForm type="UPDATE" course={course} />
     </div>
