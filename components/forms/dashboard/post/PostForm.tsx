@@ -32,7 +32,6 @@ import { PostFormType, postFormSchema } from "@/lib/validationSchema";
 import { placeHolder } from "@/public";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 interface Props {
@@ -50,7 +49,7 @@ interface Props {
 
 const PostForm = ({ type, post }: Props) => {
   // HOOKS
-  const router = useRouter();
+  // const router = useRouter();
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
   const { imagePreview, setImagePreview } = useImagePreview(post?.image.url);

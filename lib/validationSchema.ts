@@ -3,7 +3,7 @@ import z from "zod";
 const requiredMessage = "Required";
 export const adminRoles = ["ADMIN", "AUTHOR"] as const;
 export const status = ["1", "0"] as const;
-const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
+export const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
 
 //! LOGIN FORM
 export const loginFormSchema = z.object({
@@ -102,6 +102,27 @@ export const courseFormSchema = z.object({
         })
         .optional(),
     })
+    .optional(),
+
+  // Curriculum Schema
+  curriculum: z
+    .array(
+      z.object({
+        sectionTitle: z.string().min(1, "Section title is required"),
+        lessons: z.array(
+          z.object({
+            title: z.string().min(1, "Lesson title is required"),
+            duration: z
+              .number()
+              .min(0, "Lesson duration must be a non-negative number")
+              .optional(),
+            url: z.string(),
+            isFree: z.boolean(),
+            type: z.enum(lessonsType),
+          })
+        ),
+      })
+    )
     .optional(),
 });
 export type CourseFormType = z.infer<typeof courseFormSchema>;
