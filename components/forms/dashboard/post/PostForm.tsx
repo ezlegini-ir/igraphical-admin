@@ -1,9 +1,11 @@
 "use client";
 
+import CardBox from "@/components/CardBox";
+import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -13,14 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import useError from "@/hooks/useError";
-import useFileName from "@/hooks/useFileName";
-import useLoading from "@/hooks/useLoading";
-import { PostFormType, postFormSchema } from "@/lib/validationSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -28,14 +23,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import CardBox from "@/components/CardBox";
-import { Link } from "lucide-react";
-import Image from "next/image";
-import { placeHolder } from "@/public";
-import useImagePreview from "@/hooks/useImagePreview";
-import DeleteButton from "@/components/DeleteButton";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import useError from "@/hooks/useError";
+import useImagePreview from "@/hooks/useImagePreview";
+import useLoading from "@/hooks/useLoading";
+import { PostFormType, postFormSchema } from "@/lib/validationSchema";
+import { placeHolder } from "@/public";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 
 interface Props {
   type: "NEW" | "UPDATE";
@@ -92,7 +90,7 @@ const PostForm = ({ type, post }: Props) => {
     console.log(data);
   };
 
-  const onDelete = (id: number) => {
+  const onDelete = (id: number | string) => {
     console.log(`post ${id} Deleted`);
   };
 

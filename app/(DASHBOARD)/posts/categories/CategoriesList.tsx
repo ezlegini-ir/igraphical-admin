@@ -41,6 +41,7 @@ const renderRows = (category: {
     <TableRow key={category.id} className="odd:bg-slate-50">
       <TableCell className="text-left">{category.name}</TableCell>
 
+      <TableCell className="hidden lg:table-cell">{category.url}</TableCell>
       <TableCell>{category.post?.count}</TableCell>
       <TableCell className="flex justify-end">
         <Dialog>
@@ -61,6 +62,7 @@ const renderRows = (category: {
 
 const columns = [
   { label: "Name", className: "" },
+  { label: "Url", className: "hidden lg:table-cell" },
   { label: "Posts Count", className: "" },
   {
     label: "Actions",

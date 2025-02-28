@@ -45,5 +45,5 @@ export const redirectAdmin = async () => {
   const admin = await getSessionAdmin();
 
   if (admin?.role === "TUTOR") redirect("/tutor");
-  else redirect("/admin");
+  else redirect("/");
 };

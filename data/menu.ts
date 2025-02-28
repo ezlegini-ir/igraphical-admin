@@ -24,33 +24,33 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Posts",
-        tabHref: "posts",
+        tabHref: "/posts",
         tabIcon: BookOpen,
         subMenuItems: [
-          { label: "new", href: "posts/new", icon: FilePlus },
-          { label: "List", href: "posts/list", icon: List },
-          { label: "Categories", href: "posts/categories", icon: Tag },
-          { label: "Comments", href: "posts/comments", icon: Star },
+          { label: "new", href: "/posts/new", icon: FilePlus },
+          { label: "List", href: "/posts/list", icon: List },
+          { label: "Categories", href: "/posts/categories", icon: Tag },
+          { label: "Comments", href: "/posts/comments", icon: Star },
         ],
       },
       {
         tabName: "Courses",
-        tabHref: "courses",
+        tabHref: "/courses",
         tabIcon: TvMinimalPlay,
         subMenuItems: [
-          { label: "new", href: "courses/new", icon: FilePlus },
-          { label: "List", href: "courses/list", icon: List },
-          { label: "Categories", href: "courses/categories", icon: Tag },
-          { label: "Reviews", href: "courses/reviews", icon: Star },
+          { label: "new", href: "/courses/new", icon: FilePlus },
+          { label: "List", href: "/courses/list", icon: List },
+          { label: "Categories", href: "/courses/categories", icon: Tag },
+          { label: "Reviews", href: "/courses/reviews", icon: Star },
         ],
       },
       {
         tabName: "Announcements",
-        tabHref: "announcements",
+        tabHref: "/announcements",
         tabIcon: GalleryHorizontal,
         subMenuItems: [
-          { label: "Sliders", href: "announcements", icon: LayoutDashboard },
-          { label: "Notif Bar", href: "announcements/new", icon: FilePlus },
+          { label: "Sliders", href: "/announcements", icon: LayoutDashboard },
+          { label: "Notif Bar", href: "/announcements/new", icon: FilePlus },
         ],
       },
     ],
@@ -61,7 +61,7 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Payments",
-        tabHref: "payments",
+        tabHref: "/payments",
         tabIcon: CreditCard,
         subMenuItems: [
           { label: "List", href: "payments/list", icon: List },
@@ -70,7 +70,7 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Marketing",
-        tabHref: "marketing",
+        tabHref: "/marketing",
         tabIcon: Percent,
         subMenuItems: [
           { label: "Discount Codes", href: "invoices/list", icon: List },
@@ -79,7 +79,7 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Statistics",
-        tabHref: "statistics",
+        tabHref: "/statistics",
         tabIcon: ChartBarBig,
         subMenuItems: [
           { label: "Overview", href: "statistics", icon: LayoutDashboard },
@@ -104,13 +104,13 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Tickets",
-        tabHref: "tickets",
+        tabHref: "/tickets",
         tabIcon: MessageCircle,
         subMenuItems: [{ label: "New", href: "tickets/new", icon: List }],
       },
       {
         tabName: "Contacts",
-        tabHref: "contacts",
+        tabHref: "/contacts",
         tabIcon: Phone,
         subMenuItems: [{ label: "List", href: "contacts/list", icon: List }],
       },
@@ -139,7 +139,7 @@ const sideBarMenuItems = [
     subMenuItems: [
       {
         tabName: "Students",
-        tabHref: "students",
+        tabHref: "/students",
         tabIcon: Users,
         subMenuItems: [
           { label: "List", href: "students/list", icon: List },
@@ -148,13 +148,13 @@ const sideBarMenuItems = [
       },
       {
         tabName: "Tutors",
-        tabHref: "tutors",
+        tabHref: "/tutors",
         tabIcon: GraduationCap,
         subMenuItems: [{ label: "List", href: "tutors/list", icon: List }],
       },
       {
         tabName: "Admins",
-        tabHref: "admins",
+        tabHref: "/admins",
         tabIcon: UserRoundCheck,
         subMenuItems: [
           // { label: "New", href: "admins/list", icon: List },

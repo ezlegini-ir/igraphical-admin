@@ -40,7 +40,7 @@ const SideBarMenu = () => {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
                         className={`text-base py-5 ${
-                          pathName.includes("/" + tab.tabHref) && "bg-slate-100"
+                          pathName.includes(tab.tabHref) && "bg-slate-100"
                         }`}
                       >
                         <div className="flex justify-between items-center w-full">
@@ -69,10 +69,10 @@ const SideBarMenu = () => {
                       <SidebarMenuSub className="text-sm font-medium py-2">
                         {tab.subMenuItems.map((item, index) => (
                           <Link
-                            href={`/${item.href}`}
+                            href={`${item.href}`}
                             key={index}
                             className={`${
-                              pathName === "/" + item.href &&
+                              pathName === item.href &&
                               "bg-slate-100 text-primary font-medium"
                             }  px-3 py-1.5 hover:bg-slate-100 rounded-sm`}
                           >

@@ -14,7 +14,7 @@ const NewButton = ({
   return (
     <Link href={href}>
       <Button
-        className={`px-6 lg:px-10 ${className}`}
+        className={`px-6 lg:px-7 ${className}`}
         size={"sm"}
         variant={"default"}
       >

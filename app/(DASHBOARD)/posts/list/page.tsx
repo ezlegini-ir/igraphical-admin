@@ -30,7 +30,7 @@ const page = async ({ searchParams }: Props) => {
             ]}
           />
 
-          <NewButton href="/posts/new" />
+          <NewButton href="/posts/new" title="New Post" />
         </div>
       </div>
 

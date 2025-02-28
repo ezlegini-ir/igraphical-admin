@@ -1,6 +1,9 @@
 import z from "zod";
 
 const requiredMessage = "Required";
+export const adminRoles = ["ADMIN", "AUTHOR"] as const;
+export const status = ["1", "0"] as const;
+const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
 
 //! LOGIN FORM
 export const loginFormSchema = z.object({
@@ -31,7 +34,7 @@ export const postFormSchema = z.object({
   image: z.instanceof(File),
   content: z.string().min(1),
   categories: z.array(z.string()),
-  status: z.enum(["0", "1"]),
+  status: z.enum(status),
   author: z.string().min(1),
 });
 export type PostFormType = z.infer<typeof postFormSchema>;
@@ -51,7 +54,6 @@ export const commentFormSchema = z.object({
 export type CommentFormType = z.infer<typeof commentFormSchema>;
 
 //! ADMINS
-export const adminRoles = ["ADMIN", "AUTHOR"] as const;
 export const adminFormSchema = z.object({
   name: z.string().min(1),
   displayName: z.string().min(1),
@@ -61,3 +63,45 @@ export const adminFormSchema = z.object({
   password: z.string().optional(),
 });
 export type AdminFormType = z.infer<typeof adminFormSchema>;
+
+//! COURSES
+export const courseFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  url: z.string().min(1, "URL is required"),
+  summery: z.string().min(1, "Summary is required"),
+  learns: z.array(
+    z.object({ value: z.string().min(1, "Learning point is required") })
+  ),
+  description: z.string().min(1, "Description is required"),
+  prerequisite: z.array(z.object({ value: z.string().min(1) })).optional(),
+  status: z.enum(status, { required_error: "Status is required" }),
+  instructor: z.string().min(1, "Instructor is required"),
+  tizerUrl: z.string().min(1, "Teaser URL is required"),
+  duration: z.number().min(1, "Duration must be a positive number"),
+  image: z.instanceof(File, { message: "Image file is required" }),
+  category: z.string().min(1, "Category is required"),
+  price: z.number().min(0, "Price must be a non-negative number"),
+
+  // Discount Schema
+  discount: z
+    .object({
+      amount: z
+        .number()
+        .min(0, "Discount amount must be a non-negative number"),
+      type: z.enum(["FIXED", "PERCENT"], {
+        required_error: "Discount type is required",
+      }),
+      date: z
+        .object({
+          from: z.coerce.date({
+            invalid_type_error: "Invalid date format for 'from'",
+          }),
+          to: z.coerce.date({
+            invalid_type_error: "Invalid date format for 'to'",
+          }),
+        })
+        .optional(),
+    })
+    .optional(),
+});
+export type CourseFormType = z.infer<typeof courseFormSchema>;
