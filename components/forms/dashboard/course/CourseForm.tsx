@@ -98,20 +98,41 @@ const CourseForm = ({ type, course }: Props) => {
         },
         type: course?.discount?.type,
       },
-      curriculum: [
-        {
-          sectionTitle: "",
-          lessons: [
+      curriculum: course?.curriculum?.length
+        ? course.curriculum.map((section) => ({
+            sectionTitle: section.sectionTitle || "",
+            lessons: section.lessons?.length
+              ? section.lessons.map((lesson) => ({
+                  title: lesson.title || "",
+                  duration: lesson.duration || 0,
+                  url: lesson.url || "",
+                  isFree: lesson.isFree || false,
+                  type: lesson.type || "VIDEO",
+                }))
+              : [
+                  {
+                    title: "",
+                    duration: 0,
+                    url: "",
+                    isFree: false,
+                    type: "VIDEO",
+                  },
+                ],
+          }))
+        : [
             {
-              title: "",
-              duration: 0,
-              url: "",
-              isFree: false,
-              type: "VIDEO",
+              sectionTitle: "",
+              lessons: [
+                {
+                  title: "",
+                  duration: 0,
+                  url: "",
+                  isFree: false,
+                  type: "VIDEO",
+                },
+              ],
             },
           ],
-        },
-      ],
     },
   });
 

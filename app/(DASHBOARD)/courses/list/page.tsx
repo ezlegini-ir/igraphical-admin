@@ -4,6 +4,23 @@ import Search from "@/components/Search";
 import { coursePic, profile2 } from "@/public";
 import { Course } from "./CourseCard";
 import CoursesList from "./CoursesList";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SlidersHorizontal } from "lucide-react";
+
 interface Props {
   searchParams: Promise<{ page: string; filer: string; search: string }>;
 }
@@ -21,57 +38,26 @@ const page = async ({ searchParams }: Props) => {
         <div className="flex gap-3 justify-between items-center">
           <Search />
 
-          <Filter
-            defaultValue="all"
-            name="student"
-            options={[
-              { label: "All Students", value: "all" },
-              { label: "Most Students", value: "most" },
-              { label: "Lowest Students", value: "lowest" },
-            ]}
-          />
+          <div className="hidden  gap-2  md:flex">
+            <Filters />
+          </div>
 
-          <Filter
-            defaultValue="all"
-            name="status"
-            options={[
-              { label: "All Statuses", value: "all" },
-              { label: "Published", value: "published" },
-              { label: "Drafts", value: "drafts" },
-            ]}
-          />
-
-          <Filter
-            defaultValue="all"
-            name="isFree"
-            options={[
-              { label: "All Prices", value: "all" },
-              { label: "Free", value: "yes" },
-              { label: "No Free", value: "no" },
-            ]}
-          />
-
-          <Filter
-            defaultValue="all"
-            name="tutor"
-            options={[
-              { label: "All Tutors", value: "all" },
-              { label: "Alireza Ezlegini", value: "alireza-ezlegini" },
-              { label: "Fateme Ahmadi", value: "fateme-ahmadi" },
-            ]}
-          />
-
-          <Filter
-            defaultValue="all"
-            name="rate"
-            options={[
-              { label: "All Rates", value: "all" },
-              { label: "Highest", value: "high" },
-              { label: "Lowest", value: "low" },
-            ]}
-          />
-
-          <NewButton href="/courses/new" title="New Course" />
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="md:hidden" asChild>
+                <Button size={"sm"} variant="outline">
+                  <SlidersHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Filters</DropdownMenuLabel>
+                <div className="space-y-3">
+                  <Filters />
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <NewButton href="/courses/new" title="New Course" />
+          </div>
         </div>
       </div>
 
@@ -81,6 +67,58 @@ const page = async ({ searchParams }: Props) => {
         pageSize={pageSize}
       />
     </div>
+  );
+};
+
+const Filters = () => {
+  return (
+    <>
+      <Filter
+        defaultValue="all"
+        name="student"
+        options={[
+          { label: "All Students", value: "all" },
+          { label: "Most Students", value: "most" },
+          { label: "Lowest Students", value: "lowest" },
+        ]}
+      />
+      <Filter
+        defaultValue="all"
+        name="status"
+        options={[
+          { label: "All Statuses", value: "all" },
+          { label: "Published", value: "published" },
+          { label: "Drafts", value: "drafts" },
+        ]}
+      />
+      <Filter
+        defaultValue="all"
+        name="isFree"
+        options={[
+          { label: "All Prices", value: "all" },
+          { label: "Free", value: "yes" },
+          { label: "No Free", value: "no" },
+        ]}
+      />
+      <Filter
+        defaultValue="all"
+        name="tutor"
+        options={[
+          { label: "All Tutors", value: "all" },
+          { label: "Alireza Ezlegini", value: "alireza-ezlegini" },
+          { label: "Fateme Ahmadi", value: "fateme-ahmadi" },
+        ]}
+      />
+      <Filter
+        defaultValue="all"
+        name="rate"
+        options={[
+          { label: "All Rates", value: "all" },
+          { label: "Highest", value: "high" },
+          { label: "Lowest", value: "low" },
+        ]}
+      />
+    </>
   );
 };
 
