@@ -1,8 +1,15 @@
 "use client";
 
+import CurriculumSectionsForm from "@/components/forms/dashboard/course/CurriculumSectionsForm";
 import CardBox from "@/components/CardBox";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -70,19 +77,19 @@ const CourseForm = ({ type, course }: Props) => {
   const form = useForm<CourseFormType>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
-      title: course?.title,
-      category: course?.category,
-      description: course?.description,
-      url: course?.url,
-      duration: course?.duration,
+      title: course?.title || "",
+      category: course?.category || "",
+      description: course?.description || "",
+      url: course?.url || "",
+      duration: course?.duration || 0,
       image: undefined,
-      instructor: course?.instructor,
-      learns: course?.learns,
-      prerequisite: course?.prerequisite,
-      price: course?.price,
+      instructor: course?.instructor || "",
+      learns: course?.learns || [{ value: "" }],
+      prerequisite: course?.prerequisite || [{ value: "" }],
+      price: course?.price || 0,
       status: course?.status || "0",
-      summery: course?.summery,
-      tizerUrl: course?.tizerUrl,
+      summery: course?.summery || "",
+      tizerUrl: course?.tizerUrl || "",
       discount: {
         amount: course?.discount?.amount,
         date: {
@@ -91,6 +98,20 @@ const CourseForm = ({ type, course }: Props) => {
         },
         type: course?.discount?.type,
       },
+      curriculum: [
+        {
+          sectionTitle: "",
+          lessons: [
+            {
+              title: "",
+              duration: 0,
+              url: "",
+              isFree: false,
+              type: "VIDEO",
+            },
+          ],
+        },
+      ],
     },
   });
 
@@ -111,6 +132,16 @@ const CourseForm = ({ type, course }: Props) => {
     remove: removeCourseInclude,
   } = useFieldArray({
     name: "learns",
+    control: form.control,
+  });
+
+  // 🧮 Curriculums Field Array
+  const {
+    fields: sectionFields,
+    append: appendSection,
+    remove: removeSection,
+  } = useFieldArray({
+    name: "curriculum",
     control: form.control,
   });
 
@@ -205,7 +236,7 @@ const CourseForm = ({ type, course }: Props) => {
             />
 
             {/* //! PREREQUISITE */}
-            <div className="grid gap-3 grid-cols-2">
+            <div className="bg-white p-4 py-6 rounded-sm border grid gap-3 grid-cols-2">
               <div>
                 <FormItem>
                   <FormLabel>Prerequisites</FormLabel>
@@ -294,7 +325,44 @@ const CourseForm = ({ type, course }: Props) => {
               </div>
             </div>
 
-            <CardBox title="Curriculums">hi</CardBox>
+            <div className="py-6">
+              <Separator />
+            </div>
+
+            {/* //! CURRICULUMS */}
+            <FormLabel>Curriculums</FormLabel>
+            <div className="card">
+              {sectionFields.map((section, sectionIndex) => (
+                <CurriculumSectionsForm
+                  key={section.id}
+                  sectionIndex={sectionIndex}
+                  control={form.control}
+                  removeSection={removeSection}
+                />
+              ))}
+
+              <Button
+                type="button"
+                variant={"secondary"}
+                onClick={() =>
+                  appendSection({
+                    sectionTitle: "",
+                    lessons: [
+                      {
+                        title: "",
+                        duration: undefined,
+                        url: "",
+                        isFree: false,
+                        type: "VIDEO",
+                      },
+                    ],
+                  })
+                }
+              >
+                <Plus />
+                Add Section
+              </Button>
+            </div>
           </div>
 
           <div className="col-span-12 md:col-span-3 space-y-4 order-first md:order-last">

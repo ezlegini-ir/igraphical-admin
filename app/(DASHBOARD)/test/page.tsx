@@ -1,12 +1,7 @@
 import React from "react";
-import CurriculumForm from "./CurriculumForm";
 
 const page = () => {
-  return (
-    <div>
-      <CurriculumForm />
-    </div>
-  );
+  return <div>page</div>;
 };
 
 export default page;

@@ -2,7 +2,6 @@
 
 import Table from "@/components/Table";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   FormControl,
   FormField,
@@ -11,16 +10,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { CourseFormType } from "@/lib/validationSchema";
 import { Download, File, Plus, Trash, Video, X } from "lucide-react";
 import { Control, useFieldArray } from "react-hook-form";
-import { FormData } from "./CurriculumForm";
 
 interface SectionProps {
   sectionIndex: number;
-  control: Control<FormData>;
+  control: Control<CourseFormType>;
   removeSection: (index: number) => void;
 }
 
@@ -43,7 +43,7 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
   const renderRows = (item: any, index: number = 0) => (
     <TableRow className="odd:bg-slate-50" key={item.id || index}>
       <TableCell>
-        <div className="card p-0 w-8 h-8 aspect-square flex items-center justify-center text-gray-500 font-medium text-sm">
+        <div className="card p-4 w- h- aspect-square flex items-center justify-center text-gray-500 font-medium text-sm">
           {index + 1}
         </div>
       </TableCell>
@@ -126,21 +126,21 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
                     onValueChange={field.onChange}
                   >
                     <ToggleGroupItem
-                      className="w-8 h-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                      className="w-9 h-9 aspect-square data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                       value="VIDEO"
                       aria-label="Video"
                     >
                       <Video className="scale-90" />
                     </ToggleGroupItem>
                     <ToggleGroupItem
-                      className="w-8 h-8 data-[state=on]:bg-orange-400 data-[state=on]:text-primary-foreground"
+                      className="w-9 h-9 data-[state=on]:bg-orange-400 data-[state=on]:text-primary-foreground"
                       value="ASSET"
                       aria-label="Asset"
                     >
                       <Download className="scale-90" />
                     </ToggleGroupItem>
                     <ToggleGroupItem
-                      className="w-8 h-8 data-[state=on]:bg-slate-200 data-[state=on]:text-secondary-foreground"
+                      className="w-9 h-9 data-[state=on]:bg-slate-200 data-[state=on]:text-secondary-foreground"
                       value="FILE"
                       aria-label="File"
                     >
@@ -164,6 +164,7 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
               <div className="flex flex-col gap-1">
                 <FormControl>
                   <Switch
+                    className="data-[state=checked]:bg-green-500"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
@@ -192,7 +193,7 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
   // let the Table component iterate over it using our renderRow function.
   return (
     <div className="space-y-3">
-      <Card className="mb-4 p-4 border space-y-3">
+      <div className=" card mb-4 p-4 border space-y-3">
         <FormField
           control={control}
           name={`curriculum.${sectionIndex}.sectionTitle` as const}
@@ -200,13 +201,18 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
             <FormItem>
               <FormLabel>Section Title</FormLabel>
               <FormControl>
-                <div className="flex gap-3">
+                <div className="flex gap-1">
+                  <div className="card p-4 font-medium text-sm h-10 aspect-square flex items-center justify-center bg-blue-100">
+                    {sectionIndex + 1}
+                  </div>
+
                   <Input
                     dir="rtl"
                     className="text-left"
                     placeholder="Section Title"
                     {...field}
                   />
+
                   <Button
                     variant="outline"
                     onClick={() => removeSection(sectionIndex)}
@@ -247,7 +253,9 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
             Add Lesson
           </Button>
         </div>
-      </Card>
+      </div>
+
+      <Separator />
     </div>
   );
 };
