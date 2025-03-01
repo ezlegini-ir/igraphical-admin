@@ -78,7 +78,7 @@ export const courseFormSchema = z.object({
   instructor: z.string().min(1, "Instructor is required"),
   tizerUrl: z.string().min(1, "Teaser URL is required"),
   duration: z.number().min(1, "Duration must be a positive number"),
-  image: z.instanceof(File, { message: "Image file is required" }),
+  image: z.instanceof(File, { message: "Image file is required" }).optional(),
   category: z.string().min(1, "Category is required"),
   price: z.number().min(0, "Price must be a non-negative number"),
 
@@ -122,6 +122,13 @@ export const courseFormSchema = z.object({
           })
         ),
       })
+    )
+    .optional(),
+
+  // Gallery Schema
+  gallery: z
+    .array(
+      z.instanceof(File, { message: "Each gallery item must be an image file" })
     )
     .optional(),
 });

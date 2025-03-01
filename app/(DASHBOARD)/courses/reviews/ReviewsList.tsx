@@ -60,7 +60,7 @@ const renderRows = (review: ReviewType) => {
         <div className="flex gap-1 font-medium">
           {Array.from({ length: review.rate }).map((_, index) => (
             <Star
-              kernelMatrix={index}
+              key={index}
               fill="#facc15"
               className="text-yellow-400"
               size={15}

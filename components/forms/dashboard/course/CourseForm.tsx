@@ -1,16 +1,11 @@
 "use client";
 
-import CurriculumSectionsForm from "@/components/forms/dashboard/course/CurriculumSectionsForm";
 import CardBox from "@/components/CardBox";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import CurriculumSectionsForm from "@/components/forms/dashboard/course/CurriculumSectionsForm";
 import Loader from "@/components/Loader";
+import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -42,19 +37,21 @@ import { Textarea } from "@/components/ui/textarea";
 import useError from "@/hooks/useError";
 import useImagePreview from "@/hooks/useImagePreview";
 import useLoading from "@/hooks/useLoading";
+import useSuccess from "@/hooks/useSuccess";
 import { cn } from "@/lib/utils";
 import { CourseFormType, courseFormSchema } from "@/lib/validationSchema";
 import { placeHolder } from "@/public";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays, format } from "date-fns";
-import { CalendarIcon, Plus, Trash } from "lucide-react";
+import { CalendarIcon, Image as ImageIcon, Plus, Trash, X } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
-export type CourseProps = Omit<CourseFormType, "image"> & {
+export type CourseProps = Omit<CourseFormType, "image" | "gallery"> & {
   image: { url: string };
+  gallery: string[];
 };
 
 interface Props {
@@ -69,7 +66,11 @@ const CourseForm = ({ type, course }: Props) => {
   const { loading, setLoading } = useLoading();
   const { imagePreview, setImagePreview } = useImagePreview(course?.image.url);
   const [disocunt, setDiscount] = useState(!!course?.discount);
+  const { success, setSuccess } = useSuccess();
   const [disocuntDate, setDiscountDate] = useState(!!course?.discount?.date);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[] | undefined>(
+    course?.gallery
+  );
 
   // CONSTS
   const isUpdateType = type === "UPDATE";
@@ -91,7 +92,7 @@ const CourseForm = ({ type, course }: Props) => {
       summery: course?.summery || "",
       tizerUrl: course?.tizerUrl || "",
       discount: {
-        amount: course?.discount?.amount,
+        amount: course?.discount?.amount || 0,
         date: {
           from: course?.discount?.date?.from || new Date(),
           to: course?.discount?.date?.to || addDays(new Date(), 4),
@@ -166,19 +167,54 @@ const CourseForm = ({ type, course }: Props) => {
     control: form.control,
   });
 
+  const handleImageRemove = () => {
+    setImagePreview(undefined);
+    form.setValue("image", undefined);
+
+    //TODO: Remove From Cloud
+    console.log("deleted");
+  };
+
+  const handleGalleryRemove = (imageUrl: string) => {
+    setGalleryPreviews((prev) => prev?.filter((img) => img !== imageUrl));
+
+    form.setValue(
+      "gallery",
+      form
+        .getValues("gallery")
+        ?.filter((file) => URL.createObjectURL(file) !== imageUrl)
+    );
+
+    //TODO: Remove From Cloud
+    console.log("deleted", imageUrl);
+  };
+
+  const handleGalleryPreview = (files: File[]) => {
+    const imageUrls = Array.from(files).map((file) =>
+      URL.createObjectURL(file)
+    );
+    setGalleryPreviews(imageUrls);
+  };
+
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: any
   ) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const input = e.target;
+
+    if (input.files?.length) {
+      const file = input.files[0];
+
       field.onChange(file);
       setImagePreview(URL.createObjectURL(file));
+
+      input.value = "";
     }
   };
 
   const onSubmit = async (data: CourseFormType) => {
     setError("");
+    setSuccess("");
     setLoading(true);
 
     console.log(data);
@@ -389,15 +425,18 @@ const CourseForm = ({ type, course }: Props) => {
           <div className="col-span-12 md:col-span-3 space-y-4 order-first md:order-last">
             <CardBox title="Actions">
               <Button
-                disabled={
-                  !form.formState.isValid || loading || !form.formState.isDirty
-                }
+                // disabled={
+                //   !form.formState.isValid || loading || !form.formState.isDirty
+                // }
                 className="w-full flex gap-2"
                 type="submit"
               >
                 {<Loader loading={loading} />}
                 {type === "NEW" ? "Create" : "Update"}
               </Button>
+
+              <Error error={error} />
+              <Success success={success} />
 
               <div className="space-y-5">
                 {isUpdateType && <DeleteButton id={3} onDelete={onDelete} />}
@@ -455,37 +494,6 @@ const CourseForm = ({ type, course }: Props) => {
                   </div>
                 )}
               </div>
-            </CardBox>
-
-            {/* //! IMAGE */}
-            <CardBox title="Image">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="file-upload">
-                      <Image
-                        alt=""
-                        src={imagePreview || placeHolder}
-                        width={375}
-                        height={375}
-                        className="aspect-video rounded-md object-cover border-2 hover:border-slate-300 cursor-pointer"
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept=".webp"
-                        className="hidden"
-                        onChange={(e) => handleImageChange(e, field)}
-                        id="file-upload"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </CardBox>
 
             {/* //! PRICE */}
@@ -637,6 +645,52 @@ const CourseForm = ({ type, course }: Props) => {
               )}
             </CardBox>
 
+            {/* //! IMAGE */}
+            <CardBox title="Image">
+              <div className="relative group">
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="file-upload">
+                        <Image
+                          alt=""
+                          src={imagePreview || placeHolder}
+                          width={375}
+                          height={375}
+                          className="aspect-video rounded-md object-cover border-2 hover:border-slate-300 cursor-pointer"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept=".webp"
+                          className="hidden"
+                          onChange={(e) => handleImageChange(e, field)}
+                          id="file-upload"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {(course?.image || imagePreview) && (
+                  <Button
+                    type="button"
+                    onClick={() => handleImageRemove()}
+                    variant={"secondary"}
+                    className="absolute top-0 left-0 m-1 hidden group-hover:flex bg-black/40 hover:bg-black/50 text-white"
+                    size={"sm"}
+                  >
+                    <X />
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </CardBox>
+
             {/* //! CATEGORY */}
             <CardBox title="Category">
               <FormField
@@ -735,8 +789,67 @@ const CourseForm = ({ type, course }: Props) => {
                 </FormItem>
               )}
             />
+
+            {/* //! Gallery */}
+            <CardBox title="Gallery">
+              <FormField
+                control={form.control}
+                name="gallery"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="gallery">
+                      <div className="flex gap-2 justify-center items-center bg-secondary  p-3 rounded-sm w-full cursor-pointer hover:bg-neutral-200/60">
+                        <ImageIcon size={18} />
+                        Add Image
+                      </div>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        id="gallery"
+                        className="hidden"
+                        multiple
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            const filesArray = Array.from(e.target.files); // ✅ Convert FileList to array
+                            field.onChange(filesArray); // Pass array to React Hook Form
+                            handleGalleryPreview(filesArray);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {galleryPreviews && galleryPreviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-1">
+                  {galleryPreviews.map((image, index) => (
+                    <div className="relative group" key={index}>
+                      <Image
+                        alt={`Preview ${index}`}
+                        src={image}
+                        className="aspect-square object-cover rounded-sm"
+                        width={200}
+                        height={200}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => handleGalleryRemove(image)}
+                        className="h-4 w-4 absolute top-0 left-0 m-1 hidden group-hover:block"
+                        size={"icon"}
+                        variant={"secondary"}
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardBox>
           </div>
-          <Error error={error} />
         </form>
       </Form>
     </>

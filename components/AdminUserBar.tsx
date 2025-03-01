@@ -84,10 +84,10 @@ const menuItems = [
   { label: "Dashboard", href: "", icon: ChartNoAxesCombined },
   { label: "Announcements", href: "announcements", icon: GalleryHorizontal },
   { label: "Tickets", href: "tickets", icon: MessageCircle },
+  { label: "Overall Off", href: "panel/profile", icon: Percent },
   { label: "New Post", href: "posts/new", icon: FilePlus2 },
   { label: "New Student", href: "students/new", icon: UserPlus },
   { label: "New Course", href: "courses/new", icon: Plus },
-  { label: "Overall Off", href: "panel/profile", icon: Percent },
 ];
 
 export default UserBar;

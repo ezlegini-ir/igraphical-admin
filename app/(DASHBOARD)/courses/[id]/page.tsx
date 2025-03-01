@@ -1,7 +1,7 @@
 import CourseForm, {
   CourseProps,
 } from "@/components/forms/dashboard/course/CourseForm";
-import { coursePic } from "@/public";
+import { coursePic, profile, profile2 } from "@/public";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -40,6 +40,7 @@ const course: CourseProps = {
   tizerUrl: "https://example.com/videos/illustrator-teaser.mp4",
   duration: 25,
   image: { url: coursePic },
+  gallery: [coursePic, profile, profile2],
   category: "1",
   price: 199.99,
 
