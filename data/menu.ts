@@ -48,10 +48,7 @@ const sideBarMenuItems = [
         tabName: "Announcements",
         tabHref: "/announcements",
         tabIcon: GalleryHorizontal,
-        subMenuItems: [
-          { label: "Sliders", href: "/announcements", icon: LayoutDashboard },
-          { label: "Notif Bar", href: "/announcements/new", icon: FilePlus },
-        ],
+        subMenuItems: [],
       },
     ],
   },

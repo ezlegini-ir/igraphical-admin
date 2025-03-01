@@ -65,24 +65,26 @@ const SideBarMenu = () => {
                         </div>
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub className="text-sm font-medium py-2">
-                        {tab.subMenuItems.map((item, index) => (
-                          <Link
-                            href={`${item.href}`}
-                            key={index}
-                            className={`${
-                              pathName === item.href &&
-                              "bg-slate-100 text-primary font-medium"
-                            }  px-3 py-1.5 hover:bg-slate-100 rounded-sm`}
-                          >
-                            <SidebarMenuSubItem>
-                              {item.label}
-                            </SidebarMenuSubItem>
-                          </Link>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+                    {tab.subMenuItems.length > 0 && (
+                      <CollapsibleContent>
+                        <SidebarMenuSub className="text-sm font-medium py-2">
+                          {tab.subMenuItems.map((item, index) => (
+                            <Link
+                              href={`${item.href}`}
+                              key={index}
+                              className={`${
+                                pathName === item.href &&
+                                "bg-slate-100 text-primary font-medium"
+                              }  px-3 py-1.5 hover:bg-slate-100 rounded-sm`}
+                            >
+                              <SidebarMenuSubItem>
+                                {item.label}
+                              </SidebarMenuSubItem>
+                            </Link>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
                   </SidebarMenuItem>
                 </Collapsible>
               ))}

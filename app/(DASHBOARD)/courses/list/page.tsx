@@ -1,25 +1,17 @@
 import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
 import Search from "@/components/Search";
-import { coursePic, profile2 } from "@/public";
-import { Course } from "./CourseCard";
-import CoursesList from "./CoursesList";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { coursePic, profile2 } from "@/public";
 import { SlidersHorizontal } from "lucide-react";
+import { Course } from "./CourseCard";
+import CoursesList from "./CoursesList";
 
 interface Props {
   searchParams: Promise<{ page: string; filer: string; search: string }>;

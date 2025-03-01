@@ -61,7 +61,7 @@ const CategoryForm = ({ type, category }: Props) => {
     setLoading(false);
   };
 
-  const onDelete = (id: number) => {
+  const onDelete = (id: number | string) => {
     console.log("Delete" + id);
   };
 

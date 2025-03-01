@@ -142,3 +142,24 @@ export const reviewFormSchema = z.object({
   course: z.string(),
 });
 export type ReviewFormType = z.infer<typeof reviewFormSchema>;
+
+//! ANNOUNCEMENTS
+export const slidersFormSchema = z.object({
+  images: z.array(
+    z.object({
+      link: z.string().min(1).optional(),
+      image: z.instanceof(File).optional(),
+      active: z.boolean(),
+    })
+  ),
+});
+export type SlidersFormType = z.infer<typeof slidersFormSchema>;
+// --------------
+export const notifbarFormSchema = z.object({
+  content: z.string().min(1),
+  link: z.string().min(1),
+  bgColor: z.string().min(1),
+  textColor: z.string().min(1),
+  active: z.boolean(),
+});
+export type NotifbarFormType = z.infer<typeof notifbarFormSchema>;
