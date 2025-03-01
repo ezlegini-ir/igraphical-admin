@@ -133,3 +133,12 @@ export const courseFormSchema = z.object({
     .optional(),
 });
 export type CourseFormType = z.infer<typeof courseFormSchema>;
+// --------------
+export const reviewFormSchema = z.object({
+  content: z.string().min(1),
+  rate: z.string(),
+  user: z.string(),
+  date: z.date(),
+  course: z.string(),
+});
+export type ReviewFormType = z.infer<typeof reviewFormSchema>;

@@ -32,10 +32,10 @@ import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { cn } from "@/lib/utils";
-import { CommentFormType, commentFormSchema } from "@/lib/validationSchema";
+import { ReviewFormType, reviewFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -53,18 +53,19 @@ const ReviewForm = ({ type, review }: Props) => {
 
   const isUpdateType = type === "UPDATE";
 
-  const form = useForm<CommentFormType>({
-    resolver: zodResolver(commentFormSchema),
+  const form = useForm<ReviewFormType>({
+    resolver: zodResolver(reviewFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      content: review?.content,
-      post: review?.id.toString(),
-      date: review?.createdAt,
-      user: review?.user.id.toString(),
+      content: review?.content || "",
+      rate: review?.rate.toString() || "5",
+      course: review?.course.id.toString() || "",
+      date: review?.createdAt || new Date(),
+      user: review?.user.id.toString() || "",
     },
   });
 
-  const onSubmit = async (data: CommentFormType) => {
+  const onSubmit = async (data: ReviewFormType) => {
     setError("");
     setLoading(true);
 
@@ -99,10 +100,44 @@ const ReviewForm = ({ type, review }: Props) => {
 
         <FormField
           control={form.control}
-          name="post"
+          name="rate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Post</FormLabel>
+              <FormLabel>Rate</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a Post..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <SelectItem key={index} value={(index + 1).toString()}>
+                      <div className="flex gap-1">
+                        {Array.from({ length: index + 1 }).map((_, index) => (
+                          <Star
+                            key={index}
+                            size={15}
+                            className="text-yellow-400"
+                            fill="#facc15"
+                          />
+                        ))}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="course"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Course</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -179,9 +214,6 @@ const ReviewForm = ({ type, review }: Props) => {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
                     initialFocus
                   />
                 </PopoverContent>

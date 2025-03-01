@@ -1,4 +1,4 @@
-import CommentForm from "@/components/forms/dashboard/post/CommentForm";
+import ReviewForm from "@/components/forms/dashboard/course/ReviewForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,7 +31,7 @@ const page = async ({ searchParams }: Props) => {
             <DialogContent>
               <DialogHeader className="space-y-6">
                 <DialogTitle>New Comment</DialogTitle>
-                <CommentForm type="NEW" />
+                <ReviewForm type="NEW" />
               </DialogHeader>
             </DialogContent>
           </Dialog>
