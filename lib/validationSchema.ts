@@ -6,6 +6,7 @@ export const status = ["1", "0"] as const;
 export const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
 export const paymentStatus = ["PENDING", "SUBMITTED", "CANCELED"] as const;
 export const paymentMethod = ["zarrin_pal", "melli", "admin"] as const;
+export const couponType = ["FIXED", "PERCENT"] as const;
 
 //! LOGIN FORM
 export const loginFormSchema = z.object({
@@ -177,3 +178,14 @@ export const paymentsFormSchema = z.object({
   paymentMethod: z.enum(paymentMethod),
 });
 export type PaymentsFormType = z.infer<typeof paymentsFormSchema>;
+
+//! COUPON
+export const couponFormSchema = z.object({
+  coupon: z.string(),
+  type: z.enum(couponType),
+  amount: z.number().min(0),
+  summery: z.string(),
+  limit: z.number().min(0),
+  expiresAt: z.date().optional(),
+});
+export type CouponFormType = z.infer<typeof couponFormSchema>;

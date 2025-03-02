@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import {
-  Select as UiSelect,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Select as UiSelect,
 } from "@/components/ui/select";
-import { useRouter, useSearchParams } from "next/navigation";
 import useValue from "@/hooks/useValue";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect } from "react";
 
 // Define props for the reusable Select component
 interface SelectProps {

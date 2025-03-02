@@ -10,7 +10,6 @@ import {
   List,
   MessageCircle,
   Percent,
-  Phone,
   Star,
   Tag,
   TvMinimalPlay,
@@ -70,7 +69,7 @@ const sideBarMenuItems = [
         tabHref: "/marketing",
         tabIcon: Percent,
         subMenuItems: [
-          { label: "Discount Codes", href: "invoices/list", icon: List },
+          { label: "Coupons", href: "/marketing/coupons", icon: List },
           { label: "Overall Off", href: "invoices/list", icon: List },
         ],
       },
