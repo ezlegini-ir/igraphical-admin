@@ -1,3 +1,5 @@
+import PaymentForm from "@/components/forms/payment/PaymentForm";
+
 const page = () => {
   return (
     <div className="space-y-3">

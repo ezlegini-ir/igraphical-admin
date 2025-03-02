@@ -105,12 +105,12 @@ const sideBarMenuItems = [
         tabIcon: MessageCircle,
         subMenuItems: [{ label: "New", href: "tickets/new", icon: List }],
       },
-      {
-        tabName: "Contacts",
-        tabHref: "/contacts",
-        tabIcon: Phone,
-        subMenuItems: [{ label: "List", href: "contacts/list", icon: List }],
-      },
+      // {
+      //   tabName: "Contacts",
+      //   tabHref: "/contacts",
+      //   tabIcon: Phone,
+      //   subMenuItems: [{ label: "List", href: "contacts/list", icon: List }],
+      // },
       // {
       //   tabName: "SMS",
       // tabHref: "sms",

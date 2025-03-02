@@ -4,6 +4,8 @@ const requiredMessage = "Required";
 export const adminRoles = ["ADMIN", "AUTHOR"] as const;
 export const status = ["1", "0"] as const;
 export const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
+export const paymentStatus = ["PENDING", "SUBMITTED", "CANCELED"] as const;
+export const paymentMethod = ["zarrin_pal", "melli", "admin"] as const;
 
 //! LOGIN FORM
 export const loginFormSchema = z.object({
@@ -163,3 +165,15 @@ export const notifbarFormSchema = z.object({
   active: z.boolean(),
 });
 export type NotifbarFormType = z.infer<typeof notifbarFormSchema>;
+
+//! PAYMENTS
+export const paymentsFormSchema = z.object({
+  createdAt: z.date(),
+  status: z.enum(paymentStatus),
+  total: z.number().min(0),
+  user: z.string().min(1),
+  courses: z.array(z.object({ id: z.string() })),
+  discountCode: z.string().optional(),
+  paymentMethod: z.enum(paymentMethod),
+});
+export type PaymentsFormType = z.infer<typeof paymentsFormSchema>;

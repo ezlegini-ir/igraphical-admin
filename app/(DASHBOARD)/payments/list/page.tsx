@@ -31,7 +31,7 @@ const page = async ({ searchParams }: Props) => {
             ]}
           />
 
-          <NewButton href="/posts/new" title="New Payment" />
+          <NewButton href="/payments/new" title="New Payment" />
         </div>
       </div>
 

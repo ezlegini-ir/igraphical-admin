@@ -7,8 +7,6 @@ import Link from "next/link";
 import PaymentPreview from "./PaymentPreview";
 import { formatDate } from "@/lib/date";
 
-type statuses = "PENDING" | "SUBMITTED" | "CANCELED";
-
 export type Payment = {
   id: number;
   discount?: {
@@ -27,7 +25,7 @@ export type Payment = {
     title: string;
     image: { url: string };
   }[];
-  status: statuses;
+  status: "PENDING" | "SUBMITTED" | "CANCELED";
   date: Date;
   total: number;
 };
