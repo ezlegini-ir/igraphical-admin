@@ -1,11 +1,10 @@
+import { Eye } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 import { Button } from "./ui/button";
-import { Eye, PencilIcon } from "lucide-react";
 
-const ViewButton = ({ href }: { href: string }) => {
+const ViewButton = ({ href }: { href?: string }) => {
   return (
-    <Link href={href}>
+    <Link href={href || ""}>
       <Button
         size={"icon"}
         variant={"secondary"}

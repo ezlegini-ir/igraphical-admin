@@ -61,8 +61,8 @@ const sideBarMenuItems = [
         tabHref: "/payments",
         tabIcon: CreditCard,
         subMenuItems: [
-          { label: "List", href: "payments/list", icon: List },
-          { label: "New", href: "payments/new", icon: List },
+          { label: "List", href: "/payments/list", icon: List },
+          { label: "New", href: "/payments/new", icon: List },
         ],
       },
       {
