@@ -7,6 +7,13 @@ export const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
 export const paymentStatus = ["PENDING", "SUBMITTED", "CANCELED"] as const;
 export const paymentMethod = ["zarrin_pal", "melli", "admin"] as const;
 export const couponType = ["FIXED", "PERCENT"] as const;
+export const ticketStatus = ["PENDING", "CLOSED", "ANSWERED"] as const;
+export const ticketDepartment = [
+  "TECHNICAL",
+  "FINANCE",
+  "COURSE",
+  "SUGGEST",
+] as const;
 
 //! LOGIN FORM
 export const loginFormSchema = z.object({
@@ -197,3 +204,20 @@ export const overallOffFormSchema = z.object({
   excludeCourses: z.array(z.object({ id: z.string() })),
 });
 export type OverallOffFormType = z.infer<typeof overallOffFormSchema>;
+
+//! TICKET FORM
+export const TicketFormSchema = z.object({
+  subject: z.string().min(1),
+  user: z.string().min(1),
+  status: z.enum(ticketStatus),
+  department: z.enum(ticketDepartment),
+  message: z.string().min(1).optional(),
+  file: z.instanceof(File).optional(),
+});
+export type TicketFormType = z.infer<typeof TicketFormSchema>;
+// --------------
+export const ticketCommentFormSchema = z.object({
+  comment: z.string().min(1),
+  file: z.instanceof(File).optional(),
+});
+export type TicketCommentFormType = z.infer<typeof ticketCommentFormSchema>;

@@ -1,6 +1,7 @@
 import {
   BookOpen,
   ChartBarBig,
+  ChartNoAxesCombined,
   CreditCard,
   GalleryHorizontal,
   GraduationCap,
@@ -67,15 +68,6 @@ const sideBarMenuItems = [
           { label: "Overall Off", href: "/marketing/overall-off" },
         ],
       },
-      {
-        tabName: "Statistics",
-        tabHref: "/statistics",
-        tabIcon: ChartBarBig,
-        subMenuItems: [
-          { label: "Overview", href: "statistics" },
-          { label: "Reports", href: "statistics/reports" },
-        ],
-      },
       // {
       //   tabName: "Exports",
       // tabHref: "exports",
@@ -96,7 +88,10 @@ const sideBarMenuItems = [
         tabName: "Tickets",
         tabHref: "/tickets",
         tabIcon: MessageCircle,
-        subMenuItems: [{ label: "New", href: "tickets/new" }],
+        subMenuItems: [
+          { label: "New", href: "/tickets/new" },
+          { label: "List", href: "/tickets/list" },
+        ],
       },
       // {
       //   tabName: "Contacts",
@@ -149,6 +144,41 @@ const sideBarMenuItems = [
         subMenuItems: [
           // { label: "New", href: "admins/list",},
           // { label: "List", href: "admins/list",},
+        ],
+      },
+    ],
+  },
+
+  {
+    groupName: "Data Analysis",
+    subMenuItems: [
+      {
+        tabName: "Analysis",
+        tabHref: "/analysis",
+        tabIcon: ChartBarBig,
+        subMenuItems: [
+          { label: "Overview", href: "/analysis" },
+          { label: "Earnings", href: "/statistics/earnings" },
+          { label: "Coupons", href: "/statistics/coupons" },
+          { label: "Registrations", href: "/statistics/registrations" },
+          { label: "Ratings", href: "/statistics/ratings" },
+          { label: "Instructors", href: "/statistics/instructors" },
+          { label: "Students", href: "/statistics/students" },
+          { label: "Tickets", href: "/statistics/tickets" },
+        ],
+      },
+
+      {
+        tabName: "Statistics",
+        tabHref: "/statistics",
+        tabIcon: ChartNoAxesCombined,
+        subMenuItems: [
+          { label: "Overview", href: "/statistics" },
+          { label: "Views", href: "/statistics/views" },
+          { label: "Pages", href: "/statistics/pages" },
+          { label: "Courses", href: "/statistics/courses" },
+          { label: "Refers", href: "/statistics/refers" },
+          { label: "Devices", href: "/statistics/refers" },
         ],
       },
     ],

@@ -17,7 +17,6 @@ import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import { LoginFormType, loginFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 
