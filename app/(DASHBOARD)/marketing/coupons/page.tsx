@@ -1,5 +1,5 @@
 import Filter from "@/components/Filter";
-import CouponForm from "@/components/forms/coupon/CouponForm";
+import CouponForm from "@/components/forms/marketing/CouponForm";
 import Search from "@/components/Search";
 import { Button } from "@/components/ui/button";
 import {

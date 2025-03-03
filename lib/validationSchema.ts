@@ -179,7 +179,7 @@ export const paymentsFormSchema = z.object({
 });
 export type PaymentsFormType = z.infer<typeof paymentsFormSchema>;
 
-//! COUPON
+//! MARKETING
 export const couponFormSchema = z.object({
   coupon: z.string(),
   type: z.enum(couponType),
@@ -189,3 +189,11 @@ export const couponFormSchema = z.object({
   expiresAt: z.date().optional(),
 });
 export type CouponFormType = z.infer<typeof couponFormSchema>;
+// --------------
+export const overallOffFormSchema = z.object({
+  amount: z.number().min(0),
+  expiresAt: z.date(),
+  includeCourses: z.array(z.object({ id: z.string() })),
+  excludeCourses: z.array(z.object({ id: z.string() })),
+});
+export type OverallOffFormType = z.infer<typeof overallOffFormSchema>;

@@ -1,5 +1,5 @@
 import EditButton from "@/components/EditButton";
-import CouponForm from "@/components/forms/coupon/CouponForm";
+import CouponForm from "@/components/forms/marketing/CouponForm";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import {
