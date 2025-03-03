@@ -1,0 +1,75 @@
+import EditButton from "@/components/EditButton";
+import TutorForm from "@/components/forms/tutor/TutorForm";
+import Pagination from "@/components/Pagination";
+import Table from "@/components/Table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Tutor } from "@prisma/client";
+import { formatDistance } from "date-fns";
+
+interface Props {
+  tutors: Tutor[];
+  totalTutors: number;
+  pageSize: number;
+}
+
+const TutorsList = async ({ tutors, totalTutors, pageSize }: Props) => {
+  return (
+    <div className="card">
+      <Table columns={columns} data={tutors} renderRows={renderRows} />
+      <Pagination pageSize={pageSize} totalItems={totalTutors} />
+    </div>
+  );
+};
+
+const renderRows = (tutor: Tutor) => {
+  return (
+    <TableRow key={tutor.id} className="odd:bg-slate-50">
+      <TableCell>{tutor.name}</TableCell>
+      <TableCell className="text-center hidden xl:table-cell">
+        {tutor.displayName}
+      </TableCell>
+
+      <TableCell className="text-center">{tutor.email}</TableCell>
+      <TableCell className="text-center hidden xl:table-cell">
+        {tutor.phone}
+      </TableCell>
+      <TableCell className="text-center hidden xl:table-cell">
+        {formatDistance(tutor.joinedAt, new Date(), { addSuffix: true })}
+      </TableCell>
+      <TableCell className="lg:flex gap-2 hidden ">
+        <Dialog>
+          <DialogTrigger asChild>
+            <EditButton />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader className="space-y-6">
+              <DialogTitle>Update Admin</DialogTitle>
+              <TutorForm type="UPDATE" tutor={tutor} />
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      </TableCell>
+    </TableRow>
+  );
+};
+
+const columns = [
+  { label: "Name", className: "" },
+  { label: "Display Name", className: "text-center hidden xl:table-cell" },
+  { label: "Email", className: "text-center" },
+  { label: "Phone", className: "text-center hidden xl:table-cell" },
+  { label: "Tutor Since", className: "text-center hidden xl:table-cell" },
+  {
+    label: "Actions",
+    className: "text-right w-[60px] hidden lg:table-cell",
+  },
+];
+
+export default TutorsList;

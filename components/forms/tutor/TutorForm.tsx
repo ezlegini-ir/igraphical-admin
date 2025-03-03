@@ -18,30 +18,20 @@ import { Input } from "@/components/ui/input";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
-import {
-  AdminFormType,
-  adminFormSchema,
-  adminRoles,
-} from "@/lib/validationSchema";
+import { TutorFormType, tutorFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { createAdmin, deleteAdmin, updateAdmin } from "@/actions/admin";
+import { createTutor, deleteTutor, updateTutor } from "@/actions/tutor";
+import { Tutor } from "@prisma/client";
 
 interface Props {
-  admin?: AdminFormType & { id: string };
+  tutor?: Tutor;
   type: "NEW" | "UPDATE";
 }
 
-const AdminForm = ({ type, admin }: Props) => {
+const TutorForm = ({ type, tutor: admin }: Props) => {
   // HOOKS
   const router = useRouter();
   const { error, setError } = useError();
@@ -50,8 +40,8 @@ const AdminForm = ({ type, admin }: Props) => {
 
   const isUpdateType = type === "UPDATE";
 
-  const form = useForm<AdminFormType>({
-    resolver: zodResolver(adminFormSchema),
+  const form = useForm<TutorFormType>({
+    resolver: zodResolver(tutorFormSchema),
     mode: "onSubmit",
     defaultValues: {
       name: admin?.name || "",
@@ -59,19 +49,18 @@ const AdminForm = ({ type, admin }: Props) => {
       password: "",
       email: admin?.email || "",
       phone: admin?.phone || "",
-      role: admin?.role || "ADMIN",
     },
   });
 
-  const onSubmit = async (data: AdminFormType) => {
+  const onSubmit = async (data: TutorFormType) => {
     setError("");
     setLoading(true);
 
     let res;
     if (isUpdateType) {
-      res = await updateAdmin({ ...data, id: admin?.id! });
+      res = await updateTutor({ ...data, id: admin?.id! });
     } else {
-      res = await createAdmin(data);
+      res = await createTutor(data);
     }
 
     if (res.error) {
@@ -92,7 +81,7 @@ const AdminForm = ({ type, admin }: Props) => {
     setSuccess("");
     setLoading(true);
 
-    const res = await deleteAdmin(id as string);
+    const res = await deleteTutor(id as string);
 
     if (res.error) {
       setError(res.error);
@@ -182,31 +171,6 @@ const AdminForm = ({ type, admin }: Props) => {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role for admin..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {adminRoles.map((role, index) => (
-                    <SelectItem key={index} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <Button
           disabled={!form.formState.isValid || loading}
           className="w-full flex gap-2"
@@ -224,4 +188,4 @@ const AdminForm = ({ type, admin }: Props) => {
   );
 };
 
-export default AdminForm;
+export default TutorForm;

@@ -25,6 +25,17 @@ model Admin {
   phone       String    @unique
   email       String    @unique
   role        AdminRole
+  joinedAt    DateTime  @default(now())
+}
+
+model Tutor {
+  id          String   @id @default(uuid())
+  name        String
+  displayName String
+  password    String
+  phone       String   @unique
+  email       String   @unique
+  joinedAt    DateTime @default(now())
 }
 
 model Otp {

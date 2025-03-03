@@ -63,17 +63,6 @@ export const commentFormSchema = z.object({
 });
 export type CommentFormType = z.infer<typeof commentFormSchema>;
 
-//! ADMINS
-export const adminFormSchema = z.object({
-  name: z.string().min(1),
-  displayName: z.string().min(1),
-  role: z.enum(adminRoles),
-  email: z.string().min(1),
-  phone: z.string().min(1),
-  password: z.string().optional(),
-});
-export type AdminFormType = z.infer<typeof adminFormSchema>;
-
 //! COURSES
 export const courseFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -231,3 +220,24 @@ export const studentFormSchema = z.object({
   nationalId: z.string().min(10).optional(),
 });
 export type StudentFormType = z.infer<typeof studentFormSchema>;
+
+//! TUTOR FORM
+export const tutorFormSchema = z.object({
+  name: z.string().min(1),
+  displayName: z.string().min(1),
+  email: z.string().min(1),
+  phone: z.string().min(1),
+  password: z.string().optional(),
+});
+export type TutorFormType = z.infer<typeof tutorFormSchema>;
+
+//! ADMINS
+export const adminFormSchema = z.object({
+  name: z.string().min(1),
+  displayName: z.string().min(1),
+  role: z.enum(adminRoles),
+  email: z.string().min(1),
+  phone: z.string().min(1),
+  password: z.string().optional(),
+});
+export type AdminFormType = z.infer<typeof adminFormSchema>;
