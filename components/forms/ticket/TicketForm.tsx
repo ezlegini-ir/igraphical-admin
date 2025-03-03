@@ -139,7 +139,7 @@ const TicketForm = ({ type, ticket }: Props) => {
         className="grid grid-cols-12 gap-5 "
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <div className="col-span-9 h-min space-y-3">
+        <div className="col-span-12 lg:col-span-8 xl:col-span-9 h-min space-y-3">
           <CardBox title="Send a new message">
             <FormField
               control={form.control}
@@ -247,7 +247,10 @@ const TicketForm = ({ type, ticket }: Props) => {
           </CardBox>
         </div>
 
-        <CardBox title="Summery" className="col-span-3 h-min">
+        <CardBox
+          title="Summery"
+          className="col-span-12 lg:col-span-4 xl:col-span-3 h-min order-first lg:order-last"
+        >
           {isUpdateType && (
             <div className="space-y-3">
               <div className="flex justify-between text-gray-500 text-xs">
