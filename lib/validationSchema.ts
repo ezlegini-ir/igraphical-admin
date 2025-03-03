@@ -221,3 +221,13 @@ export const ticketCommentFormSchema = z.object({
   file: z.instanceof(File).optional(),
 });
 export type TicketCommentFormType = z.infer<typeof ticketCommentFormSchema>;
+
+//! STUDENT FORM
+export const studentFormSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(11),
+  nationalId: z.string().min(10).optional(),
+});
+export type StudentFormType = z.infer<typeof studentFormSchema>;

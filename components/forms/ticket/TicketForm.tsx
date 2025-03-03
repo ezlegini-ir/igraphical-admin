@@ -26,7 +26,7 @@ import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import {
-  TicketFormType,
+  StudentFormType,
   TicketFormSchema,
   ticketDepartment,
   ticketStatus,
@@ -89,7 +89,7 @@ const TicketForm = ({ type, ticket }: Props) => {
 
   const isUpdateType = type === "UPDATE";
 
-  const form = useForm<TicketFormType>({
+  const form = useForm<StudentFormType>({
     resolver: zodResolver(TicketFormSchema),
     mode: "onSubmit",
     defaultValues: {
@@ -117,7 +117,7 @@ const TicketForm = ({ type, ticket }: Props) => {
     }
   };
 
-  const onSubmit = async (data: TicketFormType) => {
+  const onSubmit = async (data: StudentFormType) => {
     setError("");
     setLoading(true);
 

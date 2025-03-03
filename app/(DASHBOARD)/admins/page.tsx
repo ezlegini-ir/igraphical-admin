@@ -32,7 +32,7 @@ const page = async ({ searchParams }: Props) => {
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
-        <h3>Posts</h3>
+        <h3>Admins</h3>
         <div className="flex gap-3 justify-between items-center">
           <Filter
             defaultValue="all"
