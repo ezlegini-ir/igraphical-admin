@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { profile } from "@/public";
+import { Admin } from "@prisma/client";
 import {
   ChartNoAxesCombined,
   FilePlus2,
@@ -21,12 +22,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const UserBar = () => {
+interface Props {
+  user: Admin | null;
+}
+
+const UserBar = ({ user }: Props) => {
   return (
     <Popover>
       <PopoverTrigger>
         <div className="cursor-pointer drop-shadow-lg">
-          <Avatar src={profile} size={35} />
+          <Avatar src={profile} size={40} />
         </div>
       </PopoverTrigger>
 
@@ -35,9 +40,9 @@ const UserBar = () => {
           <div className="bg-slate-100 p-3 px-2 rounded-sm border-dashed border-slate-400/60 border-[1px] flex gap-2 items-center">
             <Avatar src={profile} size={37} />
             <div className="flex flex-col">
-              <span>Alireza Ezlegini</span>
+              <span>{user?.name}</span>
               <span className="text-xs text-primary font-semibold">
-                ezlegini.ir@gmail.com
+                {user?.role}
               </span>
             </div>
           </div>
