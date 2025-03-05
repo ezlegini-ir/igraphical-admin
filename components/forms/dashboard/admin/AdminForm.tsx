@@ -73,7 +73,7 @@ const AdminForm = ({ type, admin }: Props) => {
 
     let res;
     if (isUpdateType) {
-      res = await updateAdmin({ ...data, id: admin?.id! });
+      res = await updateAdmin(data, admin?.id!);
     } else {
       res = await createAdmin(data);
     }
@@ -91,19 +91,21 @@ const AdminForm = ({ type, admin }: Props) => {
     }
   };
 
-  const onDelete = async (id: number) => {
+  const onDelete = async () => {
     setError("");
     setSuccess("");
     setLoading(true);
 
-    const res = await deleteAdmin(id);
+    const res = await deleteAdmin(admin?.id!);
 
     if (res.error) {
       setError(res.error);
       setLoading(false);
     }
 
-    router.refresh();
+    if (res.success) {
+      router.refresh();
+    }
   };
 
   return (
@@ -230,7 +232,7 @@ const AdminForm = ({ type, admin }: Props) => {
           {isUpdateType ? "Update" : "Create"}
         </Button>
 
-        {isUpdateType && <DeleteButton id={admin?.id!} onDelete={onDelete} />}
+        {isUpdateType && <DeleteButton onDelete={onDelete} />}
         <Error error={error} />
         <Success success={success} />
       </form>

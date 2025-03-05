@@ -46,8 +46,8 @@ export type OtpType = z.infer<typeof otpFormSchema>;
 //! POSTS
 export const postFormSchema = z.object({
   title: z.string().min(1),
-  url: z.string().min(1),
-  image: z.instanceof(File),
+  url: z.string().min(1).trim(),
+  image,
   content: z.string().min(1),
   categories: z.array(z.string()),
   status: z.enum(status),

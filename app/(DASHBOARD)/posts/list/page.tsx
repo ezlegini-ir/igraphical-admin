@@ -1,21 +1,45 @@
 import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
 import Search from "@/components/Search";
-import { coursePic } from "@/public";
 import PostsList from "./PostsList";
+import prisma from "@/prisma/client";
+import { PostStatus } from "@prisma/client";
+import { getSessionAdmin } from "@/data/admin";
 interface Props {
-  searchParams: Promise<{ page: string; filer: string; search: string }>;
+  searchParams: Promise<{ page: string; filter: string; search: string }>;
 }
 
-const totalPosts = 15;
+const pageSize = 15;
 
 const page = async ({ searchParams }: Props) => {
-  // const { page, filer, search } = await searchParams;
+  const { page, filter, search } = await searchParams;
+  const sessionId = await getSessionAdmin();
+
+  const where = {
+    status:
+      filter === "all" || filter === "my-posts"
+        ? undefined
+        : (filter as PostStatus),
+    authorId: filter === "my-posts" ? sessionId?.id! : undefined,
+    title: { contains: search },
+  };
+
+  const posts = await prisma.post.findMany({
+    where,
+    include: { image: true, categories: true, author: true },
+    orderBy: { id: "desc" },
+
+    skip: ((+page || 1) - 1) * pageSize,
+    take: pageSize,
+  });
+  const totalPosts = await prisma.post.count({ where });
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
-        <h3>Posts</h3>
+        <h3>
+          {totalPosts} {totalPosts > 1 ? "Posts" : "Post"}
+        </h3>
         <div className="flex gap-3 justify-between items-center">
           <Search />
 
@@ -24,8 +48,8 @@ const page = async ({ searchParams }: Props) => {
             placeholder="All Posts"
             options={[
               { label: "All Posts", value: "all" },
-              { label: "Published", value: "published" },
-              { label: "Drafts", value: "drafts" },
+              { label: "Published", value: "PUBLISHED" },
+              { label: "Drafts", value: "DRAFT" },
               { label: "My Posts", value: "my-posts" },
             ]}
           />
@@ -34,147 +58,9 @@ const page = async ({ searchParams }: Props) => {
         </div>
       </div>
 
-      <PostsList posts={posts} totalPosts={totalPosts} />
+      <PostsList posts={posts} totalPosts={totalPosts} pageSize={pageSize} />
     </div>
   );
 };
 
 export default page;
-
-const posts = [
-  {
-    id: 1,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 1243451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 2,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 1663451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 3,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 4,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 5,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 6,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 7,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 8,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 9,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 10,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 11,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 12,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 13,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 14,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-  {
-    id: 15,
-    title: "چطور در ادوبی ایلوستریتور سواچ های  پنتون را برگردانیم؟",
-    image: { url: coursePic },
-    author: { name: "Alireza Ezlegini" },
-    category: [{ name: "بسته بندی" }],
-    views: 123451,
-    publishedAt: new Date(),
-  },
-];

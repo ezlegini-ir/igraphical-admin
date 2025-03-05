@@ -12,11 +12,11 @@ import {
 import { Button } from "./ui/button";
 
 interface Props {
-  id: number;
-  onDelete: (id: number) => void;
+  onDelete: () => void;
+  disabled?: boolean;
 }
 
-const DeleteButton = ({ id, onDelete }: Props) => {
+const DeleteButton = ({ onDelete, disabled = false }: Props) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -24,6 +24,7 @@ const DeleteButton = ({ id, onDelete }: Props) => {
           variant={"destructive"}
           className="w-full flex gap-2"
           type="button"
+          disabled={disabled}
         >
           {/* {<Loader loading={loading} />} */}
           Delete
@@ -39,7 +40,7 @@ const DeleteButton = ({ id, onDelete }: Props) => {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => onDelete(id)}
+            onClick={onDelete}
             className="bg-red-500 hover:bg-red-600"
           >
             Delete

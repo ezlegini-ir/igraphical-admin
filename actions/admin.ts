@@ -69,8 +69,8 @@ export const createAdmin = async (data: AdminFormType) => {
 
 //? UPDATE ------------------------------------------------------------
 
-export const updateAdmin = async (data: AdminFormType & { id: number }) => {
-  const { displayName, email, id, name, phone, role, password, image } = data;
+export const updateAdmin = async (data: AdminFormType, id: number) => {
+  const { displayName, email, name, phone, role, password, image } = data;
 
   try {
     const existingAdmin = await getAdminById(id);

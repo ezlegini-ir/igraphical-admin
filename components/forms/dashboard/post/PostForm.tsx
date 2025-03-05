@@ -1,5 +1,7 @@
 "use client";
 
+import { createPost, deletePost, updatePost } from "@/actions/post";
+import { PostType } from "@/app/(DASHBOARD)/posts/list/PostsList";
 import CardBox from "@/components/CardBox";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
@@ -29,30 +31,29 @@ import useError from "@/hooks/useError";
 import useImagePreview from "@/hooks/useImagePreview";
 import useLoading from "@/hooks/useLoading";
 import { PostFormType, postFormSchema } from "@/lib/validationSchema";
-import { placeHolder } from "@/public";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
+import { Admin, PostCategory } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import ImageField from "../../ImageField";
+import Link from "next/link";
+import useSuccess from "@/hooks/useSuccess";
+import Success from "@/components/Success";
 
 interface Props {
   type: "NEW" | "UPDATE";
-  post?: {
-    title: string;
-    url: string;
-    content: string;
-    categories: { id: number }[];
-    image: { url: string };
-    author: { id: number };
-    status: "0" | "1";
-  };
+  post?: PostType;
+  categories: PostCategory[];
+  authors: Admin[];
 }
 
-const PostForm = ({ type, post }: Props) => {
+const PostForm = ({ type, post, categories, authors }: Props) => {
   // HOOKS
-  // const router = useRouter();
+  const router = useRouter();
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { imagePreview, setImagePreview } = useImagePreview(post?.image.url);
+  const { imagePreview, setImagePreview } = useImagePreview(post?.image?.url);
+  const { success, setSuccess } = useSuccess();
 
   // CONSTS
   const isUpdateType = type === "UPDATE";
@@ -60,37 +61,64 @@ const PostForm = ({ type, post }: Props) => {
   const form = useForm<PostFormType>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
-      title: post?.title,
-      url: post?.url,
-      content: post?.content,
-      status: post?.status || "0",
+      title: post?.title || "",
+      url: post?.url || "",
+      content: post?.content || "",
+      status: post?.status ? (post?.status === "DRAFT" ? "0" : "1") : "0",
       categories:
-        post?.categories.map((category) => category.id.toString()) || [],
+        post?.categories?.map((category) => category.id.toString()) || [],
       image: undefined,
-      author: post?.author.id.toString(),
+      author: post?.author?.id?.toString() || "",
     },
   });
-
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: any
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      field.onChange(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
 
   const onSubmit = async (data: PostFormType) => {
     setError("");
     setLoading(true);
 
-    console.log(data);
+    if (isUpdateType) {
+      const res = await updatePost(data, post?.id!);
+
+      if (res.error) {
+        setError(res.error);
+        setLoading(false);
+        return;
+      }
+
+      if (res.success) {
+        setSuccess(res.success);
+        setLoading(false);
+        router.refresh();
+      }
+    } else {
+      const res = await createPost(data);
+
+      if (res.error) {
+        setError(res.error);
+        setLoading(false);
+        return;
+      }
+
+      if (res.success) {
+        router.push(`/posts/${res.data?.id}`);
+      }
+    }
   };
 
-  const onDelete = (id: number | string) => {
-    console.log(`post ${id} Deleted`);
+  const onDelete = async () => {
+    setError("");
+    setLoading(true);
+
+    const res = await deletePost(post?.id!);
+
+    if (res.error) {
+      setError(res.error);
+      setLoading(false);
+    }
+
+    if (res.success) {
+      router.push("/posts/list");
+    }
   };
 
   return (
@@ -113,19 +141,33 @@ const PostForm = ({ type, post }: Props) => {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Url</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+
+          <div>
+            <FormField
+              control={form.control}
+              name="url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Url</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {isUpdateType && (
+              <Link
+                href={`${process.env.NEXT_PUBLIC_MAIN_URL}/blog/${post?.url}`}
+                className="text-xs text-gray-500"
+              >
+                <p>
+                  {process.env.NEXT_PUBLIC_MAIN_URL}/blog/{post?.url}
+                </p>
+              </Link>
             )}
-          />
+          </div>
+
           <FormField
             control={form.control}
             name="content"
@@ -153,37 +195,40 @@ const PostForm = ({ type, post }: Props) => {
               {<Loader loading={loading} />}
               {type === "NEW" ? "Create" : "Update"}
             </Button>
+            <Error error={error} />
+            <Success success={success} />
+
+            <Separator />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">⬜ Draft</SelectItem>
+                        <SelectItem value="1">🟩 Published</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {isUpdateType && (
               <div className="space-y-5">
-                <DeleteButton id={3} onDelete={onDelete} />
-
-                <Separator />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="0">⬜ Draft</SelectItem>
-                            <SelectItem value="1">🟩 Published</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <DeleteButton disabled={loading} onDelete={onDelete} />
 
                 <Separator />
 
@@ -191,7 +236,7 @@ const PostForm = ({ type, post }: Props) => {
                   <p className="flex flex-col">
                     <span>Published At</span>
                     <span className="text-sm">
-                      {new Date().toLocaleString()}
+                      {post?.createdAt.toLocaleString()}
                     </span>
                   </p>
 
@@ -202,7 +247,7 @@ const PostForm = ({ type, post }: Props) => {
                   <p className="flex flex-col">
                     <span>Last Update</span>
                     <span className="text-sm">
-                      {new Date().toLocaleString()}
+                      {post?.updatedAt.toLocaleString()}
                     </span>
                   </p>
                 </div>
@@ -211,33 +256,12 @@ const PostForm = ({ type, post }: Props) => {
           </CardBox>
 
           <CardBox title="Image">
-            <FormField
+            <ImageField
               control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  {/* <FormLabel>فایل (اختیاری)</FormLabel> */}
-                  <FormLabel htmlFor="file-upload">
-                    <Image
-                      alt=""
-                      src={imagePreview || placeHolder}
-                      width={375}
-                      height={375}
-                      className="aspect-video rounded-md object-cover border-2 hover:border-slate-300 cursor-pointer"
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept=".webp"
-                      className="hidden"
-                      onChange={(e) => handleImageChange(e, field)}
-                      id="file-upload"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              setImagePreview={setImagePreview}
+              imagePreview={imagePreview}
+              setValue={form.setValue}
+              public_id={post?.image?.public_id}
             />
           </CardBox>
 
@@ -245,44 +269,36 @@ const PostForm = ({ type, post }: Props) => {
             <FormField
               control={form.control}
               name="categories"
-              render={() => (
+              render={({ field }) => (
                 <FormItem>
-                  {/* <div className="mb-4">
-                    <FormLabel>Categories</FormLabel>
-                  </div> */}
-                  {categories.map((item) => (
-                    <FormField
-                      key={item.id}
-                      control={form.control}
-                      name="categories"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item.id}
-                            className="flex flex-row items-start gap-3 pb-1.5 "
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, item.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item.id
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal cursor-pointer">
-                              {item.label}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
+                  {categories?.map((item) => {
+                    const isChecked = field.value?.includes(item.id.toString());
+
+                    return (
+                      <FormItem
+                        key={item.id}
+                        className="flex flex-row items-start gap-3 pb-1.5"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              const updatedCategories = checked
+                                ? [...field.value, item.id.toString()]
+                                : field.value.filter(
+                                    (value) => value !== item.id.toString()
+                                  );
+
+                              field.onChange(updatedCategories);
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal cursor-pointer">
+                          {item.name}
+                        </FormLabel>
+                      </FormItem>
+                    );
+                  })}
                   <FormMessage />
                 </FormItem>
               )}
@@ -295,14 +311,13 @@ const PostForm = ({ type, post }: Props) => {
               name="author"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  {/* <FormLabel>Notify me about...</FormLabel> */}
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="flex flex-col space-y-1"
                     >
-                      {authors.map((item, index) => (
+                      {authors?.map((item, index) => (
                         <FormItem
                           key={index}
                           className="flex items-center space-x-3 space-y-0"
@@ -323,42 +338,9 @@ const PostForm = ({ type, post }: Props) => {
             />
           </CardBox>
         </div>
-        <Error error={error} />
       </form>
     </Form>
   );
 };
 
 export default PostForm;
-
-const authors = [
-  { name: "Alireza Ezlegini", id: 123 },
-  { name: "Fateme Ahmadi", id: 124 },
-  { name: "Mahdi Bahrami", id: 125 },
-];
-const categories = [
-  {
-    id: "1",
-    label: "بسته بندی",
-  },
-  {
-    id: "2",
-    label: "ایلوستریتور",
-  },
-  {
-    id: "3",
-    label: "گرافیک",
-  },
-  {
-    id: "4",
-    label: "سه بعدی",
-  },
-  {
-    id: "5",
-    label: "بلندر",
-  },
-  {
-    id: "6",
-    label: "فتوشاپ",
-  },
-] as const;

@@ -29,7 +29,10 @@ model Admin {
   email       String    @unique
   role        AdminRole
   joinedAt    DateTime  @default(now())
-  image       Image?
+
+  // Relations
+  image Image?
+  post  Post[]
 }
 
 enum AdminRole {
@@ -80,4 +83,44 @@ model Image {
   adminId Int?   @unique
   tutor   Tutor? @relation(fields: [tutorId], references: [id], onDelete: Cascade)
   tutorId Int?   @unique
+  post    Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  Int?   @unique
+}
+
+//! Posts
+model Post {
+  id         Int            @id @default(autoincrement())
+  title      String
+  url        String         @unique
+  content    String
+  categories PostCategory[]
+  status     PostStatus     @default(DRAFT)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  comments   Comment[]
+  image      Image?
+  imageId    Int?
+  author     Admin?         @relation(fields: [authorId], references: [id])
+  authorId   Int?
+}
+
+model PostCategory {
+  id    Int    @id @default(autoincrement())
+  name  String
+  url   String @unique
+  posts Post[]
+}
+
+model Comment {
+  id      Int      @id @default(autoincrement())
+  content String
+  user    String
+  date    DateTime @default(now())
+  post    Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  Int
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
 }
