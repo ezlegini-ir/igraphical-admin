@@ -8,7 +8,7 @@ export const getTutorByIdentifier = async (identifier: string) => {
   });
 };
 
-export const getTutorById = async (id: string) => {
+export const getTutorById = async (id: number) => {
   if (!id) return;
   return await prisma.tutor.findUnique({
     where: {

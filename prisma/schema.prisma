@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//! User Managment
 model User {
   id         Int      @id @default(autoincrement())
   firstName  String
@@ -19,7 +20,7 @@ model User {
 }
 
 model Admin {
-  id          String    @id @default(uuid())
+  id          Int       @id @default(autoincrement())
   name        String
   displayName String
   password    String
@@ -30,16 +31,23 @@ model Admin {
   image       Image?
 }
 
+enum AdminRole {
+  ADMIN
+  AUTHOR
+}
+
 model Tutor {
-  id          String   @id @default(uuid())
+  id          Int      @id @default(autoincrement())
   name        String
   displayName String
   password    String
   phone       String   @unique
   email       String   @unique
   joinedAt    DateTime @default(now())
+  image       Image?
 }
 
+//! Login
 model Otp {
   id         String   @id @default(cuid())
   identifier String   @unique
@@ -55,11 +63,7 @@ enum OtpType {
   EMAIL
 }
 
-enum AdminRole {
-  ADMIN
-  AUTHOR
-}
-
+//! File
 model Image {
   id        Int      @id @default(autoincrement())
   public_id String   @unique
@@ -69,9 +73,10 @@ model Image {
   createdAt DateTime @default(now())
 
   // Relations
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?  @unique
-
-  admin   Admin?  @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  adminId String? @unique
+  user    User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int?   @unique
+  admin   Admin? @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId Int?   @unique
+  tutor   Tutor? @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId Int?   @unique
 }

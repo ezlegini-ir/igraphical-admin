@@ -5,7 +5,7 @@ import { AdminFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import bcrypt from "bcrypt";
 import { UploadApiResponse } from "cloudinary";
-import { deleteCloudImage, uploadImage } from "./cloudinary";
+import { deleteImage, uploadImage } from "./cloudinary";
 
 //* CREATE ------------------------------------------------------------
 
@@ -68,9 +68,9 @@ export const createAdmin = async (data: AdminFormType) => {
   }
 };
 
-//* UPDATE ------------------------------------------------------------
+//? UPDATE ------------------------------------------------------------
 
-export const updateAdmin = async (data: AdminFormType & { id: string }) => {
+export const updateAdmin = async (data: AdminFormType & { id: number }) => {
   const { displayName, email, id, name, phone, role, password, image } = data;
 
   try {
@@ -117,7 +117,7 @@ export const updateAdmin = async (data: AdminFormType & { id: string }) => {
       )) as UploadApiResponse;
 
       if (updatedAdmin.image) {
-        await deleteCloudImage(updatedAdmin.image.public_id);
+        await deleteImage(updatedAdmin.image.public_id);
 
         // CREATE IMAGE
         await prisma.image.update({
@@ -155,9 +155,9 @@ export const updateAdmin = async (data: AdminFormType & { id: string }) => {
   }
 };
 
-//* DELETE ------------------------------------------------------------
+//! DELETE ------------------------------------------------------------
 
-export const deleteAdmin = async (id: string) => {
+export const deleteAdmin = async (id: number) => {
   try {
     const existingAdmin = await getAdminById(id);
     if (!existingAdmin) return { error: "No Admin Found" };
@@ -169,8 +169,7 @@ export const deleteAdmin = async (id: string) => {
 
     if (!deletedAdmin) return { error: "Could not remove admin" };
 
-    if (deletedAdmin.image)
-      await deleteCloudImage(deletedAdmin.image?.public_id);
+    if (deletedAdmin.image) await deleteImage(deletedAdmin.image?.public_id);
 
     return { success: "Deleted Successfully" };
   } catch (error) {

@@ -22,21 +22,23 @@ import { TutorFormType, tutorFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-
 import { createTutor, deleteTutor, updateTutor } from "@/actions/tutor";
-import { Tutor } from "@prisma/client";
+import { TutorType } from "@/app/(DASHBOARD)/tutors/TutorsList";
+import AvatarField from "../AvatarField";
+import useImagePreview from "@/hooks/useImagePreview";
 
 interface Props {
-  tutor?: Tutor;
+  tutor?: TutorType;
   type: "NEW" | "UPDATE";
 }
 
-const TutorForm = ({ type, tutor: admin }: Props) => {
+const TutorForm = ({ type, tutor }: Props) => {
   // HOOKS
   const router = useRouter();
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
   const { success, setSuccess } = useSuccess();
+  const { imagePreview, setImagePreview } = useImagePreview(tutor?.image?.url);
 
   const isUpdateType = type === "UPDATE";
 
@@ -44,11 +46,11 @@ const TutorForm = ({ type, tutor: admin }: Props) => {
     resolver: zodResolver(tutorFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      name: admin?.name || "",
-      displayName: admin?.displayName || "",
+      name: tutor?.name || "",
+      displayName: tutor?.displayName || "",
       password: "",
-      email: admin?.email || "",
-      phone: admin?.phone || "",
+      email: tutor?.email || "",
+      phone: tutor?.phone || "",
     },
   });
 
@@ -58,7 +60,7 @@ const TutorForm = ({ type, tutor: admin }: Props) => {
 
     let res;
     if (isUpdateType) {
-      res = await updateTutor({ ...data, id: admin?.id! });
+      res = await updateTutor({ ...data, id: tutor?.id! });
     } else {
       res = await createTutor(data);
     }
@@ -68,6 +70,7 @@ const TutorForm = ({ type, tutor: admin }: Props) => {
       setLoading(false);
       return;
     }
+
     if (res.success) {
       setSuccess(res.success);
       router.refresh();
@@ -94,6 +97,14 @@ const TutorForm = ({ type, tutor: admin }: Props) => {
   return (
     <Form {...form}>
       <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <AvatarField
+          control={form.control}
+          setImagePreview={setImagePreview}
+          setValue={form.setValue}
+          imagePreview={imagePreview}
+          public_id={tutor?.image?.public_id}
+        />
+
         <FormField
           control={form.control}
           name="name"
@@ -180,7 +191,7 @@ const TutorForm = ({ type, tutor: admin }: Props) => {
           {isUpdateType ? "Update" : "Create"}
         </Button>
 
-        {isUpdateType && <DeleteButton id={admin?.id!} onDelete={onDelete} />}
+        {isUpdateType && <DeleteButton id={tutor?.id!} onDelete={onDelete} />}
         <Error error={error} />
         <Success success={success} />
       </form>

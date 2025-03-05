@@ -77,6 +77,7 @@ const AvatarField = ({
   const handleImageRemove = async () => {
     setError("");
     setSuccess("");
+    setImagePreview(undefined);
 
     if (public_id) {
       const res = await deleteImage(public_id);
@@ -89,7 +90,6 @@ const AvatarField = ({
       if (res.success) {
         setSuccess(res.success);
         setValue("image", undefined);
-        setImagePreview(undefined);
         router.refresh();
       }
     }

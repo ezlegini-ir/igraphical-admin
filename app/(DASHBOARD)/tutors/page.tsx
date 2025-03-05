@@ -19,11 +19,13 @@ const page = async ({ searchParams }: Props) => {
   const pageSize = 15;
 
   const tutors = await prisma.tutor.findMany({
+    orderBy: { joinedAt: "asc" },
+    include: { image: true },
+
     skip: ((+page || 1) - 1) * pageSize,
     take: pageSize,
-    orderBy: { joinedAt: "asc" },
   });
-  const totalTutors = await prisma.admin.count();
+  const totalTutors = await prisma.tutor.count();
 
   return (
     <div className="space-y-3">

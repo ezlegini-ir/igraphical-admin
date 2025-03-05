@@ -2,8 +2,8 @@
 
 import { v2 as cloudinary } from "cloudinary";
 
-interface UploadOptions {
-  folder?: string;
+export interface UploadOptions {
+  folder?: "admin" | "tutor" | "student" | "course" | "post";
   width?: number;
   public_id?: string;
 }
@@ -16,9 +16,7 @@ export const uploadImage = async (buffer: Buffer, options?: UploadOptions) => {
         {
           folder: options?.folder ? `/images/${options?.folder}` : "/images",
           format: "webp",
-          transformation: options?.width
-            ? [{ width: options.width, crop: "limit" }]
-            : [{ width: 500, crop: "limit" }],
+          transformation: [{ width: options?.width || 500, crop: "limit" }],
           public_id: options?.public_id,
         },
         (error, result) => {
@@ -30,7 +28,7 @@ export const uploadImage = async (buffer: Buffer, options?: UploadOptions) => {
   });
 };
 
-export const deleteCloudImage = async (public_id: string) => {
+export const deleteImage = async (public_id: string) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader.destroy(public_id, (error, result) => {
       if (error) reject(error);

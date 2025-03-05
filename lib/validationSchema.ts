@@ -14,6 +14,12 @@ export const ticketDepartment = [
   "COURSE",
   "SUGGEST",
 ] as const;
+const image = z
+  .instanceof(File)
+  .optional()
+  .refine((file) => !file || file.size <= 4 * 1024 * 1024, {
+    message: "Image size must be less than 4MB",
+  });
 
 //! LOGIN FORM
 export const loginFormSchema = z.object({
@@ -217,7 +223,13 @@ export const studentFormSchema = z.object({
   lastName: z.string().min(1),
   email: z.string().email(),
   phone: z.string().min(11),
-  nationalId: z.string().min(10).optional(),
+  nationalId: z.string().min(10).max(10).optional(),
+  password: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.length >= 12, {
+      message: "Password must be at least 6 characters long",
+    }),
 });
 export type StudentFormType = z.infer<typeof studentFormSchema>;
 
@@ -227,7 +239,13 @@ export const tutorFormSchema = z.object({
   displayName: z.string().min(1),
   email: z.string().min(1),
   phone: z.string().min(1),
-  password: z.string().optional(),
+  image,
+  password: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.length >= 12, {
+      message: "Password must be at least 6 characters long",
+    }),
 });
 export type TutorFormType = z.infer<typeof tutorFormSchema>;
 
@@ -237,12 +255,7 @@ export const adminFormSchema = z.object({
   displayName: z.string().min(1),
   role: z.enum(adminRoles),
   email: z.string().email().min(1),
-  image: z
-    .instanceof(File)
-    .optional()
-    .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
-      message: "Image size must be less than 5MB",
-    }),
+  image,
   phone: z.string().min(1),
   password: z
     .string()

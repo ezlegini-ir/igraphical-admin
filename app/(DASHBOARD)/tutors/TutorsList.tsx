@@ -1,3 +1,4 @@
+import Avatar from "@/components/Avatar";
 import EditButton from "@/components/EditButton";
 import TutorForm from "@/components/forms/tutor/TutorForm";
 import Pagination from "@/components/Pagination";
@@ -10,11 +11,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Tutor } from "@prisma/client";
+import { Image as ImageType, Tutor } from "@prisma/client";
 import { formatDistance } from "date-fns";
 
+export type TutorType = Tutor & { image: ImageType | null };
+
 interface Props {
-  tutors: Tutor[];
+  tutors: TutorType[];
   totalTutors: number;
   pageSize: number;
 }
@@ -28,10 +31,15 @@ const TutorsList = async ({ tutors, totalTutors, pageSize }: Props) => {
   );
 };
 
-const renderRows = (tutor: Tutor) => {
+const renderRows = (tutor: TutorType) => {
   return (
     <TableRow key={tutor.id} className="odd:bg-slate-50">
-      <TableCell>{tutor.name}</TableCell>
+      <TableCell>
+        <div className="flex gap-2 items-center">
+          <Avatar src={tutor.image?.url} size={35} />
+          {tutor.name}
+        </div>
+      </TableCell>
       <TableCell className="text-center hidden xl:table-cell">
         {tutor.displayName}
       </TableCell>
@@ -65,7 +73,7 @@ const columns = [
   { label: "Display Name", className: "text-center hidden xl:table-cell" },
   { label: "Email", className: "text-center" },
   { label: "Phone", className: "text-center hidden xl:table-cell" },
-  { label: "Tutor Since", className: "text-center hidden xl:table-cell" },
+  { label: "Tutor From", className: "text-center hidden xl:table-cell" },
   {
     label: "Actions",
     className: "text-right w-[60px] hidden lg:table-cell",

@@ -1,13 +1,76 @@
 "use server";
 
-import { getAdminById, getAdminByIdentifier } from "@/data/admin";
 import { getTutorById, getTutorByIdentifier } from "@/data/tutor";
 import { TutorFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import bcrypt from "bcrypt";
+import { deleteImage, uploadImage } from "./cloudinary";
+import { UploadApiResponse } from "cloudinary";
 
-export const updateTutor = async (data: TutorFormType & { id: string }) => {
-  const { displayName, email, id, name, phone, password } = data;
+//* CREATE ------------------------------------------------------------
+
+export const createTutor = async (data: TutorFormType) => {
+  const { displayName, email, name, phone, password, image } = data;
+  if (!password) return { error: "Password Required." };
+
+  try {
+    const existingTutorByEmail = await getTutorByIdentifier(email);
+    if (existingTutorByEmail)
+      return { error: "Tutor with this Email Already Exists." };
+
+    const existingTutorByPhone = await getTutorByIdentifier(phone);
+    if (existingTutorByPhone)
+      return { error: "Tutor with this Phone Already Exists." };
+
+    let hashedPassword = await bcrypt.hash(password, 10);
+
+    const newTutor = await prisma.tutor.create({
+      data: {
+        displayName,
+        email,
+        name,
+        password: hashedPassword,
+        phone,
+      },
+    });
+
+    if (image && image instanceof File) {
+      const buffer = Buffer.from(await image.arrayBuffer());
+
+      const { secure_url, public_id, format, bytes } = (await uploadImage(
+        buffer,
+        {
+          folder: "admin",
+          width: 300,
+        }
+      )) as UploadApiResponse;
+
+      // CREATE IMAGE
+      await prisma.image.create({
+        data: {
+          url: secure_url,
+          public_id,
+          format,
+          size: bytes,
+          tutor: {
+            connect: {
+              id: newTutor.id,
+            },
+          },
+        },
+      });
+    }
+
+    return { success: "Created Successfully" };
+  } catch (error) {
+    return { error: "Error 500: " + error };
+  }
+};
+
+//? UPDATE ------------------------------------------------------------
+
+export const updateTutor = async (data: TutorFormType & { id: number }) => {
+  const { displayName, email, id, name, phone, password, image } = data;
 
   try {
     const existingTutor = await getTutorById(id);
@@ -24,7 +87,7 @@ export const updateTutor = async (data: TutorFormType & { id: string }) => {
     let hashedPassword;
     if (password) hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.tutor.update({
+    const updatedTutor = await prisma.tutor.update({
       where: {
         id: existingTutor.id,
       },
@@ -36,7 +99,51 @@ export const updateTutor = async (data: TutorFormType & { id: string }) => {
         password: password ? hashedPassword : existingTutor.password,
         phone,
       },
+      include: { image: true },
     });
+
+    if (image && image instanceof File) {
+      const buffer = Buffer.from(await image.arrayBuffer());
+      const { secure_url, public_id, format, bytes } = (await uploadImage(
+        buffer,
+        {
+          folder: "admin",
+          width: 800,
+        }
+      )) as UploadApiResponse;
+
+      if (updatedTutor.image) {
+        await deleteImage(updatedTutor.image.public_id);
+
+        // UPDATE IMAGE
+        await prisma.image.update({
+          where: {
+            tutorId: updatedTutor.id,
+          },
+          data: {
+            url: secure_url,
+            public_id,
+            format,
+            size: bytes,
+          },
+        });
+      } else {
+        // CREATE IMAGE
+        await prisma.image.create({
+          data: {
+            url: secure_url,
+            public_id,
+            format,
+            size: bytes,
+            tutor: {
+              connect: {
+                id: updatedTutor.id,
+              },
+            },
+          },
+        });
+      }
+    }
 
     return { success: "Updated Successfully" };
   } catch (error) {
@@ -44,38 +151,9 @@ export const updateTutor = async (data: TutorFormType & { id: string }) => {
   }
 };
 
-export const createTutor = async (data: TutorFormType) => {
-  const { displayName, email, name, phone, password } = data;
-  if (!password) return { error: "Password Required." };
+//! DELETE ------------------------------------------------------------
 
-  try {
-    const existingAdminByEmail = await getTutorByIdentifier(email);
-    if (existingAdminByEmail)
-      return { error: "Tutor with this Email Already Exists." };
-
-    const existingAdminByPhone = await getTutorByIdentifier(phone);
-    if (existingAdminByPhone)
-      return { error: "Tutor with this Phone Already Exists." };
-
-    let hashedPassword = await bcrypt.hash(password, 10);
-
-    await prisma.tutor.create({
-      data: {
-        displayName,
-        email,
-        name,
-        password: hashedPassword,
-        phone,
-      },
-    });
-
-    return { success: "Created Successfully" };
-  } catch (error) {
-    return { error: "Error 500: " + error };
-  }
-};
-
-export const deleteTutor = async (id: string) => {
+export const deleteTutor = async (id: number) => {
   try {
     const existingAdmin = await getTutorById(id);
     if (!existingAdmin) return { error: "No Tutor Found" };
