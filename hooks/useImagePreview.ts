@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const useImagePreview = (defaultPreview: string | undefined) => {
-  const [imagePreview, setImagePreview] = useState<string | null | undefined>(
+  const [imagePreview, setImagePreview] = useState<string | undefined>(
     defaultPreview
   );
 

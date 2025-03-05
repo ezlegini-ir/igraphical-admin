@@ -17,13 +17,17 @@ interface Props {
 
 const page = async ({ searchParams }: Props) => {
   const { page, filter } = await searchParams;
-
   const pageSize = 15;
 
   const admins = await prisma.admin.findMany({
     where: {
       role: filter === "all" ? undefined : (filter as AdminRole),
     },
+    orderBy: { joinedAt: "desc" },
+    include: {
+      image: true,
+    },
+
     skip: ((+page || 1) - 1) * pageSize,
     take: pageSize,
   });

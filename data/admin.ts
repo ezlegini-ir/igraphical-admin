@@ -31,6 +31,7 @@ export const getAdminById = async (id: string) => {
     where: {
       id,
     },
+    include: { image: true },
   });
 };
 

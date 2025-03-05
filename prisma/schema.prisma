@@ -15,6 +15,7 @@ model User {
   email      String   @unique
   nationalId String   @unique
   joinedAt   DateTime @default(now())
+  image      Image?
 }
 
 model Admin {
@@ -26,6 +27,7 @@ model Admin {
   email       String    @unique
   role        AdminRole
   joinedAt    DateTime  @default(now())
+  image       Image?
 }
 
 model Tutor {
@@ -56,4 +58,20 @@ enum OtpType {
 enum AdminRole {
   ADMIN
   AUTHOR
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  public_id String   @unique
+  url       String   @unique
+  format    String
+  size      Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?  @unique
+
+  admin   Admin?  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId String? @unique
 }

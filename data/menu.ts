@@ -52,12 +52,12 @@ const sideBarMenuItems = [
     groupName: "Financial & Data",
     subMenuItems: [
       {
-        tabName: "Payments",
-        tabHref: "/payments",
+        tabName: "Registrations",
+        tabHref: "/registrations",
         tabIcon: CreditCard,
         subMenuItems: [
-          { label: "List", href: "/payments/list" },
-          { label: "New", href: "/payments/new" },
+          { label: "List", href: "/registrations/list" },
+          { label: "New", href: "/registrations/new" },
         ],
       },
       {

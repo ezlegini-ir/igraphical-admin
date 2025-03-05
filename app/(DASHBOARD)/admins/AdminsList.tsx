@@ -1,3 +1,4 @@
+import Avatar from "@/components/Avatar";
 import EditButton from "@/components/EditButton";
 import AdminForm from "@/components/forms/dashboard/admin/AdminForm";
 import Pagination from "@/components/Pagination";
@@ -11,19 +12,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { AdminRole } from "@prisma/client";
+import { Admin, Image as ImageType } from "@prisma/client";
 
-export type AdminListType = {
-  id: string;
-  name: string;
-  displayName: string;
-  phone: string;
-  email: string;
-  role: AdminRole;
-};
+export type AdminType = Admin & { image: ImageType | null };
 
 interface Props {
-  admins: AdminListType[];
+  admins: AdminType[];
   totalAdmins: number;
   pageSize: number;
 }
@@ -37,10 +31,15 @@ const AdminsList = async ({ admins, totalAdmins, pageSize }: Props) => {
   );
 };
 
-const renderRows = (admin: AdminListType & { password: string }) => {
+const renderRows = (admin: AdminType) => {
   return (
     <TableRow key={admin.id} className="odd:bg-slate-50">
-      <TableCell>{admin.name}</TableCell>
+      <TableCell>
+        <div className="flex gap-2 items-center">
+          <Avatar src={admin.image?.url} size={35} />
+          {admin.name}
+        </div>
+      </TableCell>
       <TableCell className="text-center hidden xl:table-cell">
         {admin.displayName}
       </TableCell>

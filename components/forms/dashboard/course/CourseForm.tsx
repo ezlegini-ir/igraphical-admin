@@ -167,14 +167,6 @@ const CourseForm = ({ type, course }: Props) => {
     control: form.control,
   });
 
-  const handleImageRemove = () => {
-    setImagePreview(undefined);
-    form.setValue("image", undefined);
-
-    //TODO: Remove From Cloud
-    console.log("deleted");
-  };
-
   const handleGalleryRemove = (imageUrl: string) => {
     setGalleryPreviews((prev) => prev?.filter((img) => img !== imageUrl));
 
@@ -210,6 +202,14 @@ const CourseForm = ({ type, course }: Props) => {
 
       input.value = "";
     }
+  };
+
+  const handleImageRemove = () => {
+    setImagePreview(undefined);
+    form.setValue("image", undefined);
+
+    //TODO: Remove From Cloud
+    console.log("deleted");
   };
 
   const onSubmit = async (data: CourseFormType) => {

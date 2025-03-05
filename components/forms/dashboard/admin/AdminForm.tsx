@@ -27,6 +27,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import { createAdmin, deleteAdmin, updateAdmin } from "@/actions/admin";
+import { AdminType } from "@/app/(DASHBOARD)/admins/AdminsList";
 import {
   Select,
   SelectContent,
@@ -34,10 +36,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createAdmin, deleteAdmin, updateAdmin } from "@/actions/admin";
+import useImagePreview from "@/hooks/useImagePreview";
+import AvatarField from "../../AvatarField";
 
 interface Props {
-  admin?: AdminFormType & { id: string };
+  admin?: AdminType;
   type: "NEW" | "UPDATE";
 }
 
@@ -47,12 +50,12 @@ const AdminForm = ({ type, admin }: Props) => {
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
   const { success, setSuccess } = useSuccess();
-
+  const { imagePreview, setImagePreview } = useImagePreview(admin?.image?.url);
   const isUpdateType = type === "UPDATE";
 
   const form = useForm<AdminFormType>({
     resolver: zodResolver(adminFormSchema),
-    mode: "onSubmit",
+    mode: "onBlur",
     defaultValues: {
       name: admin?.name || "",
       displayName: admin?.displayName || "",
@@ -60,6 +63,7 @@ const AdminForm = ({ type, admin }: Props) => {
       email: admin?.email || "",
       phone: admin?.phone || "",
       role: admin?.role || "ADMIN",
+      image: undefined,
     },
   });
 
@@ -105,6 +109,14 @@ const AdminForm = ({ type, admin }: Props) => {
   return (
     <Form {...form}>
       <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <AvatarField
+          control={form.control}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          public_id={admin?.image?.public_id}
+          setValue={form.setValue}
+        />
+
         <FormField
           control={form.control}
           name="name"
@@ -208,7 +220,9 @@ const AdminForm = ({ type, admin }: Props) => {
         />
 
         <Button
-          disabled={!form.formState.isValid || loading}
+          disabled={
+            !form.formState.isValid || !form.formState.isDirty || loading
+          }
           className="w-full flex gap-2"
           type="submit"
         >

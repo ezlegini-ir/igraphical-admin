@@ -236,8 +236,19 @@ export const adminFormSchema = z.object({
   name: z.string().min(1),
   displayName: z.string().min(1),
   role: z.enum(adminRoles),
-  email: z.string().min(1),
+  email: z.string().email().min(1),
+  image: z
+    .instanceof(File)
+    .optional()
+    .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
+      message: "Image size must be less than 5MB",
+    }),
   phone: z.string().min(1),
-  password: z.string().optional(),
+  password: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.length >= 12, {
+      message: "Password must be at least 6 characters long",
+    }),
 });
 export type AdminFormType = z.infer<typeof adminFormSchema>;

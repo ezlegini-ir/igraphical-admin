@@ -1,3 +1,4 @@
+import { AdminType } from "@/app/(DASHBOARD)/admins/AdminsList";
 import { signOut } from "@/auth";
 import Avatar from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { profile } from "@/public";
-import { Admin } from "@prisma/client";
 import {
   ChartNoAxesCombined,
   FilePlus2,
@@ -23,7 +22,7 @@ import {
 import Link from "next/link";
 
 interface Props {
-  user: Admin | null;
+  user: AdminType | null;
 }
 
 const UserBar = ({ user }: Props) => {
@@ -31,14 +30,14 @@ const UserBar = ({ user }: Props) => {
     <Popover>
       <PopoverTrigger>
         <div className="cursor-pointer drop-shadow-lg">
-          <Avatar src={profile} size={40} />
+          <Avatar src={user?.image?.url} size={40} />
         </div>
       </PopoverTrigger>
 
       <PopoverContent className="mr-3" dir="ltr">
         <div className="space-y-6">
           <div className="bg-slate-100 p-3 px-2 rounded-sm border-dashed border-slate-400/60 border-[1px] flex gap-2 items-center">
-            <Avatar src={profile} size={37} />
+            <Avatar src={user?.image?.url} size={37} />
             <div className="flex flex-col">
               <span>{user?.name}</span>
               <span className="text-xs text-primary font-semibold">
