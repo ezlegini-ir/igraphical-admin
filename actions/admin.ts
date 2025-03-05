@@ -42,7 +42,6 @@ export const createAdmin = async (data: AdminFormType) => {
         buffer,
         {
           folder: "admin",
-          width: 300,
         }
       )) as UploadApiResponse;
 

@@ -91,12 +91,12 @@ const AdminForm = ({ type, admin }: Props) => {
     }
   };
 
-  const onDelete = async (id: number | string) => {
+  const onDelete = async (id: number) => {
     setError("");
     setSuccess("");
     setLoading(true);
 
-    const res = await deleteAdmin(id as string);
+    const res = await deleteAdmin(id);
 
     if (res.error) {
       setError(res.error);

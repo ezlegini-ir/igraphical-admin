@@ -224,12 +224,7 @@ export const studentFormSchema = z.object({
   email: z.string().email(),
   phone: z.string().min(11),
   nationalId: z.string().min(10).max(10).optional(),
-  password: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length >= 12, {
-      message: "Password must be at least 6 characters long",
-    }),
+  image,
 });
 export type StudentFormType = z.infer<typeof studentFormSchema>;
 

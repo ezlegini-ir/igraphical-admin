@@ -26,6 +26,7 @@ const page = async ({ searchParams }: Props) => {
           { phone: { contains: search } },
           { firstName: { contains: search } },
           { lastName: { contains: search } },
+          { fullName: { contains: search } },
           { nationalId: { contains: search } },
         ],
       }
@@ -35,6 +36,7 @@ const page = async ({ searchParams }: Props) => {
   const users = await prisma.user.findMany({
     where,
     orderBy: { id: "desc" },
+    include: { image: true },
 
     skip: ((+page || 1) - 1) * pageSize,
     take: pageSize,

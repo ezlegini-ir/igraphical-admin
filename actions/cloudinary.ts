@@ -3,7 +3,7 @@
 import { v2 as cloudinary } from "cloudinary";
 
 export interface UploadOptions {
-  folder?: "admin" | "tutor" | "student" | "course" | "post";
+  folder?: "admin" | "tutor" | "user" | "course" | "post";
   width?: number;
   public_id?: string;
 }

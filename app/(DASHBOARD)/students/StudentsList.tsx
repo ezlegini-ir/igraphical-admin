@@ -1,3 +1,4 @@
+import Avatar from "@/components/Avatar";
 import EditButton from "@/components/EditButton";
 import StudentForm from "@/components/forms/user/StudentForm";
 import Pagination from "@/components/Pagination";
@@ -10,11 +11,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { User } from "@prisma/client";
+import { Image as ImageType, User } from "@prisma/client";
 import { formatDistance } from "date-fns";
 
+export type UserType = User & { image: ImageType | null };
+
 interface Props {
-  students: User[];
+  students: UserType[];
   totalStudents: number;
   pageSize: number;
 }
@@ -28,11 +31,14 @@ const StudentsList = async ({ students, totalStudents, pageSize }: Props) => {
   );
 };
 
-const renderRows = (student: User) => {
+const renderRows = (student: UserType) => {
   return (
     <TableRow key={student.id} className="odd:bg-slate-50">
       <TableCell>
-        {student.firstName} {student.lastName}
+        <div className="flex items-center gap-2">
+          <Avatar src={student.image?.url} size={35} />
+          {student.fullName}
+        </div>
       </TableCell>
       <TableCell className="text-center">{student.email}</TableCell>
       <TableCell className="text-center hidden xl:table-cell">
@@ -50,7 +56,7 @@ const renderRows = (student: User) => {
           <DialogContent>
             <DialogHeader className="space-y-6">
               <DialogTitle>Update Student</DialogTitle>
-              <StudentForm type="UPDATE" student={student} />
+              <StudentForm type="UPDATE" user={student} />
             </DialogHeader>
           </DialogContent>
         </Dialog>
@@ -63,7 +69,7 @@ const columns = [
   { label: "Name", className: "" },
   { label: "Email", className: "text-center" },
   { label: "Phone", className: "text-center  hidden xl:table-cell" },
-  { label: "User Since", className: "text-center hidden xl:table-cell" },
+  { label: "Student From", className: "text-center hidden xl:table-cell" },
   {
     label: "Actions",
     className: "text-right w-[60px]",

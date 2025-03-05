@@ -40,7 +40,7 @@ export const createTutor = async (data: TutorFormType) => {
       const { secure_url, public_id, format, bytes } = (await uploadImage(
         buffer,
         {
-          folder: "admin",
+          folder: "tutor",
           width: 300,
         }
       )) as UploadApiResponse;
@@ -107,7 +107,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
       const { secure_url, public_id, format, bytes } = (await uploadImage(
         buffer,
         {
-          folder: "admin",
+          folder: "tutor",
           width: 800,
         }
       )) as UploadApiResponse;
@@ -158,9 +158,14 @@ export const deleteTutor = async (id: number) => {
     const existingAdmin = await getTutorById(id);
     if (!existingAdmin) return { error: "No Tutor Found" };
 
-    await prisma.tutor.delete({
+    const tutor = await prisma.tutor.delete({
       where: { id },
+      include: { image: true },
     });
+
+    if (!tutor) return { error: "Could not remove admin" };
+
+    if (tutor.image) await deleteImage(tutor.image?.public_id);
 
     return { success: "Deleted Successfully" };
   } catch (error) {

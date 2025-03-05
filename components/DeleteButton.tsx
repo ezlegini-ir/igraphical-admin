@@ -12,8 +12,8 @@ import {
 import { Button } from "./ui/button";
 
 interface Props {
-  id: number | string;
-  onDelete: (id: number | string) => void;
+  id: number;
+  onDelete: (id: number) => void;
 }
 
 const DeleteButton = ({ id, onDelete }: Props) => {

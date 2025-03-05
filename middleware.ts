@@ -11,11 +11,7 @@ import {
 } from "./data/routes";
 
 const roleBasedRedirect = (role: AdminRole, nextUrl: NextURL) => {
-  if (role === "TUTOR") {
-    return NextResponse.redirect(new URL(tutorDashboardRoute, nextUrl));
-  } else {
-    return NextResponse.redirect(new URL(adminDashboardRoute, nextUrl));
-  }
+  return NextResponse.redirect(new URL(adminDashboardRoute, nextUrl));
 };
 
 export async function middleware(req: NextRequest) {
