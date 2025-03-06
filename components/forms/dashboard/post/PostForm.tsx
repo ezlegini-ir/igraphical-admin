@@ -5,7 +5,9 @@ import { PostType } from "@/app/(DASHBOARD)/posts/list/PostsList";
 import CardBox from "@/components/CardBox";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
+import TextEditor from "@/components/LexicalEditor/TextEditor";
 import Loader from "@/components/Loader";
+import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -26,19 +28,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import useError from "@/hooks/useError";
 import useImagePreview from "@/hooks/useImagePreview";
 import useLoading from "@/hooks/useLoading";
+import useSuccess from "@/hooks/useSuccess";
 import { PostFormType, postFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Admin, PostCategory } from "@prisma/client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import ImageField from "../../ImageField";
-import Link from "next/link";
-import useSuccess from "@/hooks/useSuccess";
-import Success from "@/components/Success";
 
 interface Props {
   type: "NEW" | "UPDATE";
@@ -172,10 +172,10 @@ const PostForm = ({ type, post, categories, authors }: Props) => {
             control={form.control}
             name="content"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="pb-10">
                 <FormLabel>Content</FormLabel>
                 <FormControl>
-                  <Textarea {...field} className="min-h-[400px]" />
+                  <TextEditor onChange={field.onChange} value={field.value} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

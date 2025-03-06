@@ -92,7 +92,7 @@ model Post {
   id         Int            @id @default(autoincrement())
   title      String
   url        String         @unique
-  content    String
+  content    String         @db.Text
   categories PostCategory[]
   status     PostStatus     @default(DRAFT)
   createdAt  DateTime       @default(now())
