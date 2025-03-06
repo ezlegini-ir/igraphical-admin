@@ -1,7 +1,42 @@
 "use server";
 
 import prisma from "@/prisma/client";
-import { deleteImage as deleteCloudImage } from "./cloudinary";
+import { UploadApiResponse } from "cloudinary";
+import {
+  deleteImage as deleteCloudImage,
+  uploadImage,
+  UploadOptions,
+} from "./cloudinary";
+
+//* CREATE ------------------------------------------------------------
+
+export const createPostContentImage = async (
+  file: File,
+  options?: UploadOptions
+) => {
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const { secure_url, public_id, format, bytes } = (await uploadImage(
+      buffer,
+      options
+    )) as UploadApiResponse;
+
+    await prisma.image.create({
+      data: {
+        format,
+        public_id,
+        size: bytes,
+        url: secure_url,
+        type: "DOCUMENT",
+      },
+    });
+
+    return { url: secure_url };
+  } catch (error) {
+    return { error: "Error: " + error };
+  }
+};
 
 //! DELETE ------------------------------------------------------------
 

@@ -6,10 +6,10 @@
  *
  */
 
-import type {JSX} from 'react';
+import type { JSX } from "react";
 
-import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
-import {$wrapNodeInElement, mergeRegister} from '@lexical/utils';
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { $wrapNodeInElement, mergeRegister } from "@lexical/utils";
 import {
   $createParagraphNode,
   $createRangeSelection,
@@ -29,37 +29,41 @@ import {
   isHTMLElement,
   LexicalCommand,
   LexicalEditor,
-} from 'lexical';
-import {useEffect, useRef, useState} from 'react';
-import * as React from 'react';
+} from "lexical";
+import { useEffect, useRef, useState } from "react";
 
-import landscapeImage from '../../images/landscape.jpg';
-import yellowFlowerImage from '../../images/yellow-flower.jpg';
+import { createPostContentImage } from "@/actions/image";
+import Loader from "@/components/Loader";
+import Success from "@/components/Success";
+import useLoading from "@/hooks/useLoading";
+import useSuccess from "@/hooks/useSuccess";
+import { igraphLogo, placeHolder, profile } from "@/public";
+import Image from "next/image";
 import {
   $createImageNode,
   $isImageNode,
   ImageNode,
   ImagePayload,
-} from '../../nodes/ImageNode';
-import Button from '../../ui/Button';
-import {DialogActions, DialogButtonsList} from '../../ui/Dialog';
-import FileInput from '../../ui/FileInput';
-import TextInput from '../../ui/TextInput';
+} from "../../nodes/ImageNode";
+import Button from "../../ui/Button";
+import { DialogActions, DialogButtonsList } from "../../ui/Dialog";
+import FileInput from "../../ui/FileInput";
+import TextInput from "../../ui/TextInput";
 
 export type InsertImagePayload = Readonly<ImagePayload>;
 
 export const INSERT_IMAGE_COMMAND: LexicalCommand<InsertImagePayload> =
-  createCommand('INSERT_IMAGE_COMMAND');
+  createCommand("INSERT_IMAGE_COMMAND");
 
 export function InsertImageUriDialogBody({
   onClick,
 }: {
   onClick: (payload: InsertImagePayload) => void;
 }) {
-  const [src, setSrc] = useState('');
-  const [altText, setAltText] = useState('');
+  const [src, setSrc] = useState("");
+  const [altText, setAltText] = useState("");
 
-  const isDisabled = src === '';
+  const isDisabled = src === "";
 
   return (
     <>
@@ -81,7 +85,8 @@ export function InsertImageUriDialogBody({
         <Button
           data-test-id="image-modal-confirm-btn"
           disabled={isDisabled}
-          onClick={() => onClick({altText, src})}>
+          onClick={() => onClick({ altText, src })}
+        >
           Confirm
         </Button>
       </DialogActions>
@@ -94,18 +99,38 @@ export function InsertImageUploadedDialogBody({
 }: {
   onClick: (payload: InsertImagePayload) => void;
 }) {
-  const [src, setSrc] = useState('');
-  const [altText, setAltText] = useState('');
+  const [src, setSrc] = useState("");
+  const [altText, setAltText] = useState("");
+  const { success, setSuccess } = useSuccess();
+  const { loading, setLoading } = useLoading();
 
-  const isDisabled = src === '';
+  const isDisabled = src === "";
 
   const loadImage = (files: FileList | null) => {
+    setLoading(true);
+    setSrc("");
+
     const reader = new FileReader();
-    reader.onload = function () {
-      if (typeof reader.result === 'string') {
+    reader.onload = async function () {
+      if (typeof reader.result === "string") {
         setSrc(reader.result);
+        setLoading(true);
+
+        if (files !== null) {
+          const res = await createPostContentImage(files[0], {
+            folder: "content",
+            width: 1200,
+          });
+          if (res.url) {
+            setLoading(false);
+            setSuccess("Image Uploaded");
+            setSrc(res.url);
+          }
+        }
       }
-      return '';
+
+      setLoading(false);
+      return "";
     };
     if (files !== null) {
       reader.readAsDataURL(files[0]);
@@ -114,12 +139,32 @@ export function InsertImageUploadedDialogBody({
 
   return (
     <>
-      <FileInput
-        label="Image Upload"
-        onChange={loadImage}
-        accept="image/*"
-        data-test-id="image-modal-file-upload"
-      />
+      <div className="mb-3 flex flex-col gap-3 justify-center relative">
+        <label htmlFor="image-upload">
+          <Image
+            alt=""
+            src={src || placeHolder}
+            width={350}
+            height={350}
+            className="rounded-sm border-[1px] border-slate-400 hover:drop-shadow-md border-dashed  cursor-pointer relative "
+          />
+        </label>
+        <Success success={success} />
+        {loading && (
+          <div className="absolute inset-0 flex justify-center items-center gap-2 bg-white/30 p-1 px-2 rounded-sm text-sm">
+            <Loader loading />
+          </div>
+        )}
+      </div>
+      <div className="hidden">
+        <FileInput
+          id="image-upload"
+          label="Image Upload"
+          onChange={loadImage}
+          accept="image/*"
+          data-test-id="image-modal-file-upload"
+        />
+      </div>
       <TextInput
         label="Alt Text"
         placeholder="Descriptive alternative text"
@@ -131,7 +176,8 @@ export function InsertImageUploadedDialogBody({
         <Button
           data-test-id="image-modal-file-upload-btn"
           disabled={isDisabled}
-          onClick={() => onClick({altText, src})}>
+          onClick={() => onClick({ altText, src })}
+        >
           Confirm
         </Button>
       </DialogActions>
@@ -146,7 +192,7 @@ export function InsertImageDialog({
   activeEditor: LexicalEditor;
   onClose: () => void;
 }): JSX.Element {
-  const [mode, setMode] = useState<null | 'url' | 'file'>(null);
+  const [mode, setMode] = useState<null | "url" | "file">(null);
   const hasModifier = useRef(false);
 
   useEffect(() => {
@@ -154,13 +200,13 @@ export function InsertImageDialog({
     const handler = (e: KeyboardEvent) => {
       hasModifier.current = e.altKey;
     };
-    document.addEventListener('keydown', handler);
+    document.addEventListener("keydown", handler);
     return () => {
-      document.removeEventListener('keydown', handler);
+      document.removeEventListener("keydown", handler);
     };
   }, [activeEditor]);
 
-  const onClick = (payload: InsertImagePayload) => {
+  const onClick = async (payload: InsertImagePayload) => {
     activeEditor.dispatchCommand(INSERT_IMAGE_COMMAND, payload);
     onClose();
   };
@@ -169,6 +215,7 @@ export function InsertImageDialog({
     <>
       {!mode && (
         <DialogButtonsList>
+          {/* //! REMOVE THIS BUTTON */}
           <Button
             data-test-id="image-modal-option-sample"
             onClick={() =>
@@ -176,31 +223,36 @@ export function InsertImageDialog({
                 hasModifier.current
                   ? {
                       altText:
-                        'Daylight fir trees forest glacier green high ice landscape',
-                      src: landscapeImage,
+                        "Daylight fir trees forest glacier green high ice landscape",
+                      src: profile,
                     }
                   : {
-                      altText: 'Yellow flower in tilt shift lens',
-                      src: yellowFlowerImage,
-                    },
+                      altText: "Yellow flower in tilt shift lens",
+                      src: igraphLogo,
+                    }
               )
-            }>
-            Sample
+            }
+          >
+            iGraphical Logo
           </Button>
+
           <Button
             data-test-id="image-modal-option-url"
-            onClick={() => setMode('url')}>
+            onClick={() => setMode("url")}
+          >
             URL
           </Button>
+
           <Button
             data-test-id="image-modal-option-file"
-            onClick={() => setMode('file')}>
+            onClick={() => setMode("file")}
+          >
             File
           </Button>
         </DialogButtonsList>
       )}
-      {mode === 'url' && <InsertImageUriDialogBody onClick={onClick} />}
-      {mode === 'file' && <InsertImageUploadedDialogBody onClick={onClick} />}
+      {mode === "url" && <InsertImageUriDialogBody onClick={onClick} />}
+      {mode === "file" && <InsertImageUploadedDialogBody onClick={onClick} />}
     </>
   );
 }
@@ -214,7 +266,7 @@ export default function ImagesPlugin({
 
   useEffect(() => {
     if (!editor.hasNodes([ImageNode])) {
-      throw new Error('ImagesPlugin: ImageNode not registered on editor');
+      throw new Error("ImagesPlugin: ImageNode not registered on editor");
     }
 
     return mergeRegister(
@@ -229,29 +281,29 @@ export default function ImagesPlugin({
 
           return true;
         },
-        COMMAND_PRIORITY_EDITOR,
+        COMMAND_PRIORITY_EDITOR
       ),
       editor.registerCommand<DragEvent>(
         DRAGSTART_COMMAND,
         (event) => {
           return $onDragStart(event);
         },
-        COMMAND_PRIORITY_HIGH,
+        COMMAND_PRIORITY_HIGH
       ),
       editor.registerCommand<DragEvent>(
         DRAGOVER_COMMAND,
         (event) => {
           return $onDragover(event);
         },
-        COMMAND_PRIORITY_LOW,
+        COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand<DragEvent>(
         DROP_COMMAND,
         (event) => {
           return $onDrop(event, editor);
         },
-        COMMAND_PRIORITY_HIGH,
-      ),
+        COMMAND_PRIORITY_HIGH
+      )
     );
   }, [captionsEnabled, editor]);
 
@@ -259,8 +311,8 @@ export default function ImagesPlugin({
 }
 
 const TRANSPARENT_IMAGE =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-const img = document.createElement('img');
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+const img = document.createElement("img");
 img.src = TRANSPARENT_IMAGE;
 
 function $onDragStart(event: DragEvent): boolean {
@@ -272,10 +324,10 @@ function $onDragStart(event: DragEvent): boolean {
   if (!dataTransfer) {
     return false;
   }
-  dataTransfer.setData('text/plain', '_');
+  dataTransfer.setData("text/plain", "_");
   dataTransfer.setDragImage(img, 0, 0);
   dataTransfer.setData(
-    'application/x-lexical-drag',
+    "application/x-lexical-drag",
     JSON.stringify({
       data: {
         altText: node.__altText,
@@ -287,8 +339,8 @@ function $onDragStart(event: DragEvent): boolean {
         src: node.__src,
         width: node.__width,
       },
-      type: 'image',
-    }),
+      type: "image",
+    })
   );
 
   return true;
@@ -339,12 +391,12 @@ function $getImageNodeInSelection(): ImageNode | null {
 }
 
 function getDragImageData(event: DragEvent): null | InsertImagePayload {
-  const dragData = event.dataTransfer?.getData('application/x-lexical-drag');
+  const dragData = event.dataTransfer?.getData("application/x-lexical-drag");
   if (!dragData) {
     return null;
   }
-  const {type, data} = JSON.parse(dragData);
-  if (type !== 'image') {
+  const { type, data } = JSON.parse(dragData);
+  if (type !== "image") {
     return null;
   }
 
@@ -362,9 +414,9 @@ function canDropImage(event: DragEvent): boolean {
   const target = event.target;
   return !!(
     isHTMLElement(target) &&
-    !target.closest('code, span.editor-image') &&
+    !target.closest("code, span.editor-image") &&
     isHTMLElement(target.parentElement) &&
-    target.parentElement.closest('div.ContentEditable__root')
+    target.parentElement.closest("div.ContentEditable__root")
   );
 }
 

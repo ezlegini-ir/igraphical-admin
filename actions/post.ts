@@ -52,6 +52,7 @@ export const createPost = async (data: PostFormType) => {
           url: secure_url,
           public_id,
           format,
+          type: "POST",
           size: bytes,
           post: {
             connect: {
@@ -128,6 +129,7 @@ export const updatePost = async (data: PostFormType, id: number) => {
           data: {
             url: secure_url,
             public_id,
+            type: "POST",
             format,
             size: bytes,
           },
@@ -139,6 +141,7 @@ export const updatePost = async (data: PostFormType, id: number) => {
             url: secure_url,
             public_id,
             format,
+            type: "POST",
             size: bytes,
             post: {
               connect: {

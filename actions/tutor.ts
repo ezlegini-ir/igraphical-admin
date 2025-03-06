@@ -51,6 +51,7 @@ export const createTutor = async (data: TutorFormType) => {
           url: secure_url,
           public_id,
           format,
+          type: "USER",
           size: bytes,
           tutor: {
             connect: {
@@ -124,6 +125,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
             url: secure_url,
             public_id,
             format,
+            type: "USER",
             size: bytes,
           },
         });
@@ -134,6 +136,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
             url: secure_url,
             public_id,
             format,
+            type: "USER",
             size: bytes,
             tutor: {
               connect: {

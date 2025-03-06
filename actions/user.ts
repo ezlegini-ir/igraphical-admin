@@ -61,6 +61,7 @@ export async function createUser(data: StudentFormType) {
           public_id,
           format,
           size: bytes,
+          type: "USER",
           user: {
             connect: {
               id: newUser.id,
@@ -128,6 +129,7 @@ export const updateUser = async (data: StudentFormType, id: number) => {
           },
           data: {
             url: secure_url,
+            type: "USER",
             public_id,
             format,
             size: bytes,
@@ -140,6 +142,7 @@ export const updateUser = async (data: StudentFormType, id: number) => {
             url: secure_url,
             public_id,
             format,
+            type: "USER",
             size: bytes,
             user: {
               connect: {

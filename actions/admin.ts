@@ -52,6 +52,7 @@ export const createAdmin = async (data: AdminFormType) => {
           public_id,
           format,
           size: bytes,
+          type: "USER",
           admin: {
             connect: {
               id: newAdmin.id,
@@ -127,6 +128,7 @@ export const updateAdmin = async (data: AdminFormType, id: number) => {
             url: secure_url,
             public_id,
             format,
+            type: "USER",
             size: bytes,
           },
         });
@@ -137,6 +139,7 @@ export const updateAdmin = async (data: AdminFormType, id: number) => {
             url: secure_url,
             public_id,
             format,
+            type: "USER",
             size: bytes,
             admin: {
               connect: {
