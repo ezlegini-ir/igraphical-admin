@@ -40,7 +40,6 @@ import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import CodeActionMenuPlugin from "./plugins/CodeActionMenuPlugin";
 import CodeHighlightPlugin from "./plugins/CodeHighlightPlugin";
 import CollapsiblePlugin from "./plugins/CollapsiblePlugin";
-import CommentPlugin from "./plugins/CommentPlugin";
 import ComponentPickerPlugin from "./plugins/ComponentPickerPlugin";
 import ContextMenuPlugin from "./plugins/ContextMenuPlugin";
 import DragDropPaste from "./plugins/DragDropPastePlugin";
@@ -76,8 +75,10 @@ import { CAN_USE_DOM } from "./shared/src/canUseDOM";
 import ContentEditable from "./ui/ContentEditable";
 
 const skipCollaborationInit =
+  typeof window !== "undefined" &&
+  window.parent != null &&
   // @ts-expect-error
-  window.parent != null && window.parent.frames.right === window;
+  window.parent.frames.right === window;
 
 export default function Editor(): JSX.Element {
   const { historyState } = useSharedHistoryContext();
