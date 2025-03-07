@@ -7,7 +7,7 @@ interface GetAllPostImagesOptions {
   skip?: number;
 }
 
-export const getAllPostImages = async (options?: GetAllPostImagesOptions) => {
+export const getAllAssetImages = async (options?: GetAllPostImagesOptions) => {
   return await prisma.image.findMany({
     where: {
       type: { in: ["POST_ASSET", "POST"] },
@@ -17,7 +17,7 @@ export const getAllPostImages = async (options?: GetAllPostImagesOptions) => {
   });
 };
 
-export const getAllPostImagesCount = async () => {
+export const getAllAssetImagesCount = async () => {
   return await prisma.image.count({
     where: {
       type: { in: ["POST_ASSET", "POST"] },

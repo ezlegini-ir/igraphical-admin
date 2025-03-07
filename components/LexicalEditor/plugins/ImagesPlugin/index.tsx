@@ -32,14 +32,19 @@ import {
 } from "lexical";
 import { useEffect, useRef, useState } from "react";
 
-import { createPostAssetImage } from "@/actions/image";
+import { createPostAssetImage, deleteImage } from "@/actions/image";
 import Loader from "@/components/Loader";
 import Success from "@/components/Success";
+import { Button as UiButton } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { getAllAssetImages, getAllAssetImagesCount } from "@/data/image";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
-import { igraphLogo, placeHolder, profile } from "@/public";
+import { placeHolder } from "@/public";
 import { Image as ImageType } from "@prisma/client";
+import { Frown, Link, Plus, Trash, Upload } from "lucide-react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   $createImageNode,
   $isImageNode,
@@ -47,14 +52,9 @@ import {
   ImagePayload,
 } from "../../nodes/ImageNode";
 import Button from "../../ui/Button";
-import { Button as UiButton } from "@/components/ui/button";
 import { DialogActions, DialogButtonsList } from "../../ui/Dialog";
 import FileInput from "../../ui/FileInput";
 import TextInput from "../../ui/TextInput";
-import { Link, Upload } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getAllPostImages, getAllPostImagesCount } from "@/data/image";
 
 export type InsertImagePayload = Readonly<ImagePayload>;
 
@@ -229,7 +229,6 @@ export function InsertImageDialog({
     const loadImages = Number(load) + postImageSize;
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("load", loadImages.toString());
-    console.log("set");
     router.push(`?${newParams.toString()}`);
   };
 
@@ -238,19 +237,36 @@ export function InsertImageDialog({
 
   const [images, setImages] = useState<ImageType[]>([]);
   const [imagesCount, setImagesCount] = useState(0);
-  console.log(images);
-  console.log(imagesCount);
 
   useEffect(() => {
     const fetchImages = async () => {
-      const fetchedImages = await getAllPostImages({ take });
-      const imagesCount = await getAllPostImagesCount();
+      const fetchedImages = await getAllAssetImages({ take });
+      const imagesCount = await getAllAssetImagesCount();
       setImages(fetchedImages);
       setImagesCount(imagesCount);
     };
 
     fetchImages();
   }, [take]);
+
+  const { loading, setLoading } = useLoading();
+
+  const handleDeleteImage = async (publicId: string) => {
+    setLoading(true);
+
+    try {
+      await deleteImage(publicId); // Delete from DB & Cloud
+
+      // Update images state by removing the deleted image
+      setImages((prevImages) =>
+        prevImages.filter((img) => img.public_id !== publicId)
+      );
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -300,16 +316,48 @@ export function InsertImageDialog({
           <Separator className="mb-6" />
 
           <div className="flex flex-col items-center gap-5">
-            <div className="w-screen  max-w-screen-xl grid grid-cols-8 gap-3">
+            <div className="w-screen  max-w-screen-xl grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              {images.length < 1 && (
+                <div className="py-10 text-gray-400 flex items-center justify-center gap-3 flex-col text-center col-span-8">
+                  <div>
+                    <Frown strokeWidth={1.4} size={120} />
+                  </div>
+                  <span>No Image Uploaded</span>
+                </div>
+              )}
               {images.map((img, index) => (
-                <Image
+                <div
                   key={img.id}
-                  alt=""
-                  src={img.url}
-                  width={150}
-                  height={150}
-                  className="aspect-square object-cover rounded-sm"
-                />
+                  className="relative rounded-sm overflow-hidden group"
+                >
+                  <Image
+                    alt=""
+                    src={img.url}
+                    width={150}
+                    height={150}
+                    className="aspect-square object-cover rounded-sm"
+                  />
+
+                  <div className="absolute bottom-0  justify-center items-center gap-3 w-full h-full hidden group-hover:flex bg-black/20">
+                    <UiButton
+                      disabled={loading}
+                      variant={"default"}
+                      size={"icon"}
+                      onClick={() => onClick({ altText: "", src: img.url })}
+                    >
+                      <Plus />
+                    </UiButton>
+                    <UiButton
+                      onClick={() => handleDeleteImage(img.public_id)}
+                      variant={"destructive"}
+                      size={"icon"}
+                      disabled={loading}
+                    >
+                      {!loading && <Trash />}
+                      <Loader loading={loading} />
+                    </UiButton>
+                  </div>
+                </div>
               ))}
             </div>
 
