@@ -9,21 +9,21 @@ import {
 } from "@/components/ui/dialog";
 import prisma from "@/prisma/client";
 import TutorsList from "./TutorsList";
+import { globalPageSize, pagination } from "@/data/pagination";
 interface Props {
   searchParams: Promise<{ page: string; search: string }>;
 }
 
 const page = async ({ searchParams }: Props) => {
   const { page } = await searchParams;
-
-  const pageSize = 15;
+  const { skip, take } = pagination(page);
 
   const tutors = await prisma.tutor.findMany({
     orderBy: { joinedAt: "asc" },
     include: { image: true },
 
-    skip: ((+page || 1) - 1) * pageSize,
-    take: pageSize,
+    skip,
+    take,
   });
   const totalTutors = await prisma.tutor.count();
 
@@ -49,7 +49,7 @@ const page = async ({ searchParams }: Props) => {
       <TutorsList
         tutors={tutors}
         totalTutors={totalTutors}
-        pageSize={pageSize}
+        pageSize={globalPageSize}
       />
     </div>
   );

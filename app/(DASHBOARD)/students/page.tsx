@@ -10,15 +10,15 @@ import {
 } from "@/components/ui/dialog";
 import prisma from "@/prisma/client";
 import StudentsList from "./StudentsList";
+import { globalPageSize, pagination } from "@/data/pagination";
 interface Props {
   searchParams: Promise<{ page: string; search: string }>;
 }
 
 const page = async ({ searchParams }: Props) => {
   const { page, search } = await searchParams;
-  const pageSize = 15;
+  const { skip, take } = pagination(page);
 
-  // Build the search filter only if a search term is provided
   const where = search
     ? {
         OR: [
@@ -32,21 +32,20 @@ const page = async ({ searchParams }: Props) => {
       }
     : {};
 
-  // Use the filter in findMany and count
-  const users = await prisma.user.findMany({
+  const students = await prisma.user.findMany({
     where,
     orderBy: { id: "desc" },
     include: { image: true },
 
-    skip: ((+page || 1) - 1) * pageSize,
-    take: pageSize,
+    skip,
+    take,
   });
   const totalStudents = await prisma.user.count({ where });
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
-        <h3>Students</h3>
+        <h3>{totalStudents} Students</h3>
         <div className="flex gap-3 justify-between items-center">
           <Search />
 
@@ -65,9 +64,9 @@ const page = async ({ searchParams }: Props) => {
       </div>
 
       <StudentsList
-        students={users}
+        students={students}
         totalStudents={totalStudents}
-        pageSize={pageSize}
+        pageSize={globalPageSize}
       />
     </div>
   );

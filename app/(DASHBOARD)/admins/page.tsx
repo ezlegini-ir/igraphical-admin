@@ -11,32 +11,35 @@ import {
 import prisma from "@/prisma/client";
 import { AdminRole } from "@prisma/client";
 import AdminsList from "./AdminsList";
+import { globalPageSize, pagination } from "@/data/pagination";
 interface Props {
   searchParams: Promise<{ page: string; filter: string; search: string }>;
 }
 
 const page = async ({ searchParams }: Props) => {
   const { page, filter } = await searchParams;
-  const pageSize = 15;
+  const { skip, take } = pagination(page);
+
+  const where = {
+    role: filter === "all" ? undefined : (filter as AdminRole),
+  };
 
   const admins = await prisma.admin.findMany({
-    where: {
-      role: filter === "all" ? undefined : (filter as AdminRole),
-    },
+    where,
     orderBy: { joinedAt: "desc" },
     include: {
       image: true,
     },
 
-    skip: ((+page || 1) - 1) * pageSize,
-    take: pageSize,
+    skip,
+    take,
   });
-  const totalAdmins = await prisma.admin.count();
+  const totalAdmins = await prisma.admin.count({ where });
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
-        <h3>Admins</h3>
+        <h3>{totalAdmins} Admins</h3>
         <div className="flex gap-3 justify-between items-center">
           <Filter
             defaultValue="all"
@@ -65,7 +68,7 @@ const page = async ({ searchParams }: Props) => {
       <AdminsList
         admins={admins}
         totalAdmins={totalAdmins}
-        pageSize={pageSize}
+        pageSize={globalPageSize}
       />
     </div>
   );

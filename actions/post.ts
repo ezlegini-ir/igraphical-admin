@@ -5,6 +5,7 @@ import { PostFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import { deleteImage, uploadImage } from "./cloudinary";
+import { encodeUrl } from "@/lib/utils";
 
 //* CREATE ------------------------------------------------------------
 
@@ -12,7 +13,7 @@ export const createPost = async (data: PostFormType) => {
   const { author, categories, content, image, status, title, url } = data;
 
   try {
-    const encodedUrl = url.split(" ").join("-");
+    const encodedUrl = encodeUrl(url);
 
     const existingPost = await getPostByUrl(encodedUrl);
 

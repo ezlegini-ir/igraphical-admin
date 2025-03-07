@@ -8,16 +8,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import CategoriesList from "./CategoriesList";
+import prisma from "@/prisma/client";
+import { globalPageSize, pagination } from "@/data/pagination";
 
 interface Props {
   searchParams: Promise<{ page: string }>;
 }
 
-const totalPosts = 15;
-
 const page = async ({ searchParams }: Props) => {
   const { page } = await searchParams;
-  const totalCategories = 5;
+  const { skip, take } = pagination(page);
+
+  const categories = await prisma.postCategory.findMany({
+    include: {
+      _count: {
+        select: {
+          posts: true,
+        },
+      },
+    },
+
+    skip,
+    take,
+  });
+  const totalCategories = await prisma.postCategory.count();
 
   return (
     <div className="space-y-3">
@@ -43,18 +57,10 @@ const page = async ({ searchParams }: Props) => {
       <CategoriesList
         categories={categories}
         totalCategories={totalCategories}
+        pageSize={globalPageSize}
       />
     </div>
   );
 };
 
 export default page;
-
-const categories = [
-  {
-    id: 1,
-    name: "ادوبی ایلوستریتور",
-    url: "ادوبی-ایلوستریتور",
-    post: { count: 22 },
-  },
-];

@@ -5,15 +5,15 @@ import PostsList from "./PostsList";
 import prisma from "@/prisma/client";
 import { PostStatus } from "@prisma/client";
 import { getSessionAdmin } from "@/data/admin";
+import { globalPageSize, pagination } from "@/data/pagination";
 interface Props {
   searchParams: Promise<{ page: string; filter: string; search: string }>;
 }
 
-const pageSize = 15;
-
 const page = async ({ searchParams }: Props) => {
   const { page, filter, search } = await searchParams;
   const sessionId = await getSessionAdmin();
+  const { skip, take } = pagination(page);
 
   const where = {
     status:
@@ -29,8 +29,8 @@ const page = async ({ searchParams }: Props) => {
     include: { image: true, categories: true, author: true },
     orderBy: { id: "desc" },
 
-    skip: ((+page || 1) - 1) * pageSize,
-    take: pageSize,
+    skip,
+    take,
   });
   const totalPosts = await prisma.post.count({ where });
 
@@ -58,7 +58,11 @@ const page = async ({ searchParams }: Props) => {
         </div>
       </div>
 
-      <PostsList posts={posts} totalPosts={totalPosts} pageSize={pageSize} />
+      <PostsList
+        posts={posts}
+        totalPosts={totalPosts}
+        pageSize={globalPageSize}
+      />
     </div>
   );
 };

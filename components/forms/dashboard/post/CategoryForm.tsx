@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  CategoryName,
+  createCategory,
+  deleteCategory,
+  updateCategory,
+} from "@/actions/Category";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
@@ -17,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
-import { CategoryFormType, categoryFormSchema } from "@/lib/validationSchema";
+import { categoryFormSchema, CategoryFormType } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -29,9 +35,10 @@ interface Props {
     name: string;
     url: string;
   };
+  categoryName: CategoryName;
 }
 
-const CategoryForm = ({ type, category }: Props) => {
+const CategoryForm = ({ type, category, categoryName }: Props) => {
   // HOOKS
   const router = useRouter();
   const { error, setError } = useError();
@@ -44,25 +51,49 @@ const CategoryForm = ({ type, category }: Props) => {
     resolver: zodResolver(categoryFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      name: category?.name,
-      url: category?.url,
+      name: category?.name || "",
+      url: category?.url || "",
     },
   });
 
   const onSubmit = async (data: CategoryFormType) => {
     setError("");
+    setSuccess("");
     setLoading(true);
 
-    console.log(data);
+    let res;
+    if (type === "NEW") {
+      res = await createCategory(data, categoryName);
+    } else {
+      res = await updateCategory(data, category?.id!, categoryName);
+    }
 
-    form.reset();
-    router.refresh();
-    setSuccess("Created Successfully");
-    setLoading(false);
+    if (res.error) {
+      setError(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      setSuccess(res.success);
+      setLoading(false);
+      if (type === "NEW") form.reset();
+      router.refresh();
+    }
   };
 
-  const onDelete = (id: number | string) => {
-    console.log("Delete" + id);
+  const onDelete = async () => {
+    setError("");
+    setSuccess("");
+
+    const res = await deleteCategory(category?.id!, categoryName);
+
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+
+    router.refresh();
   };
 
   return (
@@ -105,9 +136,7 @@ const CategoryForm = ({ type, category }: Props) => {
           {isUpdateType ? "Update" : "Create"}
         </Button>
 
-        {isUpdateType && (
-          <DeleteButton id={category?.id!} onDelete={onDelete} />
-        )}
+        {isUpdateType && <DeleteButton onDelete={onDelete} />}
         <Error error={error} />
         <Success success={success} />
       </form>

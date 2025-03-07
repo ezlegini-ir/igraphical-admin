@@ -10,19 +10,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { PostCategory } from "@prisma/client";
+
+type CategoryType = {
+  _count: {
+    posts: number;
+  };
+} & PostCategory;
 
 interface Props {
-  categories: {
-    id: number;
-    name: string;
-    url: string;
-    post: { count: number };
-  }[];
+  categories: CategoryType[];
   totalCategories: number;
+  pageSize: number;
 }
 
-const CategoriesList = ({ categories, totalCategories }: Props) => {
-  const pageSize = 15;
+const CategoriesList = ({ categories, totalCategories, pageSize }: Props) => {
   return (
     <div className="card">
       <Table columns={columns} data={categories} renderRows={renderRows} />
@@ -31,18 +33,13 @@ const CategoriesList = ({ categories, totalCategories }: Props) => {
   );
 };
 
-const renderRows = (category: {
-  id: number;
-  name: string;
-  url: string;
-  post: { count: number };
-}) => {
+const renderRows = (category: CategoryType) => {
   return (
     <TableRow key={category.id} className="odd:bg-slate-50">
       <TableCell className="text-left">{category.name}</TableCell>
 
       <TableCell className="hidden lg:table-cell">{category.url}</TableCell>
-      <TableCell>{category.post?.count}</TableCell>
+      <TableCell>{category._count.posts}</TableCell>
       <TableCell className="flex justify-end">
         <Dialog>
           <DialogTrigger asChild>
