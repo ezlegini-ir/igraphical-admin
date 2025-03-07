@@ -10,7 +10,7 @@ import {
 
 //* CREATE ------------------------------------------------------------
 
-export const createPostContentImage = async (
+export const createPostAssetImage = async (
   file: File,
   options?: UploadOptions
 ) => {
@@ -28,7 +28,7 @@ export const createPostContentImage = async (
         public_id,
         size: bytes,
         url: secure_url,
-        type: "DOCUMENT",
+        type: "POST_ASSET",
       },
     });
 

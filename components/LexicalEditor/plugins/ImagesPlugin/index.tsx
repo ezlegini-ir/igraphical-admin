@@ -32,12 +32,13 @@ import {
 } from "lexical";
 import { useEffect, useRef, useState } from "react";
 
-import { createPostContentImage } from "@/actions/image";
+import { createPostAssetImage } from "@/actions/image";
 import Loader from "@/components/Loader";
 import Success from "@/components/Success";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { igraphLogo, placeHolder, profile } from "@/public";
+import { Image as ImageType } from "@prisma/client";
 import Image from "next/image";
 import {
   $createImageNode,
@@ -46,9 +47,14 @@ import {
   ImagePayload,
 } from "../../nodes/ImageNode";
 import Button from "../../ui/Button";
+import { Button as UiButton } from "@/components/ui/button";
 import { DialogActions, DialogButtonsList } from "../../ui/Dialog";
 import FileInput from "../../ui/FileInput";
 import TextInput from "../../ui/TextInput";
+import { Link, Upload } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getAllPostImages, getAllPostImagesCount } from "@/data/image";
 
 export type InsertImagePayload = Readonly<ImagePayload>;
 
@@ -117,9 +123,9 @@ export function InsertImageUploadedDialogBody({
         setLoading(true);
 
         if (files !== null) {
-          const res = await createPostContentImage(files[0], {
-            folder: "content",
-            width: 1200,
+          const res = await createPostAssetImage(files[0], {
+            folder: "asset",
+            width: 800,
           });
           if (res.url) {
             setLoading(false);
@@ -156,6 +162,7 @@ export function InsertImageUploadedDialogBody({
           </div>
         )}
       </div>
+
       <div className="hidden">
         <FileInput
           id="image-upload"
@@ -166,20 +173,22 @@ export function InsertImageUploadedDialogBody({
         />
       </div>
       <TextInput
-        label="Alt Text"
-        placeholder="Descriptive alternative text"
+        label=""
+        placeholder="Alternative Text"
         onChange={setAltText}
         value={altText}
         data-test-id="image-modal-alt-text-input"
       />
       <DialogActions>
-        <Button
+        <UiButton
+          variant={"lightBlue"}
           data-test-id="image-modal-file-upload-btn"
-          disabled={isDisabled}
+          disabled={isDisabled || loading}
           onClick={() => onClick({ altText, src })}
+          className="w-full"
         >
-          Confirm
-        </Button>
+          Insert
+        </UiButton>
       </DialogActions>
     </>
   );
@@ -211,46 +220,114 @@ export function InsertImageDialog({
     onClose();
   };
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const postImageSize = 32;
+  const load = searchParams.get("load") || postImageSize;
+
+  const handleLoadImage = () => {
+    const loadImages = Number(load) + postImageSize;
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("load", loadImages.toString());
+    console.log("set");
+    router.push(`?${newParams.toString()}`);
+  };
+
+  const loadImages = searchParams.get("load");
+  const take = loadImages ? +loadImages : postImageSize;
+
+  const [images, setImages] = useState<ImageType[]>([]);
+  const [imagesCount, setImagesCount] = useState(0);
+  console.log(images);
+  console.log(imagesCount);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const fetchedImages = await getAllPostImages({ take });
+      const imagesCount = await getAllPostImagesCount();
+      setImages(fetchedImages);
+      setImagesCount(imagesCount);
+    };
+
+    fetchImages();
+  }, [take]);
+
   return (
     <>
       {!mode && (
-        <DialogButtonsList>
-          {/* //! REMOVE THIS BUTTON */}
-          <Button
-            data-test-id="image-modal-option-sample"
-            onClick={() =>
-              onClick(
-                hasModifier.current
-                  ? {
-                      altText:
-                        "Daylight fir trees forest glacier green high ice landscape",
-                      src: profile,
-                    }
-                  : {
-                      altText: "Yellow flower in tilt shift lens",
-                      src: igraphLogo,
-                    }
-              )
-            }
-          >
-            iGraphical Logo
-          </Button>
+        <>
+          <DialogButtonsList>
+            <div className="flex gap-3">
+              {/* <Button
+                data-test-id="image-modal-option-sample"
+                onClick={() =>
+                  onClick(
+                    hasModifier.current
+                      ? {
+                          altText:
+                            "Daylight fir trees forest glacier green high ice landscape",
+                          src: profile,
+                        }
+                      : {
+                          altText: "Yellow flower in tilt shift lens",
+                          src: igraphLogo,
+                        }
+                  )
+                }
+              >
+                Logo
+              </Button> */}
 
-          <Button
-            data-test-id="image-modal-option-url"
-            onClick={() => setMode("url")}
-          >
-            URL
-          </Button>
+              <UiButton
+                variant={"secondary"}
+                data-test-id="image-modal-option-url"
+                onClick={() => setMode("url")}
+              >
+                <Link />
+                From URL
+              </UiButton>
 
-          <Button
-            data-test-id="image-modal-option-file"
-            onClick={() => setMode("file")}
-          >
-            File
-          </Button>
-        </DialogButtonsList>
+              <UiButton
+                data-test-id="image-modal-option-file"
+                onClick={() => setMode("file")}
+              >
+                <Upload />
+                Upload
+              </UiButton>
+            </div>
+          </DialogButtonsList>
+
+          <Separator className="mb-6" />
+
+          <div className="flex flex-col items-center gap-5">
+            <div className="w-screen  max-w-screen-xl grid grid-cols-8 gap-3">
+              {images.map((img, index) => (
+                <Image
+                  key={img.id}
+                  alt=""
+                  src={img.url}
+                  width={150}
+                  height={150}
+                  className="aspect-square object-cover rounded-sm"
+                />
+              ))}
+            </div>
+
+            {postImageSize < imagesCount && (
+              <UiButton
+                size={"sm"}
+                className="w-min px-5"
+                variant={"lightBlue"}
+                onClick={handleLoadImage}
+                disabled={+load >= imagesCount}
+              >
+                Load More
+              </UiButton>
+            )}
+          </div>
+        </>
       )}
+
       {mode === "url" && <InsertImageUriDialogBody onClick={onClick} />}
       {mode === "file" && <InsertImageUploadedDialogBody onClick={onClick} />}
     </>

@@ -227,8 +227,6 @@ export default function TextEditor({
     onChange(serialized);
   }
 
-  console.log("Editor content:", editorStateSerialized);
-
   return (
     <FlashMessageContext>
       <LexicalComposer initialConfig={initialConfig}>

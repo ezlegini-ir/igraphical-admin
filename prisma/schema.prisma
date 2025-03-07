@@ -73,7 +73,7 @@ model Image {
   public_id String    @unique
   url       String    @unique
   format    String
-  type      ImageType @default(USER)
+  type      ImageType
   size      Int
   createdAt DateTime  @default(now())
 
@@ -93,8 +93,11 @@ enum ImageType {
   COURSE
   ANNOUNCEMENT
   USER
-  ASSET
   OTHER
+
+  COURSE_ASSET
+  POST_ASSET
+  TICKET_ASSET
 }
 
 //! Posts

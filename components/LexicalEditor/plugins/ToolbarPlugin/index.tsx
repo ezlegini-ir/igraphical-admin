@@ -1095,7 +1095,7 @@ export default function ToolbarPlugin({
                   <span className="text">Page Break</span>
                 </DropDownItem>
                 <DropDownItem
-                  onClick={() => {
+                  onClick={async () => {
                     showModal("Insert Image", (onClose) => (
                       <InsertImageDialog
                         activeEditor={activeEditor}
