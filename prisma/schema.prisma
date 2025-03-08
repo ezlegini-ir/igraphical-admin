@@ -9,15 +9,16 @@ datasource db {
 
 //! User Managment
 model User {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   firstName  String
   lastName   String
   fullName   String
-  phone      String   @unique
-  email      String   @unique
-  nationalId String   @unique
-  joinedAt   DateTime @default(now())
+  phone      String    @unique
+  email      String    @unique
+  nationalId String    @unique
+  joinedAt   DateTime  @default(now())
   image      Image?
+  comments   Comment[]
 }
 
 model Admin {
@@ -125,12 +126,13 @@ model PostCategory {
 }
 
 model Comment {
-  id      Int      @id @default(autoincrement())
-  content String
-  user    String
-  date    DateTime @default(now())
-  post    Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId  Int
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  Int?
 }
 
 enum PostStatus {

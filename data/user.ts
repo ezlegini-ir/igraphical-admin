@@ -1,3 +1,5 @@
+"use server";
+
 import { auth } from "@/auth";
 import prisma from "@/prisma/client";
 
@@ -10,7 +12,6 @@ export const getUserByIdentifier = async (phoneOrEmail: string) => {
 };
 
 export const getUserById = async (id: number) => {
-  if (!id) return;
   return await prisma.user.findUnique({
     where: {
       id,

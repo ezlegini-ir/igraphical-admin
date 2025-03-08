@@ -63,9 +63,9 @@ export type CategoryFormType = z.infer<typeof categoryFormSchema>;
 // --------------
 export const commentFormSchema = z.object({
   content: z.string().min(1),
-  user: z.string(),
+  userId: z.number().optional(),
+  postId: z.number(),
   date: z.date(),
-  post: z.string(),
 });
 export type CommentFormType = z.infer<typeof commentFormSchema>;
 

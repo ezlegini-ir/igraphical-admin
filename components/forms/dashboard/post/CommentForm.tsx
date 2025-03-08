@@ -1,9 +1,11 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
+import {
+  createComment,
+  deleteComment,
+  updateComment,
+} from "@/actions/postComment";
+import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
 import Success from "@/components/Success";
@@ -22,27 +24,27 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getPostById } from "@/data/post";
+import { getUserById } from "@/data/user";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { cn } from "@/lib/utils";
 import { CommentFormType, commentFormSchema } from "@/lib/validationSchema";
-import { Star } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Comment, Post, User } from "@prisma/client";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import DeleteButton from "@/components/DeleteButton";
-import { CommentType as CommentType } from "@/app/(DASHBOARD)/posts/comments/CommentsList";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import SearchField from "../../SearchField";
+import { searchPosts, searchUsers } from "@/data/search";
 
 interface Props {
   type: "NEW" | "UPDATE";
-  comment?: CommentType;
+  comment?: Comment;
 }
 
 const CommentForm = ({ type, comment }: Props) => {
@@ -58,10 +60,10 @@ const CommentForm = ({ type, comment }: Props) => {
     resolver: zodResolver(commentFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      content: comment?.content,
-      post: comment?.id.toString(),
-      date: comment?.createdAt,
-      user: comment?.user.id.toString(),
+      content: comment?.content || "",
+      postId: comment?.postId || 0,
+      date: comment?.createdAt || new Date(),
+      userId: comment?.authorId || undefined,
     },
   });
 
@@ -69,17 +71,66 @@ const CommentForm = ({ type, comment }: Props) => {
     setError("");
     setLoading(true);
 
-    console.log(data);
+    const res =
+      type === "NEW"
+        ? await createComment(data)
+        : await updateComment(data, comment?.id!);
 
-    form.reset();
+    if (res.error) {
+      setError(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      setSuccess(res.success);
+      setLoading(false);
+      router.refresh();
+    }
+  };
+
+  const onDelete = async () => {
+    const res = await deleteComment(comment?.id!);
+
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+
     router.refresh();
-    setSuccess("Created Successfully");
-    setLoading(false);
   };
 
-  const onDelete = (id: number) => {
-    console.log("Delete" + id);
+  //! SEARCH UTILS
+  //HOOKS
+  const [defaultUser, setDefaultUser] = useState<User | undefined>(undefined);
+  const [defaultPost, setDefaultPost] = useState<Post | undefined>(undefined);
+
+  const fetchUsers = async (query: string): Promise<User[]> => {
+    return await searchUsers(query);
   };
+  const fetchPosts = async (query: string): Promise<Post[]> => {
+    return await searchPosts(query);
+  };
+
+  useEffect(() => {
+    const fetchSelectedUser = async () => {
+      if (comment?.authorId) {
+        const user = await getUserById(comment.authorId);
+        setDefaultUser(user ? user : undefined);
+      }
+    };
+    fetchSelectedUser();
+  }, [comment?.authorId]);
+
+  useEffect(() => {
+    const fetchSelectedPost = async () => {
+      if (comment?.postId) {
+        const post = await getPostById(comment.postId);
+        setDefaultPost(post ? post : undefined);
+      }
+    };
+    fetchSelectedPost();
+  }, [comment?.postId]);
 
   return (
     <Form {...form}>
@@ -91,7 +142,7 @@ const CommentForm = ({ type, comment }: Props) => {
             <FormItem>
               <FormLabel>Content</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea className="min-h-[220px]" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,54 +151,49 @@ const CommentForm = ({ type, comment }: Props) => {
 
         <FormField
           control={form.control}
-          name="post"
+          name="userId"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Post</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a Post..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">
-                    دوره جامع نرم افزار ادوبی ایلوستریتور
-                  </SelectItem>
-                  <SelectItem value="2">
-                    دوره جامع نرم افزار ادوبی ایلوستریتور
-                  </SelectItem>
-                  <SelectItem value="3">
-                    دوره جامع نرم افزار ادوبی ایلوستریتور
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <FormItem className="overflow-visible">
+              <FormLabel>User</FormLabel>
+
+              <SearchField<User>
+                placeholder="Search Users..."
+                fetchResults={fetchUsers}
+                onSelect={(user) =>
+                  user ? field.onChange(user.id) : field.onChange(undefined)
+                }
+                getItemLabel={(user) => `${user.fullName} - ${user.email}`}
+                defaultItem={defaultUser}
+              />
+
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="user"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>User</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a Post..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">علیرضا ازلگینی</SelectItem>
-                  <SelectItem value="2">مهمان</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {!isUpdateType && (
+          <FormField
+            control={form.control}
+            name="postId"
+            render={({ field }) => (
+              <FormItem className="overflow-visible">
+                <FormLabel>Post</FormLabel>
+
+                <SearchField<Post>
+                  placeholder="Search Posts..."
+                  fetchResults={fetchPosts}
+                  onSelect={(post) =>
+                    post ? field.onChange(post.id) : field.onChange(undefined)
+                  }
+                  getItemLabel={(post) => `${post.title}`}
+                  defaultItem={defaultPost}
+                />
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -201,7 +247,7 @@ const CommentForm = ({ type, comment }: Props) => {
           {isUpdateType ? "Update" : "Create"}
         </Button>
 
-        {isUpdateType && <DeleteButton id={comment?.id!} onDelete={onDelete} />}
+        {isUpdateType && <DeleteButton onDelete={onDelete} />}
         <Error error={error} />
         <Success success={success} />
       </form>
@@ -210,15 +256,3 @@ const CommentForm = ({ type, comment }: Props) => {
 };
 
 export default CommentForm;
-
-const languages = [
-  { label: "English", value: "en" },
-  { label: "French", value: "fr" },
-  { label: "German", value: "de" },
-  { label: "Spanish", value: "es" },
-  { label: "Portuguese", value: "pt" },
-  { label: "Russian", value: "ru" },
-  { label: "Japanese", value: "ja" },
-  { label: "Korean", value: "ko" },
-  { label: "Chinese", value: "zh" },
-] as const;
