@@ -85,7 +85,7 @@ export const courseFormSchema = z.object({
   duration: z.number().min(1, "Duration must be a positive number"),
   image: z.instanceof(File, { message: "Image file is required" }).optional(),
   categoryId: z.string().min(1, "Category is required"),
-  price: z.number().min(0, "Price must be a non-negative number"),
+  basePrice: z.number().min(0, "Price must be a non-negative number"),
 
   // Discount Schema
   discount: z
@@ -98,12 +98,16 @@ export const courseFormSchema = z.object({
       }),
       date: z
         .object({
-          from: z.coerce.date({
-            invalid_type_error: "Invalid date format for 'from'",
-          }),
-          to: z.coerce.date({
-            invalid_type_error: "Invalid date format for 'to'",
-          }),
+          from: z.coerce
+            .date({
+              invalid_type_error: "Invalid date format for 'from'",
+            })
+            .optional(),
+          to: z.coerce
+            .date({
+              invalid_type_error: "Invalid date format for 'to'",
+            })
+            .optional(),
         })
         .optional(),
     })

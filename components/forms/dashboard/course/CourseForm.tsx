@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { createCourse, deleteCourse } from "@/actions/course";
+import { createCourse, deleteCourse, updateCourse } from "@/actions/course";
 import { deleteImage } from "@/actions/image";
 import Avatar from "@/components/Avatar";
 import CardBox from "@/components/CardBox";
@@ -60,13 +60,16 @@ import {
   Tutor,
 } from "@prisma/client";
 import { addDays, format } from "date-fns";
-import { CalendarIcon, Plus, Trash, X } from "lucide-react";
+import { BadgePercent, CalendarIcon, Plus, Trash, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import ImageField from "../../ImageField";
+import { Badge } from "@/components/ui/badge";
+import { DateRange } from "react-day-picker";
+import Link from "next/link";
 
 const TextEditor = dynamic(
   () => import("@/components/LexicalEditor/TextEditor"),
@@ -104,9 +107,9 @@ const CourseForm = ({ type, course, tutors }: Props) => {
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
   const { imagePreview, setImagePreview } = useImagePreview(course?.image?.url);
-  const [discount, setDiscount] = useState(!!course?.discount);
+  const [discountEnabled, setDiscountEnabled] = useState(!!course?.discount);
   const { success, setSuccess } = useSuccess();
-  const [disocuntDate, setDiscountDate] = useState(
+  const [disocuntDateEnabled, setDiscountDateEnabled] = useState(
     !!course?.discount?.from || !!course?.discount?.to
   );
   const [galleryPreviews, setGalleryPreviews] = useState<
@@ -120,6 +123,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
 
   const form = useForm<CourseFormType>({
     resolver: zodResolver(courseFormSchema),
+    mode: "onChange",
     defaultValues: {
       title: course?.title || "",
       categoryId: course?.categoryId || "",
@@ -130,22 +134,32 @@ const CourseForm = ({ type, course, tutors }: Props) => {
       tutorId: course?.tutorId.toString() || "",
       learns: course?.learn || [{ value: "" }],
       prerequisite: course?.prerequisite || [{ value: "" }],
-      price: course?.price || 0,
+      basePrice: course?.basePrice || 0,
       status: course?.status === "DRAFT" ? "0" : "1",
       summary: course?.summary || "",
       tizerUrl: course?.tizerUrl || "",
-      discount: discount
+      discount: course?.discount
         ? {
             amount: course?.discount?.amount || 0,
-            type: course?.discount?.type || "FIXED",
-            date: disocuntDate
+            type: course?.discount?.type,
+            date: disocuntDateEnabled
               ? {
                   from: course?.discount?.from || new Date(),
                   to: course?.discount?.to || addDays(new Date(), 4),
                 }
-              : undefined,
+              : {
+                  from: new Date(),
+                  to: addDays(new Date(), 4),
+                },
           }
-        : undefined,
+        : {
+            amount: 0,
+            type: "FIXED",
+            date: {
+              from: new Date(),
+              to: addDays(new Date(), 4),
+            },
+          },
       curriculum: course?.curriculum?.length
         ? course.curriculum.map((section) => ({
             sectionTitle: section.sectionTitle || "",
@@ -216,18 +230,15 @@ const CourseForm = ({ type, course, tutors }: Props) => {
 
   const handleGalleryPreview = (files: File[]) => {
     const imageUrls = files.map((file) => ({
-      url: URL.createObjectURL(file), // Create a preview URL for the file
+      url: URL.createObjectURL(file),
     }));
 
-    // Append the new previews to the existing state
     setGalleryPreviews((prev = []) => [...prev, ...imageUrls]);
   };
 
   const handleGalleryPreviewRemove = async (index: number) => {
-    // Remove from preview list
     setGalleryPreviews((prev) => prev?.filter((_, i) => i !== index));
 
-    // Remove from form field value
     form.setValue(
       "gallery",
       form.getValues("gallery")?.filter((_, i) => i !== index) || []
@@ -250,15 +261,13 @@ const CourseForm = ({ type, course, tutors }: Props) => {
     setRemoveImageLoading(false);
   };
 
-  console.log(form.getValues("gallery"));
-
   const onSubmit = async (data: CourseFormType) => {
     setError("");
     setSuccess("");
     setLoading(true);
 
     const res = isUpdateType
-      ? await createCourse(data)
+      ? await updateCourse(data, course?.id!)
       : await createCourse(data);
 
     if (res.error) {
@@ -268,7 +277,15 @@ const CourseForm = ({ type, course, tutors }: Props) => {
     }
 
     if (res.success) {
-      router.push(`/courses/${res.course.id}`);
+      if (isUpdateType) {
+        setLoading(false);
+        setSuccess(res.success);
+        setGalleryPreviews([]);
+        form.setValue("gallery", undefined);
+        router.refresh();
+      } else {
+        router.push(`/courses/${res.course.id}`);
+      }
     }
   };
 
@@ -281,6 +298,21 @@ const CourseForm = ({ type, course, tutors }: Props) => {
     }
 
     router.push("/courses/list");
+  };
+
+  const handleDiscountToggle = (checked: boolean) => {
+    setDiscountEnabled(checked);
+    if (!checked) {
+      form.setValue("discount", undefined);
+    }
+  };
+
+  const handleDiscountDateToggle = (checked: boolean) => {
+    setDiscountDateEnabled(checked);
+
+    if (!checked) {
+      form.setValue("discount.date", undefined);
+    }
   };
 
   return (
@@ -307,19 +339,31 @@ const CourseForm = ({ type, course, tutors }: Props) => {
             />
 
             {/* //! URL */}
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Url</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div>
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Url</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isUpdateType && (
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_MAIN_URL}/courses/${course?.url}`}
+                  className="text-xs text-gray-500 flex w-fit"
+                >
+                  <p>
+                    {process.env.NEXT_PUBLIC_MAIN_URL}/courses/{course?.url}
+                  </p>
+                </Link>
               )}
-            />
+            </div>
 
             {/* //! SUMMERY */}
             <FormField
@@ -329,7 +373,11 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                 <FormItem>
                   <FormLabel>Summery</FormLabel>
                   <FormControl>
-                    <Textarea {...field} className="min-h-[100px]" />
+                    <Textarea
+                      dir="rtl"
+                      {...field}
+                      className="min-h-[150px] leading-loose"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -341,7 +389,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="pb-10">
+                <FormItem>
                   <FormLabel>Content</FormLabel>
                   <FormControl>
                     <TextEditor onChange={field.onChange} value={field.value} />
@@ -350,6 +398,10 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                 </FormItem>
               )}
             />
+
+            <div className="py-5">
+              <Separator />
+            </div>
 
             {/* //! PREREQUISITE */}
             <div className="bg-white p-4 py-6 rounded-sm border grid gap-3 grid-cols-2">
@@ -560,18 +612,44 @@ const CourseForm = ({ type, course, tutors }: Props) => {
 
             {/* //! PRICE */}
             <CardBox title="Price">
+              {isUpdateType && (
+                <>
+                  <div className="flex justify-between text-sm items-center text-gray-500">
+                    <p className="flex gap-1 items-center">
+                      {course?.discount && (
+                        <span className="text-primary font-medium">
+                          <BadgePercent />
+                        </span>
+                      )}
+                      Final Price
+                    </p>
+                    <span className="text-primary font-semibold">
+                      {course?.finalPrice === 0 ? (
+                        <Badge variant={"green"}>Free</Badge>
+                      ) : (
+                        course?.finalPrice.toLocaleString("en-US") + " T"
+                      )}
+                    </span>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
               <FormField
                 control={form.control}
-                name="price"
+                name="basePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Base Price {"(T)"}</FormLabel>
+                    <FormLabel>Base Price (T)</FormLabel>
                     <FormControl>
                       <Input
                         min={0}
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? 0 : Number(value));
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -583,15 +661,15 @@ const CourseForm = ({ type, course, tutors }: Props) => {
               <div className="flex items-center space-x-2 py-3">
                 <Switch
                   id="disocunt"
-                  onCheckedChange={setDiscount}
-                  defaultChecked={discount}
+                  onCheckedChange={handleDiscountToggle}
+                  defaultChecked={discountEnabled}
                 />
                 <Label htmlFor="disocunt" className="cursor-pointer">
                   Apply Discount
                 </Label>
               </div>
 
-              {discount && (
+              {discountEnabled && (
                 <CardBox title="Discount">
                   <FormField
                     control={form.control}
@@ -604,9 +682,10 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                             min={0}
                             type="number"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(e.target.valueAsNumber)
-                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === "" ? 0 : Number(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -625,13 +704,27 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11">
                               <SelectValue placeholder="Discount Type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="FIXED">Fixed</SelectItem>
-                            <SelectItem value="PERCENT">Percent</SelectItem>
+                            <SelectItem value="FIXED">
+                              <div className="flex items-center gap-1 font-medium">
+                                <span className="text-xl pr-1 text-primary">
+                                  $
+                                </span>{" "}
+                                Fixed
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="PERCENT">
+                              <div className="flex items-center gap-1 font-medium">
+                                <span className="text-xl pr-1 text-orange-500">
+                                  %
+                                </span>{" "}
+                                Percent
+                              </div>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -642,22 +735,22 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                   <div className="flex items-center space-x-2 py-3">
                     <Switch
                       id="disocunt-date"
-                      onCheckedChange={setDiscountDate}
-                      defaultChecked={disocuntDate}
+                      onCheckedChange={handleDiscountDateToggle}
+                      defaultChecked={disocuntDateEnabled}
                     />
                     <Label htmlFor="disocunt-date" className="cursor-pointer">
                       From / To
                     </Label>
                   </div>
 
-                  {disocuntDate && (
+                  {disocuntDateEnabled && (
                     <div>
                       <FormField
                         control={form.control}
                         name="discount.date"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel>Date of birth</FormLabel>
+                            {/* <FormLabel>Date of birth</FormLabel> */}
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
@@ -694,7 +787,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                               >
                                 <Calendar
                                   mode="range"
-                                  selected={field.value}
+                                  selected={field.value as DateRange}
                                   onSelect={field.onChange}
                                   disabled={(date) => date < new Date()}
                                   initialFocus
@@ -811,7 +904,10 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                       min={0}
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? 0 : Number(value));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

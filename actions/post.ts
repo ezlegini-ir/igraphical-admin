@@ -121,37 +121,27 @@ export const updatePost = async (data: PostFormType, id: number) => {
 
       if (updatedPost.image) {
         await deleteCloudImage(updatedPost.image.public_id);
-
-        // CREATE IMAGE
-        await prisma.image.update({
-          where: {
-            postId: updatedPost.id,
-          },
-          data: {
-            url: secure_url,
-            public_id,
-            type: "POST",
-            format,
-            size: bytes,
-          },
-        });
-      } else {
-        // CREATE IMAGE
-        await prisma.image.create({
-          data: {
-            url: secure_url,
-            public_id,
-            format,
-            type: "POST",
-            size: bytes,
-            post: {
-              connect: {
-                id: updatedPost.id,
-              },
-            },
-          },
-        });
       }
+
+      await prisma.image.upsert({
+        where: { postId: updatedPost.id },
+        update: {
+          url: secure_url,
+          public_id,
+          format,
+          size: bytes,
+        },
+        create: {
+          url: secure_url,
+          public_id,
+          type: "POST",
+          format,
+          size: bytes,
+          post: {
+            connect: { id: updatedPost.id },
+          },
+        },
+      });
     }
 
     return { success: "Updated Successfully", data: updatedPost };

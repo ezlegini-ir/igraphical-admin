@@ -31,23 +31,26 @@
   font-size: 36px;
   /* color: rgb(5, 5, 5); */
   font-weight: 400;
-  margin: 0;
+  margin: 12px 0px;
 }
 .PlaygroundEditorTheme__h2 {
   font-size: 30px;
   /* color: rgb(101, 103, 107); */
   font-weight: 500;
-  margin: 0;
+  margin: 12px 0px;
   /* text-transform: uppercase; */
 }
 .PlaygroundEditorTheme__h3 {
   font-size: 24px;
-  margin: 0;
+  margin: 9px 0px;
+
   /* text-transform: uppercase; */
 }
 .PlaygroundEditorTheme__h4 {
   font-size: 18px;
-  margin: 0;
+  font-weight: 600;
+  margin: 4px 0px;
+
   /* text-transform: uppercase; */
 }
 .PlaygroundEditorTheme__indent {
@@ -420,7 +423,7 @@
 }
 .PlaygroundEditorTheme__ol1 {
   padding: 0;
-  margin: 0;
+  margin: 10px 30px;
   list-style-position: outside;
   list-style-type: decimal;
 }
@@ -455,7 +458,7 @@
   list-style-position: outside;
 }
 .PlaygroundEditorTheme__listItem {
-  margin: 0 32px;
+  padding: 4px 0px;
 }
 .PlaygroundEditorTheme__listItemChecked,
 .PlaygroundEditorTheme__listItemUnchecked {

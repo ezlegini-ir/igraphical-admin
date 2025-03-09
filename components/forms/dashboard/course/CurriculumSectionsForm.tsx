@@ -101,7 +101,7 @@ const CurriculumSectionsForm: React.FC<SectionProps> = ({
                   onChange={(e) => {
                     const value = e.target.value;
                     // If the input is empty, set it as undefined
-                    field.onChange(value === "" ? undefined : Number(value));
+                    field.onChange(value === "" ? 0 : Number(value));
                   }}
                 />
               </FormControl>
