@@ -5,7 +5,6 @@ import { PostType } from "@/app/(DASHBOARD)/posts/list/PostsList";
 import CardBox from "@/components/CardBox";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
-import TextEditor from "@/components/LexicalEditor/TextEditor";
 import Loader from "@/components/Loader";
 import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
@@ -39,6 +38,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import ImageField from "../../ImageField";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const TextEditor = dynamic(
+  () => import("@/components/LexicalEditor/TextEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="w-full h-[450px] bg-white border rounded-sm" />
+    ),
+  }
+);
 
 interface Props {
   type: "NEW" | "UPDATE";

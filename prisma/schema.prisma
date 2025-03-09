@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//! User Managment
+//! User Managment  ---------------------------------------------------------
 model User {
   id         Int       @id @default(autoincrement())
   firstName  String
@@ -30,15 +30,8 @@ model Admin {
   email       String    @unique
   role        AdminRole
   joinedAt    DateTime  @default(now())
-
-  // Relations
-  image Image?
-  post  Post[]
-}
-
-enum AdminRole {
-  ADMIN
-  AUTHOR
+  image       Image?
+  post        Post[]
 }
 
 model Tutor {
@@ -50,9 +43,16 @@ model Tutor {
   email       String   @unique
   joinedAt    DateTime @default(now())
   image       Image?
+  courses     Course[]
 }
 
-//! Login
+enum AdminRole {
+  ADMIN
+  AUTHOR
+}
+
+//! Login ---------------------------------------------------------
+
 model Otp {
   id         String   @id @default(cuid())
   identifier String   @unique
@@ -68,7 +68,8 @@ enum OtpType {
   EMAIL
 }
 
-//! File
+//! Files ---------------------------------------------------------
+
 model Image {
   id        Int       @id @default(autoincrement())
   public_id String    @unique
@@ -79,14 +80,18 @@ model Image {
   createdAt DateTime  @default(now())
 
   // Relations
-  user    User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId  Int?   @unique
-  admin   Admin? @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  adminId Int?   @unique
-  tutor   Tutor? @relation(fields: [tutorId], references: [id], onDelete: Cascade)
-  tutorId Int?   @unique
-  post    Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId  Int?   @unique
+  user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int?         @unique
+  admin     Admin?       @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  adminId   Int?         @unique
+  tutor     Tutor?       @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId   Int?         @unique
+  post      Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int?         @unique
+  course    Course?      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId  Int?         @unique
+  gallery   GalleryItem? @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  galleryId Int?
 }
 
 enum ImageType {
@@ -101,7 +106,8 @@ enum ImageType {
   TICKET_ASSET
 }
 
-//! Posts
+//! Postrs ---------------------------------------------------------
+
 model Post {
   id         Int            @id @default(autoincrement())
   title      String
@@ -138,4 +144,97 @@ model Comment {
 enum PostStatus {
   DRAFT
   PUBLISHED
+}
+
+//! Course ---------------------------------------------------------
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  title       String
+  url         String   @unique
+  summary     String
+  description String   @db.Text
+  tizerUrl    String
+  duration    Int
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // RELATIONS
+  categoryId   String //todo
+  tutor        Tutor          @relation(fields: [tutorId], references: [id])
+  tutorId      Int
+  image        Image?
+  status       Status
+  learn        Learn[]
+  prerequisite Prerequisite[]
+  discount     Discount?
+  curriculum   Curriculum[]
+  gallery      GalleryItem?
+}
+
+model Learn {
+  id       Int    @id @default(autoincrement())
+  value    String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int
+}
+
+model Prerequisite {
+  id       Int    @id @default(autoincrement())
+  value    String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int
+}
+
+model Discount {
+  id       Int          @id @default(autoincrement())
+  amount   Float
+  type     DiscountType
+  from     DateTime?
+  to       DateTime?
+  course   Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int          @unique
+}
+
+enum DiscountType {
+  FIXED
+  PERCENT
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+model Curriculum {
+  id           Int      @id @default(autoincrement())
+  sectionTitle String
+  lessons      Lesson[]
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId     Int
+}
+
+model Lesson {
+  id        Int        @id @default(autoincrement())
+  title     String
+  duration  Int?
+  url       String
+  isFree    Boolean
+  type      LessonType
+  section   Curriculum @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId Int
+}
+
+enum LessonType {
+  VIDEO
+  FILE
+  ASSET
+}
+
+model GalleryItem {
+  id       Int     @id @default(autoincrement())
+  image    Image[]
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int     @unique
 }

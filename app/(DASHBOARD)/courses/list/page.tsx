@@ -8,20 +8,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { coursePic, profile2 } from "@/public";
+import { pagination } from "@/data/pagination";
+import prisma from "@/prisma/client";
 import { SlidersHorizontal } from "lucide-react";
-import { Course } from "./CourseCard";
 import CoursesList from "./CoursesList";
 
 interface Props {
   searchParams: Promise<{ page: string; filer: string; search: string }>;
 }
 
-const totalCourses = 30;
-const pageSize = 15;
-
 const page = async ({ searchParams }: Props) => {
-  // const { page, filer, search } = await searchParams;
+  const { page, filer, search } = await searchParams;
+
+  const pageSize = 12;
+
+  const { skip, take } = pagination(page, pageSize);
+
+  const courses = await prisma.course.findMany({
+    include: {
+      image: true,
+      tutor: true,
+    },
+
+    take,
+    skip,
+  });
+
+  const totalCourses = await prisma.course.count();
 
   return (
     <div className="space-y-3">
@@ -113,34 +126,5 @@ const Filters = () => {
     </>
   );
 };
-
-const courses: Course[] = [
-  {
-    id: 1,
-    url: "adobe-illustrator",
-    title: "دوره جامع نرم افزار ادوبی ایلوستریتور",
-    rate: 4.8,
-    image: { url: coursePic },
-    info: {
-      duration: 21321,
-      price: 1273000,
-      students: 2137,
-      tutor: { name: "Alireza Ezlegini", id: 1 },
-    },
-  },
-  {
-    id: 2,
-    url: "adobe-illustrator",
-    title: "دوره جامع طراحی بسته بندی و لیبل با ایلوستریتور",
-    rate: 4.8,
-    image: { url: profile2 },
-    info: {
-      duration: 21321,
-      price: 0,
-      students: 2137,
-      tutor: { name: "Alireza Ezlegini", id: 1 },
-    },
-  },
-];
 
 export default page;

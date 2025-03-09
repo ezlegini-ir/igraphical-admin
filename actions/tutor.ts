@@ -4,7 +4,7 @@ import { getTutorById, getTutorByIdentifier } from "@/data/tutor";
 import { TutorFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import bcrypt from "bcrypt";
-import { deleteImage, uploadImage } from "./cloudinary";
+import { deleteCloudImage, uploadCloudImage } from "./cloudinary";
 import { UploadApiResponse } from "cloudinary";
 
 //* CREATE ------------------------------------------------------------
@@ -37,7 +37,7 @@ export const createTutor = async (data: TutorFormType) => {
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
 
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "tutor",
@@ -105,7 +105,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
 
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "tutor",
@@ -114,7 +114,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
       )) as UploadApiResponse;
 
       if (updatedTutor.image) {
-        await deleteImage(updatedTutor.image.public_id);
+        await deleteCloudImage(updatedTutor.image.public_id);
 
         // UPDATE IMAGE
         await prisma.image.update({
@@ -168,7 +168,7 @@ export const deleteTutor = async (id: number) => {
 
     if (!tutor) return { error: "Could not remove admin" };
 
-    if (tutor.image) await deleteImage(tutor.image?.public_id);
+    if (tutor.image) await deleteCloudImage(tutor.image?.public_id);
 
     return { success: "Deleted Successfully" };
   } catch (error) {

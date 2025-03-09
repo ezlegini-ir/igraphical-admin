@@ -4,7 +4,7 @@ import { getPostById, getPostByUrl } from "@/data/post";
 import { PostFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import { UploadApiResponse } from "cloudinary";
-import { deleteImage, uploadImage } from "./cloudinary";
+import { deleteCloudImage, uploadCloudImage } from "./cloudinary";
 import { encodeUrl } from "@/lib/utils";
 
 //* CREATE ------------------------------------------------------------
@@ -39,11 +39,11 @@ export const createPost = async (data: PostFormType) => {
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
 
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "post",
-          width: 1200,
+          width: 800,
         }
       )) as UploadApiResponse;
 
@@ -111,16 +111,16 @@ export const updatePost = async (data: PostFormType, id: number) => {
 
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "post",
-          width: 1200,
+          width: 800,
         }
       )) as UploadApiResponse;
 
       if (updatedPost.image) {
-        await deleteImage(updatedPost.image.public_id);
+        await deleteCloudImage(updatedPost.image.public_id);
 
         // CREATE IMAGE
         await prisma.image.update({
@@ -174,7 +174,7 @@ export const deletePost = async (id: number) => {
 
     if (!deletedPost) return { error: "Could not remove Post" };
 
-    if (deletedPost.image) await deleteImage(deletedPost.image?.public_id);
+    if (deletedPost.image) await deleteCloudImage(deletedPost.image?.public_id);
 
     return { success: "Deleted Successfully" };
   } catch (error) {

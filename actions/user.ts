@@ -4,7 +4,7 @@ import { getUserById } from "@/data/user";
 import { studentFormSchema, StudentFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import { UploadApiResponse } from "cloudinary";
-import { deleteImage, uploadImage } from "./cloudinary";
+import { deleteCloudImage, uploadCloudImage } from "./cloudinary";
 
 //* CREATE ------------------------------------------------------------
 
@@ -47,7 +47,7 @@ export async function createUser(data: StudentFormType) {
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
 
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "user",
@@ -111,7 +111,7 @@ export const updateUser = async (data: StudentFormType, id: number) => {
 
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "user",
@@ -120,7 +120,7 @@ export const updateUser = async (data: StudentFormType, id: number) => {
       )) as UploadApiResponse;
 
       if (updatedUser.image) {
-        await deleteImage(updatedUser.image.public_id);
+        await deleteCloudImage(updatedUser.image.public_id);
 
         // CREATE IMAGE
         await prisma.image.update({
@@ -174,7 +174,7 @@ export const deleteUser = async (id: number) => {
 
     if (!deletedUser) return { error: "Could not remove admin" };
 
-    if (deletedUser.image) await deleteImage(deletedUser.image?.public_id);
+    if (deletedUser.image) await deleteCloudImage(deletedUser.image?.public_id);
 
     return { success: "Deleted Successfully" };
   } catch (error) {

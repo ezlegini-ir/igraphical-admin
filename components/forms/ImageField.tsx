@@ -11,12 +11,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import useError from "@/hooks/useError";
+import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { placeHolder } from "@/public";
 import { X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, Dispatch, SetStateAction } from "react";
+import Error from "../Error";
+import Loader from "../Loader";
 
 interface Props {
   control: any;
@@ -35,8 +38,9 @@ const ImageField = ({
 }: Props) => {
   //HOOKS
   const { error, setError } = useError();
-  const { success, setSuccess } = useSuccess();
+  const { setSuccess } = useSuccess();
   const router = useRouter();
+  const { loading, setLoading } = useLoading();
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>, field: any) => {
     setError("");
@@ -77,21 +81,25 @@ const ImageField = ({
   const handleImageRemove = async () => {
     setError("");
     setSuccess("");
-    setImagePreview(undefined);
+    setLoading(true);
 
     if (public_id) {
       const res = await deleteImage(public_id);
 
       if (res.error) {
         setError(res.error);
+        setLoading(false);
         return;
       }
 
       if (res.success) {
         setSuccess(res.success);
         setValue("image", undefined);
+        setLoading(false);
         router.refresh();
       }
+
+      setImagePreview(undefined);
     }
   };
 
@@ -101,15 +109,15 @@ const ImageField = ({
         control={control}
         name="image"
         render={({ field }) => (
-          <FormItem>
-            <div className="relative rounded-full">
+          <FormItem className="w-full">
+            <div className="relative overflow-hidden rounded-md">
               <FormLabel htmlFor="file-upload">
                 <Image
                   alt=""
                   src={imagePreview || placeHolder}
-                  width={350}
-                  height={350}
-                  className="aspect-video rounded-sm object-cover border-[1px] border-slate-400 hover:drop-shadow-md border-dashed  cursor-pointer relative "
+                  width={400}
+                  height={400}
+                  className="aspect-video w-full rounded-sm object-cover border-[1px] border-slate-400 hover:drop-shadow-md border-dashed  cursor-pointer relative "
                 />
               </FormLabel>
               {imagePreview && (
@@ -122,6 +130,12 @@ const ImageField = ({
                 >
                   <X />
                 </Button>
+              )}
+
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+                  <Loader loading />
+                </div>
               )}
             </div>
 
@@ -138,8 +152,7 @@ const ImageField = ({
           </FormItem>
         )}
       />
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-green-500 text-sm">{success}</p>}
+      <Error error={error} />
     </div>
   );
 };

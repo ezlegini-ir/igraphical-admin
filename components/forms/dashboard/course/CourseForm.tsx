@@ -1,13 +1,9 @@
 "use client";
 
-import CardBox from "@/components/CardBox";
-import DeleteButton from "@/components/DeleteButton";
-import Error from "@/components/Error";
-import CurriculumSectionsForm from "@/components/forms/dashboard/course/CurriculumSectionsForm";
-import Loader from "@/components/Loader";
-import Success from "@/components/Success";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -16,13 +12,25 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { createCourse, deleteCourse } from "@/actions/course";
+import { deleteImage } from "@/actions/image";
+import Avatar from "@/components/Avatar";
+import CardBox from "@/components/CardBox";
+import ComboField from "@/components/ComboField";
+import DeleteButton from "@/components/DeleteButton";
+import Error from "@/components/Error";
+import CurriculumSectionsForm from "@/components/forms/dashboard/course/CurriculumSectionsForm";
+import Loader from "@/components/Loader";
+import Success from "@/components/Success";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -32,45 +40,80 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import useError from "@/hooks/useError";
 import useImagePreview from "@/hooks/useImagePreview";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
-import { cn } from "@/lib/utils";
 import { CourseFormType, courseFormSchema } from "@/lib/validationSchema";
-import { placeHolder } from "@/public";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Course,
+  Curriculum,
+  Discount,
+  GalleryItem,
+  Image as ImageType,
+  Learn,
+  Lesson,
+  Prerequisite,
+  Tutor,
+} from "@prisma/client";
 import { addDays, format } from "date-fns";
-import { CalendarIcon, Image as ImageIcon, Plus, Trash, X } from "lucide-react";
+import { CalendarIcon, Plus, Trash, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
+import ImageField from "../../ImageField";
 
-export type CourseProps = Omit<CourseFormType, "image" | "gallery"> & {
-  image: { url: string };
-  gallery: string[];
-};
+const TextEditor = dynamic(
+  () => import("@/components/LexicalEditor/TextEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="w-full h-[450px] bg-white border rounded-sm" />
+    ),
+  }
+);
+
+interface TutorType extends Tutor {
+  image: ImageType | null;
+}
+
+export interface CourseType extends Course {
+  tutor: Tutor;
+  image: ImageType | null;
+  learn: Learn[];
+  prerequisite: Prerequisite[];
+  discount: Discount | null;
+  curriculum: (Curriculum & { lessons: Lesson[] })[];
+  gallery: (GalleryItem & { image: ImageType[] }) | null;
+}
 
 interface Props {
   type: "NEW" | "UPDATE";
-  course?: CourseProps;
+  course?: CourseType | null;
+  tutors: TutorType[];
 }
 
-const CourseForm = ({ type, course }: Props) => {
+const CourseForm = ({ type, course, tutors }: Props) => {
   // HOOKS
-  // const router = useRouter();
+  const router = useRouter();
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { imagePreview, setImagePreview } = useImagePreview(course?.image.url);
-  const [disocunt, setDiscount] = useState(!!course?.discount);
+  const { imagePreview, setImagePreview } = useImagePreview(course?.image?.url);
+  const [discount, setDiscount] = useState(!!course?.discount);
   const { success, setSuccess } = useSuccess();
-  const [disocuntDate, setDiscountDate] = useState(!!course?.discount?.date);
-  const [galleryPreviews, setGalleryPreviews] = useState<string[] | undefined>(
-    course?.gallery
+  const [disocuntDate, setDiscountDate] = useState(
+    !!course?.discount?.from || !!course?.discount?.to
   );
+  const [galleryPreviews, setGalleryPreviews] = useState<
+    { public_id?: string; url: string }[] | undefined
+  >();
+  const { loading: removeImageLoading, setLoading: setRemoveImageLoading } =
+    useLoading();
 
   // CONSTS
   const isUpdateType = type === "UPDATE";
@@ -79,36 +122,40 @@ const CourseForm = ({ type, course }: Props) => {
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
       title: course?.title || "",
-      category: course?.category || "",
+      categoryId: course?.categoryId || "",
       description: course?.description || "",
       url: course?.url || "",
       duration: course?.duration || 0,
       image: undefined,
-      instructor: course?.instructor || "",
-      learns: course?.learns || [{ value: "" }],
+      tutorId: course?.tutorId.toString() || "",
+      learns: course?.learn || [{ value: "" }],
       prerequisite: course?.prerequisite || [{ value: "" }],
       price: course?.price || 0,
-      status: course?.status || "0",
-      summery: course?.summery || "",
+      status: course?.status === "DRAFT" ? "0" : "1",
+      summary: course?.summary || "",
       tizerUrl: course?.tizerUrl || "",
-      discount: {
-        amount: course?.discount?.amount || 0,
-        date: {
-          from: course?.discount?.date?.from || new Date(),
-          to: course?.discount?.date?.to || addDays(new Date(), 4),
-        },
-        type: course?.discount?.type,
-      },
+      discount: discount
+        ? {
+            amount: course?.discount?.amount || 0,
+            type: course?.discount?.type || "FIXED",
+            date: disocuntDate
+              ? {
+                  from: course?.discount?.from || new Date(),
+                  to: course?.discount?.to || addDays(new Date(), 4),
+                }
+              : undefined,
+          }
+        : undefined,
       curriculum: course?.curriculum?.length
         ? course.curriculum.map((section) => ({
             sectionTitle: section.sectionTitle || "",
             lessons: section.lessons?.length
               ? section.lessons.map((lesson) => ({
-                  title: lesson.title || "",
+                  title: lesson.title,
                   duration: lesson.duration || 0,
-                  url: lesson.url || "",
-                  isFree: lesson.isFree || false,
-                  type: lesson.type || "VIDEO",
+                  url: lesson.url,
+                  isFree: lesson.isFree,
+                  type: lesson.type,
                 }))
               : [
                   {
@@ -167,61 +214,73 @@ const CourseForm = ({ type, course }: Props) => {
     control: form.control,
   });
 
-  const handleGalleryRemove = (imageUrl: string) => {
-    setGalleryPreviews((prev) => prev?.filter((img) => img !== imageUrl));
+  const handleGalleryPreview = (files: File[]) => {
+    const imageUrls = files.map((file) => ({
+      url: URL.createObjectURL(file), // Create a preview URL for the file
+    }));
 
+    // Append the new previews to the existing state
+    setGalleryPreviews((prev = []) => [...prev, ...imageUrls]);
+  };
+
+  const handleGalleryPreviewRemove = async (index: number) => {
+    // Remove from preview list
+    setGalleryPreviews((prev) => prev?.filter((_, i) => i !== index));
+
+    // Remove from form field value
     form.setValue(
       "gallery",
-      form
-        .getValues("gallery")
-        ?.filter((file) => URL.createObjectURL(file) !== imageUrl)
+      form.getValues("gallery")?.filter((_, i) => i !== index) || []
     );
-
-    //TODO: Remove From Cloud
-    console.log("deleted", imageUrl);
   };
 
-  const handleGalleryPreview = (files: File[]) => {
-    const imageUrls = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setGalleryPreviews(imageUrls);
-  };
+  const handleGalleryRemove = async (publicId: string) => {
+    setError("");
+    setRemoveImageLoading(true);
 
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: any
-  ) => {
-    const input = e.target;
+    const res = await deleteImage(publicId);
 
-    if (input.files?.length) {
-      const file = input.files[0];
-
-      field.onChange(file);
-      setImagePreview(URL.createObjectURL(file));
-
-      input.value = "";
+    if (res.error) {
+      setError(res.error);
+      setRemoveImageLoading(false);
+      return;
     }
+
+    router.refresh();
+    setRemoveImageLoading(false);
   };
 
-  const handleImageRemove = () => {
-    setImagePreview(undefined);
-    form.setValue("image", undefined);
-
-    //TODO: Remove From Cloud
-    console.log("deleted");
-  };
+  console.log(form.getValues("gallery"));
 
   const onSubmit = async (data: CourseFormType) => {
     setError("");
     setSuccess("");
     setLoading(true);
 
-    console.log(data);
+    const res = isUpdateType
+      ? await createCourse(data)
+      : await createCourse(data);
+
+    if (res.error) {
+      setError(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      router.push(`/courses/${res.course.id}`);
+    }
   };
 
-  const onDelete = (id: number | string) => {
-    console.log(`post ${id} Deleted`);
+  const onDelete = async () => {
+    const res = await deleteCourse(course?.id!);
+
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+
+    router.push("/courses/list");
   };
 
   return (
@@ -265,7 +324,7 @@ const CourseForm = ({ type, course }: Props) => {
             {/* //! SUMMERY */}
             <FormField
               control={form.control}
-              name="summery"
+              name="summary"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Summery</FormLabel>
@@ -282,10 +341,10 @@ const CourseForm = ({ type, course }: Props) => {
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
+                <FormItem className="pb-10">
+                  <FormLabel>Content</FormLabel>
                   <FormControl>
-                    <Textarea {...field} className="min-h-[400px]" />
+                    <TextEditor onChange={field.onChange} value={field.value} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -387,47 +446,50 @@ const CourseForm = ({ type, course }: Props) => {
             </div>
 
             {/* //! CURRICULUMS */}
-            <FormLabel>Curriculums</FormLabel>
-            <div className="card">
-              {sectionFields.map((section, sectionIndex) => (
-                <CurriculumSectionsForm
-                  key={section.id}
-                  sectionIndex={sectionIndex}
-                  control={form.control}
-                  removeSection={removeSection}
-                />
-              ))}
-
-              <Button
-                type="button"
-                variant={"secondary"}
-                onClick={() =>
-                  appendSection({
-                    sectionTitle: "",
-                    lessons: [
-                      {
-                        title: "",
-                        duration: undefined,
-                        url: "",
-                        isFree: false,
-                        type: "VIDEO",
-                      },
-                    ],
-                  })
-                }
-              >
-                <Plus />
-                Add Section
-              </Button>
+            <div className="space-y-2">
+              <FormLabel className="font-semibold text-base ">
+                Curriculums
+              </FormLabel>
+              <div className="card">
+                {sectionFields.map((section, sectionIndex) => (
+                  <CurriculumSectionsForm
+                    key={section.id}
+                    sectionIndex={sectionIndex}
+                    control={form.control}
+                    removeSection={removeSection}
+                  />
+                ))}
+                <Button
+                  type="button"
+                  variant={"secondary"}
+                  onClick={() =>
+                    appendSection({
+                      sectionTitle: "",
+                      lessons: [
+                        {
+                          title: "",
+                          duration: undefined,
+                          url: "",
+                          isFree: false,
+                          type: "VIDEO",
+                        },
+                      ],
+                    })
+                  }
+                >
+                  <Plus />
+                  Add Section
+                </Button>
+              </div>
             </div>
           </div>
 
           <div className="col-span-12 md:col-span-3 space-y-4 order-first md:order-last">
             <CardBox title="Actions">
               <Button
-                // disabled={
-                //   !form.formState.isValid || loading || !form.formState.isDirty
-                // }
+                disabled={
+                  !form.formState.isValid || loading || !form.formState.isDirty
+                }
                 className="w-full flex gap-2"
                 type="submit"
               >
@@ -439,7 +501,7 @@ const CourseForm = ({ type, course }: Props) => {
               <Success success={success} />
 
               <div className="space-y-5">
-                {isUpdateType && <DeleteButton id={3} onDelete={onDelete} />}
+                {isUpdateType && <DeleteButton onDelete={onDelete} />}
 
                 <Separator />
 
@@ -477,7 +539,7 @@ const CourseForm = ({ type, course }: Props) => {
                     <p className="flex flex-col">
                       <span>Published At</span>
                       <span className="text-sm">
-                        {new Date().toLocaleString()}
+                        {course?.createdAt.toLocaleString()}
                       </span>
                     </p>
 
@@ -488,7 +550,7 @@ const CourseForm = ({ type, course }: Props) => {
                     <p className="flex flex-col">
                       <span>Last Update</span>
                       <span className="text-sm">
-                        {new Date().toLocaleString()}
+                        {course?.updatedAt.toLocaleString()}
                       </span>
                     </p>
                   </div>
@@ -522,14 +584,14 @@ const CourseForm = ({ type, course }: Props) => {
                 <Switch
                   id="disocunt"
                   onCheckedChange={setDiscount}
-                  defaultChecked={!!course?.discount}
+                  defaultChecked={discount}
                 />
                 <Label htmlFor="disocunt" className="cursor-pointer">
                   Apply Discount
                 </Label>
               </div>
 
-              {disocunt && (
+              {discount && (
                 <CardBox title="Discount">
                   <FormField
                     control={form.control}
@@ -564,7 +626,7 @@ const CourseForm = ({ type, course }: Props) => {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Percent Type" />
+                              <SelectValue placeholder="Discount Type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -579,11 +641,11 @@ const CourseForm = ({ type, course }: Props) => {
 
                   <div className="flex items-center space-x-2 py-3">
                     <Switch
-                      id="disocunt"
+                      id="disocunt-date"
                       onCheckedChange={setDiscountDate}
-                      defaultChecked={!!course?.discount?.date}
+                      defaultChecked={disocuntDate}
                     />
-                    <Label htmlFor="disocunt" className="cursor-pointer">
+                    <Label htmlFor="disocunt-date" className="cursor-pointer">
                       From / To
                     </Label>
                   </div>
@@ -608,11 +670,16 @@ const CourseForm = ({ type, course }: Props) => {
                                   >
                                     {field.value ? (
                                       <div className="flex gap-1">
-                                        {format(field.value.from, "MMMM dd")}{" "}
-                                        {/* Formatted 'from' date */}
+                                        {format(
+                                          field.value.from || new Date(),
+                                          "MMMM dd"
+                                        )}
                                         <span>-</span>
-                                        {format(field.value.to, "MMMM dd")}{" "}
-                                        {/* Formatted 'to' date */}
+                                        {format(
+                                          field.value.to ||
+                                            addDays(new Date(), 4),
+                                          "MMMM dd"
+                                        )}{" "}
                                       </div>
                                     ) : (
                                       <span>Pick a date</span>
@@ -646,56 +713,22 @@ const CourseForm = ({ type, course }: Props) => {
             </CardBox>
 
             {/* //! IMAGE */}
-            <CardBox title="Image">
-              <div className="relative group">
-                <FormField
-                  control={form.control}
-                  name="image"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="file-upload">
-                        <Image
-                          alt=""
-                          src={imagePreview || placeHolder}
-                          width={375}
-                          height={375}
-                          className="aspect-video rounded-md object-cover border-2 hover:border-slate-300 cursor-pointer"
-                        />
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept=".webp"
-                          className="hidden"
-                          onChange={(e) => handleImageChange(e, field)}
-                          id="file-upload"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                {(course?.image || imagePreview) && (
-                  <Button
-                    type="button"
-                    onClick={() => handleImageRemove()}
-                    variant={"secondary"}
-                    className="absolute top-0 left-0 m-1 hidden group-hover:flex bg-black/40 hover:bg-black/50 text-white"
-                    size={"sm"}
-                  >
-                    <X />
-                    Remove
-                  </Button>
-                )}
-              </div>
+            <CardBox title="Image">
+              <ImageField
+                control={form.control}
+                setImagePreview={setImagePreview}
+                setValue={form.setValue}
+                imagePreview={imagePreview}
+                public_id={course?.image?.public_id}
+              />
             </CardBox>
 
             {/* //! CATEGORY */}
             <CardBox title="Category">
               <FormField
                 control={form.control}
-                name="category"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
                     <FormControl>
@@ -725,31 +758,27 @@ const CourseForm = ({ type, course }: Props) => {
               />
             </CardBox>
 
-            {/* //! INSTRUCTOR */}
+            {/* //! TUTOR */}
             <FormField
               control={form.control}
-              name="instructor"
+              name="tutorId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Instructor</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an Instructor" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="alireza-ezlegini">
-                        Alireza Ezlegini
-                      </SelectItem>
-                      <SelectItem value="fateme-ahmadi">
-                        Fateme Ahmadi
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="mb-1">Tutor</FormLabel>
+                  <ComboField<TutorType>
+                    options={tutors}
+                    getLabel={(tutor) => (
+                      <div className="flex items-center gap-2">
+                        <Avatar src={tutor.image?.url} size={22} />
+                        {tutor.name}
+                      </div>
+                    )}
+                    getValue={(tutor) => tutor.id.toString()}
+                    getSearchText={(tutor) => tutor.name}
+                    onSelect={(tutor) => field.onChange(tutor.id.toString())}
+                    placeholder="Select Tutor"
+                    defaultValue={course?.tutorId.toString() || ""}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -799,7 +828,7 @@ const CourseForm = ({ type, course }: Props) => {
                   <FormItem>
                     <FormLabel htmlFor="gallery">
                       <div className="flex gap-2 justify-center items-center bg-secondary  p-3 rounded-sm w-full cursor-pointer hover:bg-neutral-200/60">
-                        <ImageIcon size={18} />
+                        <Plus size={18} />
                         Add Image
                       </div>
                     </FormLabel>
@@ -812,9 +841,14 @@ const CourseForm = ({ type, course }: Props) => {
                         multiple
                         onChange={(e) => {
                           if (e.target.files) {
-                            const filesArray = Array.from(e.target.files); // ✅ Convert FileList to array
-                            field.onChange(filesArray); // Pass array to React Hook Form
-                            handleGalleryPreview(filesArray);
+                            const newFilesArray = Array.from(e.target.files);
+                            const allFiles = [
+                              ...(field.value || []),
+                              ...newFilesArray,
+                            ];
+                            field.onChange(allFiles);
+                            // Pass only the newly selected files to avoid duplicating previews
+                            handleGalleryPreview(newFilesArray);
                           }
                         }}
                       />
@@ -824,30 +858,67 @@ const CourseForm = ({ type, course }: Props) => {
                 )}
               />
 
-              {galleryPreviews && galleryPreviews.length > 0 && (
-                <div className="grid grid-cols-4 gap-1">
-                  {galleryPreviews.map((image, index) => (
-                    <div className="relative group" key={index}>
-                      <Image
-                        alt={`Preview ${index}`}
-                        src={image}
-                        className="aspect-square object-cover rounded-sm"
-                        width={200}
-                        height={200}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => handleGalleryRemove(image)}
-                        className="h-4 w-4 absolute top-0 left-0 m-1 hidden group-hover:block"
-                        size={"icon"}
-                        variant={"secondary"}
-                      >
-                        <X />
-                      </Button>
-                    </div>
-                  ))}
+              {galleryPreviews && galleryPreviews?.length > 0 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-4 gap-1">
+                    {galleryPreviews?.map((image, index) => (
+                      <div className="relative group" key={index}>
+                        <Image
+                          alt=""
+                          src={image.url}
+                          className="aspect-square object-cover rounded-sm"
+                          width={100}
+                          height={100}
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => handleGalleryPreviewRemove(index)}
+                          className="h-4 w-4 absolute top-0 left-0 m-1 hidden group-hover:block"
+                          size={"icon"}
+                          variant={"secondary"}
+                        >
+                          <X />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator />
                 </div>
               )}
+
+              <div className="grid grid-cols-4 gap-1">
+                {course?.gallery?.image.map((image, index) => (
+                  <div
+                    className="relative group overflow-hidden rounded-sm"
+                    key={index}
+                  >
+                    <Image
+                      alt=""
+                      src={image.url}
+                      className="aspect-square object-cover rounded-sm"
+                      width={100}
+                      height={100}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => handleGalleryRemove(image.public_id!)}
+                      className={`w-6 h-6 rounded-full absolute top-0 left-0 m-1 hidden group-hover:flex`}
+                      size={"icon"}
+                      variant={"destructive"}
+                    >
+                      <Loader loading={removeImageLoading} />
+
+                      {!removeImageLoading && <X />}
+                    </Button>
+                  </div>
+                ))}
+                {/* 
+                {removeImageLoading && (
+                  <div className="bg-white/50 absolute w-full h-full top-0 left-0 flex justify-center items-center">
+                    <Loader loading />
+                  </div>
+                )} */}
+              </div>
             </CardBox>
           </div>
         </form>

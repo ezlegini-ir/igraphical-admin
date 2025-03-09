@@ -5,7 +5,7 @@ import { AdminFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import bcrypt from "bcrypt";
 import { UploadApiResponse } from "cloudinary";
-import { deleteImage, uploadImage } from "./cloudinary";
+import { deleteCloudImage, uploadCloudImage } from "./cloudinary";
 
 //* CREATE ------------------------------------------------------------
 
@@ -38,7 +38,7 @@ export const createAdmin = async (data: AdminFormType) => {
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
 
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "admin",
@@ -108,7 +108,7 @@ export const updateAdmin = async (data: AdminFormType, id: number) => {
 
     if (image && image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
-      const { secure_url, public_id, format, bytes } = (await uploadImage(
+      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
         buffer,
         {
           folder: "admin",
@@ -117,7 +117,7 @@ export const updateAdmin = async (data: AdminFormType, id: number) => {
       )) as UploadApiResponse;
 
       if (updatedAdmin.image) {
-        await deleteImage(updatedAdmin.image.public_id);
+        await deleteCloudImage(updatedAdmin.image.public_id);
 
         // CREATE IMAGE
         await prisma.image.update({
@@ -171,7 +171,8 @@ export const deleteAdmin = async (id: number) => {
 
     if (!deletedAdmin) return { error: "Could not remove admin" };
 
-    if (deletedAdmin.image) await deleteImage(deletedAdmin.image?.public_id);
+    if (deletedAdmin.image)
+      await deleteCloudImage(deletedAdmin.image?.public_id);
 
     return { success: "Deleted Successfully" };
   } catch (error) {

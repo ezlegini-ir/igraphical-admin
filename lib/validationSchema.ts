@@ -73,18 +73,18 @@ export type CommentFormType = z.infer<typeof commentFormSchema>;
 export const courseFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   url: z.string().min(1, "URL is required"),
-  summery: z.string().min(1, "Summary is required"),
-  learns: z.array(
-    z.object({ value: z.string().min(1, "Learning point is required") })
-  ),
+  summary: z.string().min(1, "Summary is required"),
+  learns: z
+    .array(z.object({ value: z.string().min(1, "Learning point is required") }))
+    .optional(),
   description: z.string().min(1, "Description is required"),
   prerequisite: z.array(z.object({ value: z.string().min(1) })).optional(),
   status: z.enum(status, { required_error: "Status is required" }),
-  instructor: z.string().min(1, "Instructor is required"),
+  tutorId: z.string().min(1, "Instructor is required"),
   tizerUrl: z.string().min(1, "Teaser URL is required"),
   duration: z.number().min(1, "Duration must be a positive number"),
   image: z.instanceof(File, { message: "Image file is required" }).optional(),
-  category: z.string().min(1, "Category is required"),
+  categoryId: z.string().min(1, "Category is required"),
   price: z.number().min(0, "Price must be a non-negative number"),
 
   // Discount Schema

@@ -16,3 +16,9 @@ export const getTutorById = async (id: number) => {
     },
   });
 };
+
+export const getAllTutors = async () => {
+  return await prisma.tutor.findMany({
+    include: { image: true },
+  });
+};
