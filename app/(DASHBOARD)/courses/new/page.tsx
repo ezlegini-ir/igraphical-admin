@@ -1,14 +1,16 @@
 import CourseForm from "@/components/forms/dashboard/course/CourseForm";
 import { getAllTutors } from "@/data/tutor";
+import prisma from "@/prisma/client";
 
 const page = async () => {
   const tutors = await getAllTutors();
+  const categories = await prisma.courseCategory.findMany();
 
   return (
     <div className="space-y-3">
       <h3>Create a Course</h3>
 
-      <CourseForm type="NEW" tutors={tutors} />
+      <CourseForm type="NEW" tutors={tutors} categories={categories} />
     </div>
   );
 };

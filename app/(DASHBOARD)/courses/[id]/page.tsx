@@ -1,6 +1,7 @@
 import CourseForm from "@/components/forms/dashboard/course/CourseForm";
 import { getCourseById } from "@/data/course";
 import { getAllTutors } from "@/data/tutor";
+import prisma from "@/prisma/client";
 import { notFound } from "next/navigation";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 const page = async ({ params }: Props) => {
   const { id } = await params;
+  const categories = await prisma.courseCategory.findMany();
 
   const course = await getCourseById(id);
   if (!course) return notFound();
@@ -19,7 +21,12 @@ const page = async ({ params }: Props) => {
     <div className="space-y-3">
       <h3>Update Course</h3>
 
-      <CourseForm type="UPDATE" course={course} tutors={tutors} />
+      <CourseForm
+        type="UPDATE"
+        course={course}
+        tutors={tutors}
+        categories={categories}
+      />
     </div>
   );
 };

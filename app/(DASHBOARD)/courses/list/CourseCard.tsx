@@ -16,13 +16,15 @@ const CourseCard = ({ course }: Props) => {
   return (
     <div className="card p-3">
       <div className="relative">
-        <Image
-          alt=""
-          src={course.image?.url || placeHolder}
-          width={330}
-          height={330}
-          className="object-cover aspect-video rounded-sm w-full"
-        />
+        <Link href={`/courses/${course.id}`}>
+          <Image
+            alt=""
+            src={course.image?.url || placeHolder}
+            width={330}
+            height={330}
+            className="object-cover aspect-video rounded-sm w-full"
+          />
+        </Link>
 
         {course.status === "DRAFT" && (
           <Badge
@@ -43,43 +45,61 @@ const CourseCard = ({ course }: Props) => {
       </div>
 
       <ul>
-        <>
-          <li className="flex justify-between py-2 text-gray-500 text-sm">
-            <span>Tutor</span>
-            <span className="flex items-center gap-1">
-              <Avatar src={course.tutor.image?.url} size={20} />
-              <span>{course.tutor.name}</span>
-            </span>
-          </li>
-          <Separator />
-        </>
-        <>
-          <li className="flex justify-between py-2 text-gray-500 text-sm">
-            <span>Students</span>
-            <span>{(12332).toLocaleString("en-US")}</span>
-          </li>
-          <Separator />
-        </>
-        <>
-          <li className="flex justify-between py-2 text-gray-500 text-sm">
-            <span>Duration</span>
-            <span>{course.duration.toLocaleString("en-US")}</span>
-          </li>
-          <Separator />
-        </>
-        <>
-          <li className="flex justify-between py-2 text-gray-500 text-sm">
-            <span>Price</span>
-            <span className="text-primary font-semibold">
-              {course.price === 0 ? (
-                <Badge variant={"green"}>Free</Badge>
-              ) : (
-                course?.price.toLocaleString("en-US") + " T"
-              )}
-            </span>
-          </li>
-          <Separator />
-        </>
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Tutor</span>
+          <span className="flex items-center gap-1">
+            <Avatar src={course.tutor?.image?.url} size={20} />
+            <span>{course?.tutor?.name}</span>
+          </span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Category</span>
+          <span>{course.category?.name}</span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Students</span>
+          <span>{(12332).toLocaleString("en-US")}</span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Duration</span>
+          <span>{course.duration} min</span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Sections</span>
+          <span>{course.curriculum.length}</span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Lessons</span>
+          <span>
+            {course.curriculum.reduce(
+              (acc, curr) => acc + curr.lessons.length,
+              0
+            )}
+          </span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Price</span>
+          <span className="text-primary font-semibold">
+            {course.price === 0 ? (
+              <Badge variant={"green"}>Free</Badge>
+            ) : (
+              course?.price.toLocaleString("en-US") + " T"
+            )}
+          </span>
+        </li>
+        <Separator />
       </ul>
 
       <div className="flex text-gray-500">

@@ -107,7 +107,7 @@ enum ImageType {
   TICKET_ASSET
 }
 
-//! Postrs ---------------------------------------------------------
+//! Posts ---------------------------------------------------------
 
 model Post {
   id         Int            @id @default(autoincrement())
@@ -166,9 +166,10 @@ model Course {
   updatedAt   DateTime @updatedAt
 
   // RELATIONS
-  categoryId   String //todo
-  tutor        Tutor          @relation(fields: [tutorId], references: [id])
-  tutorId      Int
+  category     CourseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId   Int?
+  tutor        Tutor?          @relation(fields: [tutorId], references: [id], onDelete: SetNull)
+  tutorId      Int?
   image        Image?
   status       Status
   learn        Learn[]
@@ -176,6 +177,13 @@ model Course {
   discount     Discount?
   curriculum   Curriculum[]
   gallery      GalleryItem?
+}
+
+model CourseCategory {
+  id      Int      @id @default(autoincrement())
+  name    String
+  url     String   @unique
+  courses Course[]
 }
 
 model Learn {

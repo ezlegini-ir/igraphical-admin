@@ -50,6 +50,7 @@ import useSuccess from "@/hooks/useSuccess";
 import { CourseFormType, courseFormSchema } from "@/lib/validationSchema";
 import {
   Course,
+  CourseCategory,
   Curriculum,
   Discount,
   GalleryItem,
@@ -99,9 +100,10 @@ interface Props {
   type: "NEW" | "UPDATE";
   course?: CourseType | null;
   tutors: TutorType[];
+  categories: CourseCategory[];
 }
 
-const CourseForm = ({ type, course, tutors }: Props) => {
+const CourseForm = ({ type, course, tutors, categories }: Props) => {
   // HOOKS
   const router = useRouter();
   const { error, setError } = useError();
@@ -126,7 +128,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
     mode: "onChange",
     defaultValues: {
       title: course?.title || "",
-      categoryId: course?.categoryId || "",
+      categoryId: course?.categoryId?.toString() || "",
       description: course?.description || "",
       url: course?.url || "",
       duration: course?.duration || 0,
@@ -134,7 +136,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
       needs: course?.needs || "",
       audience: course?.audience || "",
       jobMarket: course?.jobMarket || "",
-      tutorId: course?.tutorId.toString() || "",
+      tutorId: course?.tutorId?.toString() || "",
       learns: course?.learn || [{ value: "" }],
       prerequisite: course?.prerequisite || [{ value: "" }],
       basePrice: course?.basePrice || 0,
@@ -895,7 +897,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                         defaultValue={field.value}
                         className="flex flex-col space-y-1"
                       >
-                        {categories.map((category, index) => (
+                        {categories?.map((category, index) => (
                           <FormItem
                             key={index}
                             className="flex items-center space-x-3 space-y-0"
@@ -935,7 +937,7 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                     getSearchText={(tutor) => tutor.name}
                     onSelect={(tutor) => field.onChange(tutor.id.toString())}
                     placeholder="Select Tutor"
-                    defaultValue={course?.tutorId.toString() || ""}
+                    defaultValue={course?.tutorId?.toString() || ""}
                   />
                   <FormMessage />
                 </FormItem>
@@ -1089,14 +1091,3 @@ const CourseForm = ({ type, course, tutors }: Props) => {
 };
 
 export default CourseForm;
-
-const categories = [
-  {
-    id: "1",
-    name: "بسته بندی",
-  },
-  {
-    id: "2",
-    name: "ایلوستریتور",
-  },
-] as const;

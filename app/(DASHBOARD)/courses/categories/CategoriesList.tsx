@@ -10,19 +10,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { CourseCategory } from "@prisma/client";
 
-interface Props {
-  categories: {
-    id: number;
-    name: string;
-    url: string;
-    post: { count: number };
-  }[];
-  totalCategories: number;
+interface CourseCategoryType extends CourseCategory {
+  _count: {
+    courses: number;
+  };
 }
 
-const CategoriesList = ({ categories, totalCategories }: Props) => {
-  const pageSize = 15;
+interface Props {
+  categories: CourseCategoryType[];
+  totalCategories: number;
+  pageSize: number;
+}
+
+const CategoriesList = ({ categories, totalCategories, pageSize }: Props) => {
   return (
     <div className="card">
       <Table columns={columns} data={categories} renderRows={renderRows} />
@@ -31,18 +33,13 @@ const CategoriesList = ({ categories, totalCategories }: Props) => {
   );
 };
 
-const renderRows = (category: {
-  id: number;
-  name: string;
-  url: string;
-  post: { count: number };
-}) => {
+const renderRows = (category: CourseCategoryType) => {
   return (
     <TableRow key={category.id} className="odd:bg-slate-50">
       <TableCell className="text-left">{category.name}</TableCell>
 
       <TableCell className="hidden lg:table-cell">{category.url}</TableCell>
-      <TableCell>{category.post?.count}</TableCell>
+      <TableCell>{category._count.courses}</TableCell>
       <TableCell className="flex justify-end">
         <Dialog>
           <DialogTrigger asChild>
@@ -51,7 +48,11 @@ const renderRows = (category: {
           <DialogContent>
             <DialogHeader className="space-y-6">
               <DialogTitle>New Category</DialogTitle>
-              <CategoryForm type="UPDATE" category={category} />
+              <CategoryForm
+                type="UPDATE"
+                category={category}
+                categoryFor="COURSE"
+              />
             </DialogHeader>
           </DialogContent>
         </Dialog>

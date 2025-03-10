@@ -1,10 +1,19 @@
 import Pagination from "@/components/Pagination";
 import CourseCard from "./CourseCard";
-import { Course, Image, Tutor } from "@prisma/client";
+import {
+  Course,
+  CourseCategory,
+  Curriculum,
+  Image,
+  Lesson,
+  Tutor,
+} from "@prisma/client";
 
 export interface CourseType extends Course {
   image: Image | null;
-  tutor: Tutor & { image: Image | null };
+  tutor: (Tutor & { image: Image | null }) | null;
+  category: CourseCategory | null;
+  curriculum: (Curriculum & { lessons: Lesson[] })[];
 }
 
 interface Props {

@@ -1,39 +1,42 @@
 "use server";
 
-import { getPostCategoryById, getPostCategoryByUrl } from "@/data/post";
-import { encodeUrl } from "@/lib/utils";
+import {
+  getCourseCategoryById,
+  getCourseCategoryByUrl,
+  getPostCategoryById,
+  getPostCategoryByUrl,
+} from "@/data/category";
+import { encodeUrl as encodeSlug } from "@/lib/utils";
 import { CategoryFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 
-export type CategoryName = "POST" | "COURSE";
+export type CategoryFor = "POST" | "COURSE";
 
 //* CREATE ------------------------------------------------------------
 
 export const createCategory = async (
   data: CategoryFormType,
-  categoryName: CategoryName
+  categoryFor: CategoryFor
 ) => {
   const { name, url } = data;
 
   try {
-    const encodedUrl = encodeUrl(url);
+    const encodedUrl = encodeSlug(url);
 
-    // todo
     const existingCategory =
-      categoryName === "POST"
+      categoryFor === "POST"
         ? await getPostCategoryByUrl(encodedUrl)
-        : await getPostCategoryByUrl(encodedUrl);
+        : await getCourseCategoryByUrl(encodedUrl);
 
     if (existingCategory)
       return { error: "There Already is a category with this Url" };
 
-    if (categoryName === "POST") {
+    if (categoryFor === "POST") {
       await prisma.postCategory.create({
         data: { name, url: encodedUrl },
       });
     } else {
-      // todo
-      await prisma.postCategory.create({
+      await prisma.courseCategory.create({
         data: { name, url: encodedUrl },
       });
     }
@@ -49,38 +52,37 @@ export const createCategory = async (
 export const updateCategory = async (
   data: CategoryFormType,
   id: number,
-  name: CategoryName
+  categoryFor: CategoryFor
 ) => {
   const { name: title, url } = data;
-  const encodedUrl = encodeUrl(url);
+  const encodedUrl = encodeSlug(url);
 
   try {
     const existingCategoryById =
-      name === "POST"
+      categoryFor === "POST"
         ? await getPostCategoryById(id)
-        : await getPostCategoryById(id);
+        : await getCourseCategoryById(id);
     if (!existingCategoryById) return { error: "No Category Found" };
 
-    // todo
     const existingCategoryByUrl =
-      name === "POST"
+      categoryFor === "POST"
         ? await getPostCategoryByUrl(encodedUrl)
-        : await getPostCategoryByUrl(encodedUrl);
+        : await getCourseCategoryByUrl(encodedUrl);
 
-    if (existingCategoryByUrl) {
-      if (existingCategoryByUrl.id !== existingCategoryById.id) {
-        return { error: "Category with this URL already exists." };
-      }
+    if (
+      existingCategoryByUrl &&
+      existingCategoryByUrl.id !== existingCategoryById.id
+    ) {
+      return { error: "Category with this URL already exists." };
     }
 
-    if (name === "POST") {
+    if (categoryFor === "POST") {
       await prisma.postCategory.update({
         where: { id: existingCategoryById.id },
         data: { name: title, url: encodedUrl },
       });
     } else {
-      // todo
-      await prisma.postCategory.update({
+      await prisma.courseCategory.update({
         where: { id: existingCategoryById.id },
         data: { name: title, url: encodedUrl },
       });
@@ -92,26 +94,23 @@ export const updateCategory = async (
   }
 };
 
-export const deleteCategory = async (
-  id: number,
-  categoryName: CategoryName
-) => {
+//! DELETE ------------------------------------------------------------
+
+export const deleteCategory = async (id: number, categoryFor: CategoryFor) => {
   try {
-    //todo
     const existingCategory =
-      categoryName === "POST"
+      categoryFor === "POST"
         ? await getPostCategoryById(id)
-        : await getPostCategoryById(id);
+        : await getCourseCategoryById(id);
 
     if (!existingCategory) return { error: "No Category Found" };
 
-    if (categoryName === "POST") {
+    if (categoryFor === "POST") {
       await prisma.postCategory.delete({
         where: { id },
       });
     } else {
-      //todo
-      await prisma.postCategory.delete({
+      await prisma.courseCategory.delete({
         where: { id },
       });
     }

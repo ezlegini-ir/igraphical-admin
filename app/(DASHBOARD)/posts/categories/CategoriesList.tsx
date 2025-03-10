@@ -48,7 +48,11 @@ const renderRows = (category: CategoryType) => {
           <DialogContent>
             <DialogHeader className="space-y-6">
               <DialogTitle>New Category</DialogTitle>
-              <CategoryForm type="UPDATE" category={category} />
+              <CategoryForm
+                type="UPDATE"
+                category={category}
+                categoryFor="POST"
+              />
             </DialogHeader>
           </DialogContent>
         </Dialog>

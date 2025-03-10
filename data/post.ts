@@ -14,15 +14,3 @@ export async function getPostById(id: string | number) {
     include: { image: true, categories: true, author: true },
   });
 }
-
-export async function getPostCategoryByUrl(url: string) {
-  return await prisma.postCategory.findUnique({
-    where: { url },
-  });
-}
-
-export async function getPostCategoryById(id: number) {
-  return await prisma.postCategory.findUnique({
-    where: { id },
-  });
-}

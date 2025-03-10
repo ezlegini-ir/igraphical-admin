@@ -74,13 +74,16 @@ export const createCourse = async (data: CourseFormType) => {
           description,
           tizerUrl,
           duration,
-          categoryId,
           basePrice,
           price,
           audience,
           jobMarket,
           needs,
           status: status === "0" ? "DRAFT" : "PUBLISHED",
+
+          category: {
+            connect: { id: +categoryId },
+          },
 
           // Instructor
           tutor: {
@@ -236,8 +239,8 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
   try {
     // Encode URL and check if another course with this URL exists
     const encodedUrl = encodeUrl(url);
-    const existingCourseWithUrl = await getCourseByUrl(encodedUrl);
-    if (existingCourseWithUrl && existingCourseWithUrl.id !== id) {
+    const existingCourseByUrl = await getCourseByUrl(encodedUrl);
+    if (existingCourseByUrl && existingCourseByUrl.id !== id) {
       return { error: "There already is a post with this URL" };
     }
 
@@ -252,11 +255,11 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
           description,
           tizerUrl,
           duration,
-          categoryId,
           basePrice,
           price,
           audience,
           jobMarket,
+          category: { connect: { id: +categoryId } },
           needs,
           status: status === "0" ? "DRAFT" : "PUBLISHED",
           tutor: { connect: { id: +tutorId } },

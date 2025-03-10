@@ -47,7 +47,7 @@ const page = async ({ searchParams }: Props) => {
             <DialogContent>
               <DialogHeader className="space-y-6">
                 <DialogTitle>New Category</DialogTitle>
-                <CategoryForm type="NEW" />
+                <CategoryForm type="NEW" categoryFor="POST" />
               </DialogHeader>
             </DialogContent>
           </Dialog>

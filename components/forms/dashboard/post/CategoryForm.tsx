@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  CategoryName,
+  CategoryFor,
   createCategory,
   deleteCategory,
   updateCategory,
-} from "@/actions/Category";
+} from "@/actions/category";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
@@ -35,10 +35,10 @@ interface Props {
     name: string;
     url: string;
   };
-  categoryName: CategoryName;
+  categoryFor: CategoryFor;
 }
 
-const CategoryForm = ({ type, category, categoryName }: Props) => {
+const CategoryForm = ({ type, category, categoryFor }: Props) => {
   // HOOKS
   const router = useRouter();
   const { error, setError } = useError();
@@ -63,9 +63,9 @@ const CategoryForm = ({ type, category, categoryName }: Props) => {
 
     let res;
     if (type === "NEW") {
-      res = await createCategory(data, categoryName);
+      res = await createCategory(data, categoryFor);
     } else {
-      res = await updateCategory(data, category?.id!, categoryName);
+      res = await updateCategory(data, category?.id!, categoryFor);
     }
 
     if (res.error) {
@@ -86,7 +86,7 @@ const CategoryForm = ({ type, category, categoryName }: Props) => {
     setError("");
     setSuccess("");
 
-    const res = await deleteCategory(category?.id!, categoryName);
+    const res = await deleteCategory(category?.id!, categoryFor);
 
     if (res.error) {
       setError(res.error);

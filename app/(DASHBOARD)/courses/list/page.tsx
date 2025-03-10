@@ -62,6 +62,12 @@ const page = async ({ searchParams }: Props) => {
       tutor: {
         include: { image: true },
       },
+      category: true,
+      curriculum: {
+        include: {
+          lessons: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
