@@ -155,9 +155,12 @@ model Course {
   summary     String   @db.Text
   description String   @db.Text
   tizerUrl    String
+  jobMarket   String
+  audience    String
+  needs       String
   duration    Int
   basePrice   Float
-  finalPrice  Float
+  price       Float
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

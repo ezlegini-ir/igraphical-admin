@@ -131,6 +131,9 @@ const CourseForm = ({ type, course, tutors }: Props) => {
       url: course?.url || "",
       duration: course?.duration || 0,
       image: undefined,
+      needs: course?.needs || "",
+      audience: course?.audience || "",
+      jobMarket: course?.jobMarket || "",
       tutorId: course?.tutorId.toString() || "",
       learns: course?.learn || [{ value: "" }],
       prerequisite: course?.prerequisite || [{ value: "" }],
@@ -365,25 +368,6 @@ const CourseForm = ({ type, course, tutors }: Props) => {
               )}
             </div>
 
-            {/* //! SUMMERY */}
-            <FormField
-              control={form.control}
-              name="summary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Summery</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      dir="rtl"
-                      {...field}
-                      className="min-h-[150px] leading-loose"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* //! DESCRIPTION */}
             <FormField
               control={form.control}
@@ -403,12 +387,89 @@ const CourseForm = ({ type, course, tutors }: Props) => {
               <Separator />
             </div>
 
+            <div className="grid gap-5 grid-cols-2">
+              {/* //! SUMMERY */}
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="summary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Summery</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          dir="rtl"
+                          {...field}
+                          className="min-h-[150px] leading-loose"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="audience"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Audience</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        dir="rtl"
+                        {...field}
+                        className="min-h-[100px] leading-loose"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="needs"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course Needs</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        dir="rtl"
+                        {...field}
+                        className="min-h-[100px] leading-loose"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="jobMarket"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Market</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          dir="rtl"
+                          {...field}
+                          className="min-h-[100px] leading-loose"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
             {/* //! PREREQUISITE */}
-            <div className="bg-white p-4 py-6 rounded-sm border grid gap-3 grid-cols-2">
+            <div className="grid gap-3 grid-cols-2">
               <div>
                 <FormItem>
                   <FormLabel>Prerequisites</FormLabel>
-                  <div className="space-y-2">
+                  <div className="space-y-2  card p-3">
                     {prerequisiteFields.map((field, index) => (
                       <FormField
                         key={field.id}
@@ -426,9 +487,20 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                               type="button"
                               variant="ghost"
                               size="icon"
+                              disabled={
+                                form.getValues("prerequisite")?.length === 1
+                              }
                               onClick={() => removePrerequisite(index)}
                             >
                               <Trash className="text-gray-400" size={16} />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => appendPrerequisite({ value: "" })}
+                            >
+                              <Plus className="text-gray-400" size={16} />
                             </Button>
                           </FormItem>
                         )}
@@ -437,22 +509,13 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                   </div>
                   <FormMessage />
                 </FormItem>
-                <Button
-                  type="button"
-                  onClick={() => appendPrerequisite({ value: "" })}
-                  variant="secondary"
-                  className="flex items-center gap-2 w-full mt-3"
-                >
-                  <Plus size={16} />
-                  Add Prerequisite
-                </Button>
               </div>
 
               {/* //! LEARNS */}
               <div>
                 <FormItem>
                   <FormLabel>Learns</FormLabel>
-                  <div className="space-y-2">
+                  <div className="space-y-2 card p-3">
                     {courseIncludesFields.map((field, index) => (
                       <FormField
                         key={field.id}
@@ -470,9 +533,20 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                               type="button"
                               variant="ghost"
                               size="icon"
+                              disabled={
+                                form.getValues("prerequisite")?.length === 1
+                              }
                               onClick={() => removeCourseInclude(index)}
                             >
                               <Trash className="text-gray-400" size={16} />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => appendCourseInclude({ value: "" })}
+                            >
+                              <Plus className="text-gray-400" size={16} />
                             </Button>
                           </FormItem>
                         )}
@@ -481,15 +555,6 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                   </div>
                   <FormMessage />
                 </FormItem>
-                <Button
-                  type="button"
-                  onClick={() => appendCourseInclude({ value: "" })}
-                  variant="secondary"
-                  className="flex items-center gap-2 w-full mt-3"
-                >
-                  <Plus size={16} />
-                  Add Learns
-                </Button>
               </div>
             </div>
 
@@ -624,10 +689,10 @@ const CourseForm = ({ type, course, tutors }: Props) => {
                       Final Price
                     </p>
                     <span className="text-primary font-semibold">
-                      {course?.finalPrice === 0 ? (
+                      {course?.price === 0 ? (
                         <Badge variant={"green"}>Free</Badge>
                       ) : (
-                        course?.finalPrice.toLocaleString("en-US") + " T"
+                        course?.price.toLocaleString("en-US") + " T"
                       )}
                     </span>
                   </div>

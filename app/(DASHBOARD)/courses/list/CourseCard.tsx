@@ -56,10 +56,10 @@ const CourseCard = ({ course }: Props) => {
           <li className="flex justify-between py-2 text-gray-500 text-sm">
             <span>Price</span>
             <span className="text-primary font-semibold">
-              {course.finalPrice === 0 ? (
+              {course.price === 0 ? (
                 <Badge variant={"green"}>Free</Badge>
               ) : (
-                course?.finalPrice.toLocaleString("en-US") + " T"
+                course?.price.toLocaleString("en-US") + " T"
               )}
             </span>
           </li>

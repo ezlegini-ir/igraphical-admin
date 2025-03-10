@@ -49,146 +49,154 @@ export const createCourse = async (data: CourseFormType) => {
     gallery,
     image,
     prerequisite,
+    audience,
+    jobMarket,
+    needs,
   } = data;
 
-  const finalPrice = discount
+  const price = discount
     ? discountedPrice(basePrice, discount.type, discount.amount)
     : basePrice;
 
   try {
     const encodedUrl = encodeUrl(url);
-
     const existingCourse = await getCourseByUrl(encodedUrl);
 
     if (existingCourse)
       return { error: "There Already is a post with this URL" };
 
-    const newCourse = await prisma.course.create({
-      data: {
-        title,
-        url: encodedUrl,
-        summary,
-        description,
-        tizerUrl,
-        duration,
-        categoryId,
-        basePrice, //todo
-        finalPrice, //todo
-        status: status === "0" ? "DRAFT" : "PUBLISHED",
+    const newCourse = await prisma.$transaction(async (tx) => {
+      const course = await tx.course.create({
+        data: {
+          title,
+          url: encodedUrl,
+          summary,
+          description,
+          tizerUrl,
+          duration,
+          categoryId,
+          basePrice,
+          price,
+          audience,
+          jobMarket,
+          needs,
+          status: status === "0" ? "DRAFT" : "PUBLISHED",
 
-        // Instructor
-        tutor: {
-          connect: { id: +tutorId },
-        },
-
-        // Learn Sections
-        learn: {
-          createMany: {
-            data: learns?.length ? learns : [],
+          // Instructor
+          tutor: {
+            connect: { id: +tutorId },
           },
-        },
 
-        // Prerequisites
-        prerequisite: {
-          createMany: {
-            data: prerequisite?.length ? prerequisite : [],
+          // Learn Sections
+          learn: {
+            createMany: {
+              data: learns?.length ? learns : [],
+            },
           },
-        },
 
-        // Discount
-        discount:
-          discount && discount.amount !== 0
+          // Prerequisites
+          prerequisite: {
+            createMany: {
+              data: prerequisite?.length ? prerequisite : [],
+            },
+          },
+
+          // Discount
+          discount:
+            discount && discount.amount !== 0
+              ? {
+                  create: {
+                    amount: discount.amount,
+                    type: discount.type,
+                    from: discount.date?.from,
+                    to: discount.date?.to,
+                  },
+                }
+              : undefined,
+
+          // Curriculum
+          curriculum: curriculum?.length
             ? {
-                create: {
-                  amount: discount.amount,
-                  type: discount.type,
-                  from: discount.date ? discount.date?.from : undefined,
-                  to: discount.date ? discount.date?.to : undefined,
-                },
+                create: curriculum.map((section) => ({
+                  sectionTitle: section.sectionTitle,
+                  lessons: {
+                    create: section.lessons.map((lesson) => ({
+                      title: lesson.title,
+                      duration: lesson.duration || null,
+                      url: lesson.url,
+                      isFree: lesson.isFree,
+                      type: lesson.type,
+                    })),
+                  },
+                })),
               }
             : undefined,
-
-        // Curriculum
-        curriculum: curriculum?.length
-          ? {
-              create: curriculum.map((section) => ({
-                sectionTitle: section.sectionTitle,
-                lessons: {
-                  create: section.lessons.map((lesson) => ({
-                    title: lesson.title,
-                    duration: lesson.duration || null,
-                    url: lesson.url,
-                    isFree: lesson.isFree,
-                    type: lesson.type,
-                  })),
-                },
-              })),
-            }
-          : undefined,
-      },
-    });
-
-    if (image && image instanceof File) {
-      const buffer = Buffer.from(await image.arrayBuffer());
-
-      const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
-        buffer,
-        {
-          folder: "course",
-          width: 800,
-        }
-      )) as UploadApiResponse;
-
-      // CREATE IMAGE
-      await prisma.image.create({
-        data: {
-          url: secure_url,
-          public_id,
-          format,
-          type: "COURSE",
-          size: bytes,
-          course: {
-            connect: {
-              id: newCourse.id,
-            },
-          },
-        },
-      });
-    }
-
-    if (gallery) {
-      const buffers = await Promise.all(
-        gallery.map(async (item) => Buffer.from(await item.arrayBuffer()))
-      );
-
-      const uplaodedGallery = (await uploadManyCloudImages(buffers, {
-        folder: "course",
-        width: 800,
-      })) as UploadApiResponse[];
-
-      const newGallery = await prisma.galleryItem.create({
-        data: {
-          course: {
-            connect: {
-              id: newCourse.id,
-            },
-          },
         },
       });
 
-      await prisma.image.createMany({
-        data: uplaodedGallery.map(
-          ({ secure_url, bytes, format, public_id }) => ({
+      // Upload course image
+      if (image && image instanceof File) {
+        const buffer = Buffer.from(await image.arrayBuffer());
+
+        const { secure_url, public_id, format, bytes } =
+          (await uploadCloudImage(buffer, {
+            folder: "course",
+            width: 800,
+          })) as UploadApiResponse;
+
+        await tx.image.create({
+          data: {
             url: secure_url,
             public_id,
             format,
             type: "COURSE",
             size: bytes,
-            galleryId: newGallery.id,
-          })
-        ),
-      });
-    }
+            course: {
+              connect: {
+                id: newCourse.id,
+              },
+            },
+          },
+        });
+      }
+
+      // Upload gallery images
+      if (gallery) {
+        const buffers = await Promise.all(
+          gallery.map(async (item) => Buffer.from(await item.arrayBuffer()))
+        );
+
+        const uploadedGallery = (await uploadManyCloudImages(buffers, {
+          folder: "course",
+          width: 800,
+        })) as UploadApiResponse[];
+
+        const newGallery = await tx.galleryItem.create({
+          data: {
+            course: {
+              connect: {
+                id: newCourse.id,
+              },
+            },
+          },
+        });
+
+        await tx.image.createMany({
+          data: uploadedGallery.map(
+            ({ secure_url, bytes, format, public_id }) => ({
+              url: secure_url,
+              public_id,
+              format,
+              type: "COURSE",
+              size: bytes,
+              galleryId: newGallery.id,
+            })
+          ),
+        });
+      }
+
+      return course;
+    });
 
     return { success: "Course Created Successfully", course: newCourse };
   } catch (error) {
@@ -212,13 +220,16 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
     tizerUrl,
     url,
     curriculum,
+    audience,
+    jobMarket,
+    needs,
     discount,
     gallery,
     image,
     prerequisite,
   } = data;
 
-  const finalPrice = discount
+  const price = discount
     ? discountedPrice(basePrice, discount.type, discount.amount)
     : basePrice;
 
@@ -243,7 +254,10 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
           duration,
           categoryId,
           basePrice,
-          finalPrice,
+          price,
+          audience,
+          jobMarket,
+          needs,
           status: status === "0" ? "DRAFT" : "PUBLISHED",
           tutor: { connect: { id: +tutorId } },
         },

@@ -74,6 +74,9 @@ export const courseFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   url: z.string().min(1, "URL is required"),
   summary: z.string().min(1, "Summary is required"),
+  needs: z.string().min(1, "Needs is required"),
+  jobMarket: z.string().min(1, "jabMarket is required"),
+  audience: z.string().min(1, "Summary is required"),
   learns: z
     .array(z.object({ value: z.string().min(1, "Learning point is required") }))
     .optional(),
