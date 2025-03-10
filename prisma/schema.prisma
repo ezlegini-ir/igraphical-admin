@@ -94,6 +94,8 @@ model Image {
   courseId  Int?         @unique
   gallery   GalleryItem? @relation(fields: [galleryId], references: [id], onDelete: Cascade)
   galleryId Int?
+  slider    Slider?      @relation(fields: [sliderId], references: [id], onDelete: Cascade)
+  sliderId  Int?         @unique
 }
 
 enum ImageType {
@@ -101,11 +103,13 @@ enum ImageType {
   COURSE
   ANNOUNCEMENT
   USER
-  OTHER
+  SLIDER
 
   COURSE_ASSET
   POST_ASSET
   TICKET_ASSET
+
+  OTHER
 }
 
 //! Posts ---------------------------------------------------------
@@ -264,4 +268,28 @@ model Review {
   userId    Int
   course    Course   @relation(fields: [courseId], references: [id])
   courseId  Int
+}
+
+//! Announcement ---------------------------------------------------------
+
+model Slider {
+  id     Int        @id @default(autoincrement())
+  link   String?
+  active Boolean
+  type   SliderType
+  image  Image?
+}
+
+enum SliderType {
+  MAIN
+  PANEL
+}
+
+model Notifbar {
+  id        Int     @id @default(autoincrement())
+  content   String
+  link      String
+  bgColor   String
+  textColor String
+  active    Boolean
 }

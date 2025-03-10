@@ -1,5 +1,7 @@
 "use client";
 
+import { deleteImage } from "@/actions/image";
+import { deleteSlider } from "@/actions/slider";
 import {
   Accordion,
   AccordionContent,
@@ -16,24 +18,34 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import useLoading from "@/hooks/useLoading";
+import { SlidersFormType } from "@/lib/validationSchema";
 import { sliderPlaceholder } from "@/public";
+import { Image as ImageType } from "@prisma/client";
 import { Trash } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { FieldArrayWithId, UseFieldArrayRemove } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  FieldArrayWithId,
+  UseFieldArrayRemove,
+  UseFormReturn,
+} from "react-hook-form";
+import { Sliders } from "./MainSlidersForm";
+import Loader from "@/components/Loader";
+import { toast } from "sonner";
 
 interface Props {
-  form: any;
-  images?: {
-    url: string;
-  }[];
+  form: UseFormReturn<SlidersFormType>;
+  images?: (ImageType | null)[];
+  sliders?: Sliders[];
   remove: UseFieldArrayRemove;
   fields: FieldArrayWithId<
     {
       images: {
         active: boolean;
-        link?: string | undefined;
-        image?: File | undefined;
+        link?: string;
+        image?: File;
       }[];
     },
     "images",
@@ -41,17 +53,27 @@ interface Props {
   >[];
 }
 
-const SlidersForm = ({ form, remove, fields, images }: Props) => {
+const SlidersForm = ({ form, remove, fields, images, sliders }: Props) => {
   // HOOKS
-  const [previews, setPreviews] = useState<{ id?: string; url: string }[]>([]);
+  const [previews, setPreviews] = useState<
+    { id?: string; url?: string; public_id?: string }[]
+  >([]);
+  const router = useRouter();
+  const { loading, setLoading } = useLoading();
+  const { loading: imageRemoveLoading, setLoading: setImageRemoveLoading } =
+    useLoading();
 
   useEffect(() => {
-    if (images && previews.length === 0) {
+    if (sliders && previews.length === 0 && fields.length > 0) {
       setPreviews(
-        images.map((img, i) => ({ id: fields[i]?.id, url: img.url }))
+        sliders.map((slider) => ({
+          id: slider.id.toString(),
+          url: slider.image?.url,
+          public_id: slider.image?.public_id,
+        }))
       );
     }
-  }, [images, previews.length]);
+  }, []);
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -70,21 +92,76 @@ const SlidersForm = ({ form, remove, fields, images }: Props) => {
     }
   };
 
-  const handleImageRemove = (index: number) => {
+  const handleImageRemove = async (
+    index: number,
+    public_id: string | undefined
+  ) => {
+    setImageRemoveLoading(true);
     form.setValue(`images.${index}.image`, undefined, { shouldValidate: true });
 
+    toast.promise(deleteImage(public_id!), {
+      loading: "Deleting Image...",
+      success: (res) => {
+        if (res.success) {
+          router.refresh();
+          setImageRemoveLoading(false);
+          return res.success;
+        }
+      },
+      error: "Failed to Delete Image.",
+    });
+
     setPreviews((prev) => prev.filter((_, i) => i !== index));
+    setImageRemoveLoading(false);
+    router.refresh();
+  };
+
+  const handleRemoveSlider = async (
+    index: number,
+    sliderId?: number,
+    public_id?: string
+  ) => {
+    setLoading(true);
+
+    form.setValue(`images.${index}.image`, undefined, { shouldValidate: true });
+
+    toast.promise(deleteSlider(sliderId!, public_id), {
+      loading: "Deleting Image...",
+      success: (res) => {
+        if (res.success) {
+          router.refresh();
+          router.refresh();
+          setLoading(false);
+          remove(index);
+          setPreviews((prev) => prev.filter((_, i) => i !== index));
+          setImageRemoveLoading(false);
+          return res.success;
+        }
+      },
+      error: "Failed to Delete Image.",
+    });
   };
 
   return (
     <div>
       <FormItem>
         <div className="space-y-2">
-          {fields.map((field, index) => (
+          {fields.map((fielde, index) => (
             <div key={fields[index].id} className="flex flex-col gap-2">
               <Accordion type="single" collapsible>
                 <AccordionItem value={`item-${index}`} className="card py-0">
-                  <AccordionTrigger>Slider {index + 1}</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex gap-3 items-center">
+                      <Image
+                        alt=""
+                        src={previews[index]?.url || sliderPlaceholder}
+                        width={60}
+                        height={60}
+                        className="aspect-[22/10] object-cover rounded-sm"
+                      />
+                      Slider {index + 1}
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3">
                       <FormField
@@ -125,18 +202,30 @@ const SlidersForm = ({ form, remove, fields, images }: Props) => {
                                   />
                                   {previews[index] && (
                                     <Button
+                                      disabled={imageRemoveLoading}
                                       type="button"
-                                      onClick={() => handleImageRemove(index)}
-                                      variant="secondary"
+                                      onClick={() =>
+                                        handleImageRemove(
+                                          index,
+                                          previews[index].public_id
+                                        )
+                                      }
+                                      variant="destructive"
                                       className="absolute top-0 left-0 m-1 hidden group-hover:flex"
+                                      size={"icon"}
                                     >
-                                      Delete
+                                      {imageRemoveLoading ? (
+                                        <Loader />
+                                      ) : (
+                                        <Trash />
+                                      )}
                                     </Button>
                                   )}
                                 </div>
                               </FormLabel>
                               <FormControl>
                                 <Input
+                                  disabled={imageRemoveLoading}
                                   type="file"
                                   id={`slider-${fields[index].id}`}
                                   accept="image/*"
@@ -168,11 +257,20 @@ const SlidersForm = ({ form, remove, fields, images }: Props) => {
 
                       <Button
                         type="button"
-                        onClick={() => remove(index)}
+                        disabled={loading}
+                        onClick={() =>
+                          handleRemoveSlider(
+                            index,
+                            previews[index]?.id
+                              ? Number(previews[index]?.id)
+                              : undefined,
+                            previews[index]?.public_id
+                          )
+                        }
                         variant="secondary"
                         size="icon"
                       >
-                        <Trash />
+                        {loading ? <Loader /> : <Trash />}
                       </Button>
                     </div>
                   </AccordionContent>

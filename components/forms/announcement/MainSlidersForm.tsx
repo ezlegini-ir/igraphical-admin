@@ -1,7 +1,7 @@
 "use client";
 
+import { createSlider, updateSlider } from "@/actions/slider";
 import Error from "@/components/Error";
-import Loader from "@/components/Loader";
 import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -10,33 +10,43 @@ import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { SlidersFormType, slidersFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Image, Slider } from "@prisma/client";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import SlidersForm from "./SlidersForm";
 
-export type Sliders = {
-  link: string;
-  image: string;
-  active: boolean;
-};
+export interface Sliders extends Slider {
+  image: Image | null;
+}
 
 export interface SlidersProps {
   sliders?: Sliders[];
 }
 
-const PanelSlidersForm = ({ sliders }: SlidersProps) => {
+const MainSlidersForm = ({ sliders }: SlidersProps) => {
   // HOOKS
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
   const { success, setSuccess } = useSuccess();
+  const router = useRouter();
 
   const form = useForm<SlidersFormType>({
     resolver: zodResolver(slidersFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      images: sliders?.map((s) => {
-        return { link: s.link, active: s.active, image: undefined };
-      }),
+      images: sliders?.map((slider) => ({
+        active: slider.active,
+        link: slider.link || "", // Ensure it's always a string
+        image: undefined, // File remains undefined if not provided
+      })) || [
+        {
+          active: false,
+          link: "", // Default to empty string
+          image: undefined,
+        },
+      ],
     },
   });
 
@@ -47,32 +57,49 @@ const PanelSlidersForm = ({ sliders }: SlidersProps) => {
 
   const onSubmit = async (data: SlidersFormType) => {
     setError("");
+    setSuccess("");
     setLoading(true);
 
-    console.log(data);
+    const operationPromise = sliders?.length
+      ? updateSlider(
+          data,
+          "MAIN",
+          sliders.map((s) => s.id)
+        )
+      : createSlider(data, "MAIN");
 
-    setSuccess("success");
-    setLoading(false);
+    toast.promise(operationPromise, {
+      loading: "Saving sliders...",
+      success: (res) => {
+        if (res.success) {
+          router.refresh();
+          form.reset(data);
+          setLoading(false);
+          return res.success;
+        }
+      },
+      error: "Failed to update/create slider.",
+    });
   };
 
-  const images = sliders?.map((s) => {
-    return { url: s.image };
-  });
+  const images = sliders?.filter((s) => s.image).map((s) => s.image);
 
   return (
     <div className="w-full">
       <Form {...form}>
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex justify-between items-center">
-            <h3>Home Slider</h3>
+            <h3>Main Slider</h3>
 
             <Button
               size={"sm"}
               className="px-10"
               type="submit"
-              disabled={loading}
+              variant={"lightBlue"}
+              disabled={
+                loading || !form.formState.isValid || !form.formState.isDirty
+              }
             >
-              <Loader loading={loading} />
               Save
             </Button>
           </div>
@@ -85,6 +112,7 @@ const PanelSlidersForm = ({ sliders }: SlidersProps) => {
             form={form}
             remove={remove}
             images={images}
+            sliders={sliders}
           />
         </form>
       </Form>
@@ -102,4 +130,4 @@ const PanelSlidersForm = ({ sliders }: SlidersProps) => {
   );
 };
 
-export default PanelSlidersForm;
+export default MainSlidersForm;

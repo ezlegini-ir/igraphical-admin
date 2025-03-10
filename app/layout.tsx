@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -14,7 +14,7 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        {/* <Toaster /> */}
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
