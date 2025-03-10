@@ -58,6 +58,7 @@ const page = async ({ searchParams }: Props) => {
   const courses = await prisma.course.findMany({
     where,
     include: {
+      review: true,
       image: true,
       tutor: {
         include: { image: true },

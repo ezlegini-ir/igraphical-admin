@@ -13,6 +13,13 @@ interface Props {
 }
 
 const CourseCard = ({ course }: Props) => {
+  const rating = course.review
+    ? (
+        course.review?.reduce((acc, curr) => acc + curr.rate, 0) /
+        course.review?.length
+      ).toFixed(2)
+    : "No Rate";
+
   return (
     <div className="card p-3">
       <div className="relative">
@@ -39,7 +46,7 @@ const CourseCard = ({ course }: Props) => {
       <div dir="rtl" className="space-y-1 flex justify-between">
         <h5>{course.title}</h5>
         <div className="flex gap-1 items-center">
-          <span className="font-medium text-sm">{5}</span>
+          <span className="font-medium text-sm">{rating}</span>
           <Star fill="#facc15" className="text-yellow-400" size={16} />
         </div>
       </div>

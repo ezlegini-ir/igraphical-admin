@@ -28,16 +28,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getCourseById } from "@/data/course";
+import { searchCourses, searchUsers } from "@/data/search";
+import { getUserById } from "@/data/user";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { cn } from "@/lib/utils";
 import { ReviewFormType, reviewFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Course, User } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import SearchField from "../../SearchField";
+import { createReview, deleteReview, updateReview } from "@/actions/review";
 
 interface Props {
   type: "NEW" | "UPDATE";
@@ -59,9 +66,9 @@ const ReviewForm = ({ type, review }: Props) => {
     defaultValues: {
       content: review?.content || "",
       rate: review?.rate.toString() || "5",
-      course: review?.course.id.toString() || "",
+      courseId: review?.course.id || 0,
+      userId: review?.user.id || 0,
       date: review?.createdAt || new Date(),
-      user: review?.user.id.toString() || "",
     },
   });
 
@@ -69,17 +76,68 @@ const ReviewForm = ({ type, review }: Props) => {
     setError("");
     setLoading(true);
 
-    console.log(data);
+    const res = isUpdateType
+      ? await updateReview(data, review?.id!)
+      : await createReview(data);
 
-    form.reset();
+    if (res.error) {
+      setError(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      setSuccess(res.success);
+      router.refresh();
+      setLoading(false);
+    }
+  };
+
+  const onDelete = async () => {
+    const res = await deleteReview(review?.id!);
+
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+
     router.refresh();
-    setSuccess("Created Successfully");
-    setLoading(false);
   };
 
-  const onDelete = (id: number | string) => {
-    console.log("Delete" + id);
+  //! SEARCH UTILS
+  //HOOKS
+  const [defaultUser, setDefaultUser] = useState<User | undefined>(undefined);
+
+  const fetchUsers = async (query: string): Promise<User[]> => {
+    return await searchUsers(query);
   };
+  const [defaultCourse, setDefaultCourse] = useState<Course | undefined>(
+    undefined
+  );
+
+  const fetchCourses = async (query: string): Promise<Course[]> => {
+    return await searchCourses(query);
+  };
+
+  useEffect(() => {
+    const fetchSelectedCourse = async () => {
+      if (review?.courseId) {
+        const course = await getCourseById(review.courseId);
+        setDefaultCourse(course ? course : undefined);
+      }
+    };
+    fetchSelectedCourse();
+  }, [review?.courseId]);
+
+  useEffect(() => {
+    const fetchSelectedUser = async () => {
+      if (review?.userId) {
+        const user = await getUserById(review.userId);
+        setDefaultUser(user ? user : undefined);
+      }
+    };
+    fetchSelectedUser();
+  }, [review?.userId]);
 
   return (
     <Form {...form}>
@@ -91,7 +149,7 @@ const ReviewForm = ({ type, review }: Props) => {
             <FormItem>
               <FormLabel>Content</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea dir="rtl" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,28 +192,21 @@ const ReviewForm = ({ type, review }: Props) => {
 
         <FormField
           control={form.control}
-          name="course"
+          name="courseId"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="overflow-visible">
               <FormLabel>Course</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a Post..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">
-                    دوره جامع نرم افزار ادوبی ایلوستریتور
-                  </SelectItem>
-                  <SelectItem value="2">
-                    دوره جامع نرم افزار ادوبی ایلوستریتور
-                  </SelectItem>
-                  <SelectItem value="3">
-                    دوره جامع نرم افزار ادوبی ایلوستریتور
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+
+              <SearchField<Course>
+                placeholder="Search Courses..."
+                fetchResults={fetchCourses}
+                onSelect={(course) =>
+                  course ? field.onChange(course.id) : field.onChange(undefined)
+                }
+                getItemLabel={(course) => `${course.title}`}
+                defaultItem={defaultCourse}
+              />
+
               <FormMessage />
             </FormItem>
           )}
@@ -163,21 +214,21 @@ const ReviewForm = ({ type, review }: Props) => {
 
         <FormField
           control={form.control}
-          name="user"
+          name="userId"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="overflow-visible">
               <FormLabel>User</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a Post..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">علیرضا ازلگینی</SelectItem>
-                  <SelectItem value="2">مهمان</SelectItem>
-                </SelectContent>
-              </Select>
+
+              <SearchField<User>
+                placeholder="Search Users..."
+                fetchResults={fetchUsers}
+                onSelect={(user) =>
+                  user ? field.onChange(user.id) : field.onChange(undefined)
+                }
+                getItemLabel={(user) => `${user.fullName} - ${user.email}`}
+                defaultItem={defaultUser}
+              />
+
               <FormMessage />
             </FormItem>
           )}
@@ -224,7 +275,9 @@ const ReviewForm = ({ type, review }: Props) => {
         />
 
         <Button
-          disabled={!form.formState.isValid || loading}
+          disabled={
+            !form.formState.isValid || !form.formState.isDirty || loading
+          }
           className="w-full flex gap-2"
           type="submit"
         >
@@ -232,7 +285,7 @@ const ReviewForm = ({ type, review }: Props) => {
           {isUpdateType ? "Update" : "Create"}
         </Button>
 
-        {isUpdateType && <DeleteButton id={review?.id!} onDelete={onDelete} />}
+        {isUpdateType && <DeleteButton onDelete={onDelete} />}
         <Error error={error} />
         <Success success={success} />
       </form>

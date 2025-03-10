@@ -34,3 +34,16 @@ export const searchPosts = async (query: string) => {
     take: 5,
   });
 };
+
+export const searchCourses = async (query: string) => {
+  const where = query
+    ? {
+        OR: [{ title: { contains: query } }],
+      }
+    : {};
+
+  return await prisma.course.findMany({
+    where,
+    take: 5,
+  });
+};

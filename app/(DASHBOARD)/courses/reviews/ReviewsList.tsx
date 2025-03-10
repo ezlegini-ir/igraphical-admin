@@ -10,33 +10,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { formatDate } from "@/lib/date";
+import { Course, Review, User } from "@prisma/client";
 import { Star } from "lucide-react";
 import Link from "next/link";
 
-export type ReviewType = {
-  id: number;
-  content: string;
-  rate: number;
-  user: {
-    id: number;
-    firstName: string;
-    lastName: string;
-  };
-  createdAt: Date;
-  course: {
-    id: number;
-    title: string;
-  };
-};
+export interface ReviewType extends Review {
+  course: Course;
+  user: User;
+}
 
 export interface Props {
   reviews: ReviewType[];
   totalReviews: number;
+  pageSize: number;
 }
 
-const ReviewsList = ({ reviews, totalReviews }: Props) => {
-  const pageSize = 10;
-
+const ReviewsList = ({ reviews, totalReviews, pageSize }: Props) => {
   return (
     <div className="card">
       <Table columns={columns} data={reviews} renderRows={renderRows} />
@@ -51,7 +41,7 @@ const renderRows = (review: ReviewType) => {
       <TableCell className="text-left">{review.content}</TableCell>
 
       <TableCell className="hidden md:table-cell">
-        <Link href={`students/${review.user.id}`}>
+        <Link href={`/students?search=${review.user.email}`}>
           {review.user.firstName} {review.user.lastName}
         </Link>
       </TableCell>
@@ -69,12 +59,14 @@ const renderRows = (review: ReviewType) => {
         </div>
       </TableCell>
 
-      <TableCell className="hidden xl:table-cell">
-        {review.createdAt.toLocaleString()}
+      <TableCell className="hidden xl:table-cell text-center">
+        {formatDate(review.createdAt)}
       </TableCell>
 
       <TableCell className="hidden sm:table-cell">
-        {review.course?.title}
+        <Link href={`/courses/list?search=${review.course.title}`}>
+          {review.course?.title}
+        </Link>
       </TableCell>
 
       <TableCell>
@@ -100,7 +92,7 @@ const columns = [
   { label: "Review", className: "sm:w-1/2" },
   { label: "Student", className: "hidden md:table-cell" },
   { label: "Rate", className: "hidden md:table-cell" },
-  { label: "Date", className: "hidden xl:table-cell" },
+  { label: "Date", className: "hidden xl:table-cell  text-center" },
   { label: "Course", className: "hidden sm:table-cell" },
   {
     label: "Actions",

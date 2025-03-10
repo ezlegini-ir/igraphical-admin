@@ -6,6 +6,7 @@ import {
   Curriculum,
   Image,
   Lesson,
+  Review,
   Tutor,
 } from "@prisma/client";
 
@@ -14,6 +15,7 @@ export interface CourseType extends Course {
   tutor: (Tutor & { image: Image | null }) | null;
   category: CourseCategory | null;
   curriculum: (Curriculum & { lessons: Lesson[] })[];
+  review: Review[] | null;
 }
 
 interface Props {

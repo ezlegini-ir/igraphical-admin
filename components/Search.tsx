@@ -8,14 +8,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-// Define form validation using zod
 const searchSchema = z.object({
   search: z.string().optional(),
 });
 
 type SearchFormValues = z.infer<typeof searchSchema>;
 
-const Search = () => {
+const Search = ({
+  placeholder = "Search...",
+  className,
+}: {
+  placeholder?: string;
+  className?: string;
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentSearch = searchParams.get("search") || "";
@@ -25,7 +30,6 @@ const Search = () => {
     defaultValues: { search: currentSearch },
   });
 
-  // Handle form submission when Enter is pressed
   const handleSubmit = (values: SearchFormValues) => {
     const params = new URLSearchParams(Array.from(searchParams.entries()));
     if (values.search) {
@@ -36,7 +40,6 @@ const Search = () => {
     router.push(`?${params.toString()}`);
   };
 
-  // Sync form state with URL when navigating
   useEffect(() => {
     form.setValue("search", currentSearch);
   }, [currentSearch, form]);
@@ -48,11 +51,11 @@ const Search = () => {
           name="search"
           control={form.control}
           render={({ field }) => (
-            <FormItem>
+            <FormItem className={className}>
               <FormControl>
                 <Input
                   className="h-9"
-                  placeholder="Search..."
+                  placeholder={placeholder}
                   {...field}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
