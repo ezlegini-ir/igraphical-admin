@@ -9,17 +9,19 @@ datasource db {
 
 //! User Managment  ---------------------------------------------------------
 model User {
-  id         Int       @id @default(autoincrement())
-  firstName  String
-  lastName   String
-  fullName   String
-  phone      String    @unique
-  email      String    @unique
-  nationalId String    @unique
-  joinedAt   DateTime  @default(now())
-  image      Image?
-  comments   Comment[]
-  Review     Review[]
+  id             Int              @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  fullName       String
+  phone          String           @unique
+  email          String           @unique
+  nationalId     String           @unique
+  joinedAt       DateTime         @default(now())
+  image          Image?
+  comments       Comment[]
+  Review         Review[]
+  LessonProgress LessonProgress[]
+  enrollment     Enrollment[]
 }
 
 model Admin {
@@ -183,6 +185,7 @@ model Course {
   curriculum   Curriculum[]
   gallery      GalleryItem?
   review       Review[]
+  enrollment   Enrollment[]
 }
 
 model CourseCategory {
@@ -235,20 +238,36 @@ model Curriculum {
 }
 
 model Lesson {
-  id        Int        @id @default(autoincrement())
-  title     String
-  duration  Int?
-  url       String
-  isFree    Boolean
-  type      LessonType
-  section   Curriculum @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  sectionId Int
+  id             Int              @id @default(autoincrement())
+  title          String
+  duration       Int?
+  url            String
+  isFree         Boolean
+  type           LessonType
+  section        Curriculum       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId      Int
+  LessonProgress LessonProgress[]
 }
 
 enum LessonType {
   VIDEO
   FILE
   ASSET
+}
+
+model LessonProgress {
+  id          Int       @id @default(autoincrement())
+  completed   Boolean   @default(false)
+  completedAt DateTime? @default(now())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId     Int
+  Enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  enrollmentId Int
+
+  @@unique([userId, lessonId])
 }
 
 model GalleryItem {
@@ -292,4 +311,68 @@ model Notifbar {
   bgColor   String
   textColor String
   active    Boolean
+}
+
+//! Registration ---------------------------------------------------------
+
+model Enrollment {
+  id                  Int              @id @default(autoincrement())
+  enrolledAt          DateTime         @default(now())
+  progress            Float            @default(0)
+  completedAt         DateTime?
+  certificateUrl      String?
+  certificateIssuedAt DateTime?
+  certificateId       Int? //todo
+  status              EnrollmentStatus @default(PENDING)
+
+  lessonProgress LessonProgress[]
+  payment        Payment?         @relation(fields: [paymentId], references: [id])
+  paymentId      Int?
+  User           User             @relation(fields: [userId], references: [id])
+  userId         Int
+  Course         Course           @relation(fields: [courseId], references: [id])
+  courseId       Int
+  certificate    Certificate?
+}
+
+model Certificate {
+  id       Int      @id @default(autoincrement())
+  issuedAt DateTime @default(now())
+  url      String   @unique
+  serial   String   @unique
+
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  enrollmentId Int        @unique
+}
+
+enum EnrollmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+//! Payment ---------------------------------------------------------
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  amount        Float
+  transactionId String        @unique
+  status        PaymentStatus
+  paidAt        DateTime      @default(now())
+  paymentMethod PaymentMethod
+
+  enrollment Enrollment[]
+}
+
+enum PaymentMethod {
+  ZARRIN_PAL
+  MELLI
+  FADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELED
 }

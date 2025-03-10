@@ -4,8 +4,13 @@ const requiredMessage = "Required";
 export const adminRoles = ["ADMIN", "AUTHOR"] as const;
 export const status = ["1", "0"] as const;
 export const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
-export const paymentStatus = ["PENDING", "SUBMITTED", "CANCELED"] as const;
-export const paymentMethod = ["zarrin_pal", "melli", "admin"] as const;
+export const paymentStatus = [
+  "PENDING",
+  "SUCCESS",
+  "CANCELED",
+  "FAILED",
+] as const;
+export const paymentMethod = ["ZARRIN_PAL", "MELLI", "ADMIN"] as const;
 export const couponType = ["FIXED", "PERCENT"] as const;
 export const ticketStatus = ["PENDING", "CLOSED", "ANSWERED"] as const;
 export const ticketDepartment = [

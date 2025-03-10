@@ -5,7 +5,6 @@ import prisma from "@/prisma/client";
 import { SliderType } from "@prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import { deleteCloudImage, uploadManyCloudImages } from "./cloudinary";
-import { deleteImage } from "./image";
 
 //* CREATE ------------------------------------------------------------
 

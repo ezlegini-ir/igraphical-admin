@@ -1,3 +1,4 @@
+import prisma from "@/prisma/client";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -20,4 +21,26 @@ export function formatDuration(minutes: number): string {
       ? `${roundedHours} hour`
       : `${roundedHours} hours`;
   }
+}
+
+export async function generateUniqueSerial(): Promise<string> {
+  let isUnique = false;
+  let serial = "";
+
+  while (!isUnique) {
+    // Step 1: Generate a random 8-digit serial
+    serial = `ig-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+    // Step 2: Check if the serial exists in the database
+    const existingCertificate = await prisma.certificate.findUnique({
+      where: { serial },
+    });
+
+    // Step 3: If no duplicate found, it's unique
+    if (!existingCertificate) {
+      isUnique = true;
+    }
+  }
+
+  return serial;
 }

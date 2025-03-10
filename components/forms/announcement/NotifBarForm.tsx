@@ -1,8 +1,7 @@
 "use client";
 
-import Error from "@/components/Error";
+import { createNotifBar, updateNotifBar } from "@/actions/notifBar";
 import Loader from "@/components/Loader";
-import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,27 +13,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
-import useSuccess from "@/hooks/useSuccess";
 import { notifbarFormSchema, NotifbarFormType } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Notifbar } from "@prisma/client";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface Props {
-  notifBar?: {
-    content: string;
-    link: string;
-    active: boolean;
-    bgColor: string;
-    textColor: string;
-  };
+  notifBar?: Notifbar | null;
 }
 
 const NotifBarForm = ({ notifBar }: Props) => {
-  const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { success, setSuccess } = useSuccess();
 
   const form = useForm<NotifbarFormType>({
     resolver: zodResolver(notifbarFormSchema),
@@ -49,14 +40,26 @@ const NotifBarForm = ({ notifBar }: Props) => {
   });
 
   const onSubmit = async (data: NotifbarFormType) => {
-    setError("");
     setLoading(true);
 
-    console.log(data);
+    const res = notifBar
+      ? await updateNotifBar(data, notifBar.id)
+      : await createNotifBar(data);
 
-    setLoading(false);
-    setSuccess("Notif Bar saved successfully!");
+    if (res.error) {
+      toast.warning(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      setLoading(false);
+    }
   };
+
+  const bgColor = form.getValues("bgColor");
+  const textColor = form.getValues("textColor");
 
   return (
     <div className="w-full">
@@ -93,8 +96,9 @@ const NotifBarForm = ({ notifBar }: Props) => {
                     <FormLabel>Content</FormLabel>
                     <FormControl>
                       <Input
+                        style={{ backgroundColor: bgColor, color: textColor }}
                         dir="rtl"
-                        className="text-left"
+                        className="text-center"
                         placeholder="Enter content"
                         {...field}
                       />
@@ -103,6 +107,7 @@ const NotifBarForm = ({ notifBar }: Props) => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="link"
@@ -117,7 +122,7 @@ const NotifBarForm = ({ notifBar }: Props) => {
                 )}
               />
 
-              <div className="flex gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="bgColor"
@@ -125,7 +130,11 @@ const NotifBarForm = ({ notifBar }: Props) => {
                     <FormItem className="w-full">
                       <FormLabel>Backgound Color</FormLabel>
                       <FormControl>
-                        <Input placeholder="#..." {...field} />
+                        <Input
+                          type="color"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -139,7 +148,11 @@ const NotifBarForm = ({ notifBar }: Props) => {
                     <FormItem className="w-full">
                       <FormLabel>Text Color</FormLabel>
                       <FormControl>
-                        <Input placeholder="#..." {...field} />
+                        <Input
+                          type="color"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -152,7 +165,9 @@ const NotifBarForm = ({ notifBar }: Props) => {
                   size={"sm"}
                   className="px-10"
                   type="submit"
-                  disabled={loading}
+                  disabled={
+                    form.formState.isSubmitting || !form.formState.isDirty
+                  }
                 >
                   <Loader loading={loading} />
                   Save
@@ -160,9 +175,6 @@ const NotifBarForm = ({ notifBar }: Props) => {
               </div>
             </div>
           </div>
-
-          <Error error={error} />
-          <Success success={success} />
         </form>
       </Form>
     </div>
