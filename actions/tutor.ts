@@ -10,7 +10,7 @@ import { UploadApiResponse } from "cloudinary";
 //* CREATE ------------------------------------------------------------
 
 export const createTutor = async (data: TutorFormType) => {
-  const { displayName, email, name, phone, password, image } = data;
+  const { displayName, email, name, phone, password, image, slug } = data;
   if (!password) return { error: "Password Required." };
 
   try {
@@ -31,6 +31,7 @@ export const createTutor = async (data: TutorFormType) => {
         name,
         password: hashedPassword,
         phone,
+        slug,
       },
     });
 
@@ -71,7 +72,7 @@ export const createTutor = async (data: TutorFormType) => {
 //? UPDATE ------------------------------------------------------------
 
 export const updateTutor = async (data: TutorFormType & { id: number }) => {
-  const { displayName, email, id, name, phone, password, image } = data;
+  const { displayName, email, id, name, phone, password, image, slug } = data;
 
   try {
     const existingTutor = await getTutorById(id);
@@ -99,6 +100,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
         name,
         password: password ? hashedPassword : existingTutor.password,
         phone,
+        slug,
       },
       include: { image: true },
     });

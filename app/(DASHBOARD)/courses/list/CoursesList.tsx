@@ -4,7 +4,7 @@ import { Course, Image, Tutor } from "@prisma/client";
 
 export interface CourseType extends Course {
   image: Image | null;
-  tutor: Tutor;
+  tutor: Tutor & { image: Image | null };
 }
 
 interface Props {

@@ -38,6 +38,7 @@ model Tutor {
   id          Int      @id @default(autoincrement())
   name        String
   displayName String
+  slug        String
   password    String
   phone       String   @unique
   email       String   @unique

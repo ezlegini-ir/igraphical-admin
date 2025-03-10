@@ -12,22 +12,59 @@ import { pagination } from "@/data/pagination";
 import prisma from "@/prisma/client";
 import { SlidersHorizontal } from "lucide-react";
 import CoursesList from "./CoursesList";
+import { Prisma, Status } from "@prisma/client";
 
 interface Props {
-  searchParams: Promise<{ page: string; filer: string; search: string }>;
+  searchParams: Promise<{
+    page: string;
+    tutor: string;
+    isFree: string;
+    status: string;
+    search: string;
+  }>;
 }
 
 const page = async ({ searchParams }: Props) => {
-  const { page, filer, search } = await searchParams;
+  const { page, tutor, search, isFree, status } = await searchParams;
+
+  const where: Prisma.CourseWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [
+              { title: { contains: search } },
+              {
+                tutor: {
+                  OR: [
+                    { name: { contains: search } },
+                    { displayName: { contains: search } },
+                  ],
+                },
+              },
+            ],
+          }
+        : {},
+
+      tutor ? { tutor: { slug: tutor } } : {},
+      isFree ? (isFree === "yes" ? { price: 0 } : { price: { not: 0 } }) : {},
+      status ? { status: status as Status } : {},
+    ],
+  };
 
   const pageSize = 12;
 
   const { skip, take } = pagination(page, pageSize);
 
   const courses = await prisma.course.findMany({
+    where,
     include: {
       image: true,
-      tutor: true,
+      tutor: {
+        include: { image: true },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
 
     take,
@@ -75,54 +112,50 @@ const page = async ({ searchParams }: Props) => {
   );
 };
 
-const Filters = () => {
+const Filters = async () => {
+  type Filter = { label: string; value: string }[];
+
+  const tutors: Filter = (await prisma.tutor.findMany()).map((item) => ({
+    label: item.name,
+    value: item.slug,
+  }));
+
   return (
     <>
+      <Filter placeholder="All Tutors" name="tutor" options={tutors} />
+
       <Filter
-        defaultValue="all"
-        name="student"
+        name="status"
+        placeholder="All Statuses"
         options={[
-          { label: "All Students", value: "all" },
+          { label: "Published", value: "PUBLISHED" },
+          { label: "Drafts", value: "DRAFT" },
+        ]}
+      />
+      <Filter
+        name="isFree"
+        placeholder="All Prices"
+        options={[
+          { label: "Free", value: "yes" },
+          { label: "No Free", value: "no" },
+        ]}
+      />
+      {/* {<Filter
+        name="student"
+        placeholder="All Students"
+        options={[
           { label: "Most Students", value: "most" },
           { label: "Lowest Students", value: "lowest" },
         ]}
       />
       <Filter
-        defaultValue="all"
-        name="status"
-        options={[
-          { label: "All Statuses", value: "all" },
-          { label: "Published", value: "published" },
-          { label: "Drafts", value: "drafts" },
-        ]}
-      />
-      <Filter
-        defaultValue="all"
-        name="isFree"
-        options={[
-          { label: "All Prices", value: "all" },
-          { label: "Free", value: "yes" },
-          { label: "No Free", value: "no" },
-        ]}
-      />
-      <Filter
-        defaultValue="all"
-        name="tutor"
-        options={[
-          { label: "All Tutors", value: "all" },
-          { label: "Alireza Ezlegini", value: "alireza-ezlegini" },
-          { label: "Fateme Ahmadi", value: "fateme-ahmadi" },
-        ]}
-      />
-      <Filter
-        defaultValue="all"
         name="rate"
+        placeholder="All Rates"
         options={[
-          { label: "All Rates", value: "all" },
           { label: "Highest", value: "high" },
           { label: "Lowest", value: "low" },
         ]}
-      />
+      />} */}
     </>
   );
 };

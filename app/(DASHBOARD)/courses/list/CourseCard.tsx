@@ -6,6 +6,7 @@ import { Eye, Pencil, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { CourseType } from "./CoursesList";
+import Avatar from "@/components/Avatar";
 
 interface Props {
   course: CourseType;
@@ -14,19 +15,30 @@ interface Props {
 const CourseCard = ({ course }: Props) => {
   return (
     <div className="card p-3">
-      <Image
-        alt=""
-        src={course.image?.url || placeHolder}
-        width={350}
-        height={350}
-        className="object-cover aspect-video rounded-sm w-full"
-      />
+      <div className="relative">
+        <Image
+          alt=""
+          src={course.image?.url || placeHolder}
+          width={330}
+          height={330}
+          className="object-cover aspect-video rounded-sm w-full"
+        />
 
-      <div dir="rtl" className="space-y-1">
+        {course.status === "DRAFT" && (
+          <Badge
+            className="absolute top-0 left-0 w-full rounded-sm bg-slate-50/85"
+            variant={"gray"}
+          >
+            {course.status}
+          </Badge>
+        )}
+      </div>
+
+      <div dir="rtl" className="space-y-1 flex justify-between">
         <h5>{course.title}</h5>
         <div className="flex gap-1 items-center">
-          <Star fill="#facc15" className="text-yellow-400" size={20} />
           <span className="font-medium text-sm">{5}</span>
+          <Star fill="#facc15" className="text-yellow-400" size={16} />
         </div>
       </div>
 
@@ -34,7 +46,10 @@ const CourseCard = ({ course }: Props) => {
         <>
           <li className="flex justify-between py-2 text-gray-500 text-sm">
             <span>Tutor</span>
-            <span>{course.tutor?.displayName}</span>
+            <span className="flex items-center gap-1">
+              <Avatar src={course.tutor.image?.url} size={20} />
+              <span>{course.tutor.name}</span>
+            </span>
           </li>
           <Separator />
         </>
@@ -67,16 +82,19 @@ const CourseCard = ({ course }: Props) => {
         </>
       </ul>
 
-      <div className="flex gap-3 justify-between text-gray-500">
-        <Link href={`/course/${course.url}`}>
-          <Button variant={"ghost"}>
+      <div className="flex text-gray-500">
+        <Link
+          href={`${process.env.NEXT_PUBLIC_MAIN_URL}/courses/${course.url}`}
+          className="w-full"
+        >
+          <Button variant={"ghost"} className="w-full">
             <Eye />
             View
           </Button>
         </Link>
 
-        <Link href={`/courses/${course.id}`}>
-          <Button variant={"ghost"}>
+        <Link href={`/courses/${course.id}`} className="w-full">
+          <Button variant={"ghost"} className="w-full">
             <Pencil />
             Edit
           </Button>

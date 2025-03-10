@@ -11,24 +11,23 @@ import useValue from "@/hooks/useValue";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 
-// Define props for the reusable Select component
 interface SelectProps {
-  name?: string; // The query parameter name (e.g., "filter", "sort", "category")
-  options: { label: string; value: string }[]; // Array of options
-  defaultValue?: string; // Default value if the query parameter is not present
-  placeholder?: string; // Placeholder text for the Select component
+  name?: string;
+  options: { label: string; value: string }[];
+  defaultValue?: string;
+  placeholder?: string;
 }
 
 const Filter: React.FC<SelectProps> = ({
   name = "filter",
   options,
-  defaultValue = "",
+  defaultValue = "all",
   placeholder = "Select...",
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Read the current value of the query parameter from the URL
+  // Read the current query parameter or set to default
   const currentQuery = searchParams.get(name) || defaultValue;
   const { value, setValue } = useValue(currentQuery);
 
@@ -36,12 +35,15 @@ const Filter: React.FC<SelectProps> = ({
     setValue(newValue);
     const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    if (newValue) {
-      params.set(name, newValue);
-    } else {
+    if (newValue === "all") {
+      // Remove the query if it is "all"
       params.delete(name);
+    } else {
+      // Otherwise, update the query parameter
+      params.set(name, newValue);
     }
 
+    // Push the new query string while keeping other parameters
     router.push(`?${params.toString()}`);
   };
 
@@ -55,6 +57,7 @@ const Filter: React.FC<SelectProps> = ({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
+        <SelectItem value={"all"}>{placeholder}</SelectItem>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}

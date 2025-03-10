@@ -51,6 +51,7 @@ const TutorForm = ({ type, tutor }: Props) => {
       password: "",
       email: tutor?.email || "",
       phone: tutor?.phone || "",
+      slug: tutor?.slug || "",
     },
   });
 
@@ -79,12 +80,12 @@ const TutorForm = ({ type, tutor }: Props) => {
     }
   };
 
-  const onDelete = async (id: number | string) => {
+  const onDelete = async () => {
     setError("");
     setSuccess("");
     setLoading(true);
 
-    const res = await deleteTutor(id as string);
+    const res = await deleteTutor(tutor?.id!);
 
     if (res.error) {
       setError(res.error);
@@ -111,6 +112,20 @@ const TutorForm = ({ type, tutor }: Props) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Slug</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -191,7 +206,7 @@ const TutorForm = ({ type, tutor }: Props) => {
           {isUpdateType ? "Update" : "Create"}
         </Button>
 
-        {isUpdateType && <DeleteButton id={tutor?.id!} onDelete={onDelete} />}
+        {isUpdateType && <DeleteButton onDelete={onDelete} />}
         <Error error={error} />
         <Success success={success} />
       </form>
