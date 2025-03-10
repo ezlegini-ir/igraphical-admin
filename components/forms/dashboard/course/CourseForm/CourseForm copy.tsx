@@ -67,7 +67,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFieldArray } from "react-hook-form";
-import ImageField from "../../ImageField";
+import ImageField from "../../../ImageField";
 import { Badge } from "@/components/ui/badge";
 import { DateRange } from "react-day-picker";
 import Link from "next/link";
@@ -87,7 +87,7 @@ interface TutorType extends Tutor {
 }
 
 export interface CourseType extends Course {
-  tutor: Tutor;
+  tutor: Tutor | null;
   image: ImageType | null;
   learn: Learn[];
   prerequisite: Prerequisite[];

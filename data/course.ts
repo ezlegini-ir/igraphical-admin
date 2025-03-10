@@ -21,6 +21,7 @@ export const getCourseById = async (id: string | number) => {
       image: true,
       tutor: true,
       learn: true,
+      category: true,
       prerequisite: true,
       curriculum: {
         include: {
