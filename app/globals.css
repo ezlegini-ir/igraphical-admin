@@ -127,7 +127,7 @@ html > body[data-scroll-locked] {
 
   /*! CARD */
   .card {
-    @apply bg-white border border-slate-300 rounded-lg  px-3 md:px-4 py-5  space-y-3 overflow-hidden;
+    @apply bg-white border border-slate-300 rounded-lg  px-3 md:px-4 py-5  space-y-3;
   }
   .photo-frame {
     @apply bg-slate-50 border border-dashed p-1 hover:shadow-lg hover:shadow-slate-200 transition-shadow;

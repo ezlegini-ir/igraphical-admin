@@ -316,21 +316,18 @@ model Notifbar {
 //! Registration ---------------------------------------------------------
 
 model Enrollment {
-  id                  Int              @id @default(autoincrement())
-  enrolledAt          DateTime         @default(now())
-  progress            Float            @default(0)
-  completedAt         DateTime?
-  certificateUrl      String?
-  certificateIssuedAt DateTime?
-  certificateId       Int? //todo
-  status              EnrollmentStatus @default(PENDING)
+  id          Int              @id @default(autoincrement())
+  enrolledAt  DateTime         @default(now())
+  progress    Float            @default(0)
+  completedAt DateTime?
+  status      EnrollmentStatus @default(PENDING)
 
   lessonProgress LessonProgress[]
   payment        Payment?         @relation(fields: [paymentId], references: [id])
   paymentId      Int?
-  User           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
   userId         Int
-  Course         Course           @relation(fields: [courseId], references: [id])
+  course         Course           @relation(fields: [courseId], references: [id])
   courseId       Int
   certificate    Certificate?
 }
@@ -375,4 +372,22 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   CANCELED
+}
+
+model Coupon {
+  id        Int        @id @default(autoincrement())
+  code      String     @unique
+  discount  Float
+  type      CouponType
+  from      DateTime?
+  expiresAt DateTime?
+  limit     Int?
+  usedCount Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
 }

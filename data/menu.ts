@@ -9,6 +9,7 @@ import {
   MessageCircleQuestion,
   Percent,
   TvMinimalPlay,
+  UserPlus,
   UserRoundCheck,
   Users,
 } from "lucide-react";
@@ -49,15 +50,24 @@ const sideBarMenuItems = [
   },
 
   {
-    groupName: "Financial & Data",
+    groupName: "Enrollment & Financial",
     subMenuItems: [
       {
-        tabName: "Registrations",
-        tabHref: "/registrations",
+        tabName: "Enrollment",
+        tabHref: "/enrollments",
+        tabIcon: UserPlus,
+        subMenuItems: [
+          { label: "New", href: "/enrollments/new" },
+          { label: "List", href: "/enrollments/list" },
+        ],
+      },
+      {
+        tabName: "Payments",
+        tabHref: "/payments",
         tabIcon: CreditCard,
         subMenuItems: [
-          { label: "List", href: "/registrations/list" },
-          { label: "New", href: "/registrations/new" },
+          { label: "New", href: "/payments/new" },
+          { label: "List", href: "/payments/list" },
         ],
       },
       {
@@ -69,16 +79,6 @@ const sideBarMenuItems = [
           { label: "Overall Off", href: "/marketing/overall-off" },
         ],
       },
-      // {
-      //   tabName: "Exports",
-      // tabHref: "exports",
-      //   tabIcon: FolderInput,
-      //   subMenuItems: [
-      //     { label: "Dashboard", href: "exports", icon: LayoutDashboard },
-      //     { label: "Data Export", href: "exports/data", icon: FileText },
-      //     { label: "Reports Export", href: "exports/reports", icon: FileText },
-      //   ],
-      // },
     ],
   },
 

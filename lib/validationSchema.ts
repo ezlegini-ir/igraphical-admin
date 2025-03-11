@@ -10,6 +10,11 @@ export const paymentStatus = [
   "CANCELED",
   "FAILED",
 ] as const;
+export const enrollmentStatus = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+] as const;
 export const paymentMethod = ["ZARRIN_PAL", "MELLI", "ADMIN"] as const;
 export const couponType = ["FIXED", "PERCENT"] as const;
 export const ticketStatus = ["PENDING", "CLOSED", "ANSWERED"] as const;
@@ -181,15 +186,31 @@ export const notifbarFormSchema = z.object({
 });
 export type NotifbarFormType = z.infer<typeof notifbarFormSchema>;
 
+//! ENROLLMENT
+
+export const enrollmentFormSchema = z.object({
+  enrolledAt: z.date().default(new Date()),
+  userId: z.number().positive({ message: "User ID is required." }),
+  courses: z.array(
+    z.object({
+      courseId: z.number().positive({ message: "Course ID is required." }),
+    })
+  ),
+  status: z.enum(paymentStatus),
+  total: z.number().positive(),
+  itemsTotal: z.number().positive(),
+  discountCode: z.string().optional(),
+  discountAmount: z.number().optional(),
+  paymentMethod: z.enum(paymentMethod).default("ADMIN"),
+});
+export type EnrollmentFormType = z.infer<typeof enrollmentFormSchema>;
+
 //! PAYMENTS
 export const paymentsFormSchema = z.object({
-  createdAt: z.date(),
   status: z.enum(paymentStatus),
   total: z.number().min(0),
-  user: z.string().min(1),
-  courses: z.array(z.object({ id: z.string() })),
   discountCode: z.string().optional(),
-  paymentMethod: z.enum(paymentMethod),
+  paymentMethod: z.enum(paymentMethod).default("ADMIN"),
 });
 export type PaymentsFormType = z.infer<typeof paymentsFormSchema>;
 

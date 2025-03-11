@@ -14,6 +14,8 @@ const badgeVariants = cva(
           "border-[1px] border-green-600 bg-green-100 text-green-800 hover:bg-green-200",
         red: "border-[1px] border-red-600 bg-red-100 text-red-800 hover:bg-red-200",
         blue: "border-[1px] border-blue-400 bg-blue-50 text-blue-800 hover:bg-blue-200",
+        richBlue:
+          "border-[2px] border-blue-400 bg-blue-100 text-blue-800 hover:bg-blue-200",
         gray: "border-[1px] border-slate-400 bg-slate-50 text-gray-800 hover:bg-gray-200",
         orange:
           "border-[1px] border-orange-400 bg-orange-50 text-orange-800 hover:bg-orange-100",

@@ -31,3 +31,15 @@ export const getCourseById = async (id: string | number) => {
     },
   });
 };
+
+export const getAllCoursesByIds = async (ids: number[]) => {
+  const validIds = ids.filter((id) => id !== 0 && id !== undefined);
+
+  if (validIds.length === 0) return [];
+
+  return await prisma.course.findMany({
+    where: {
+      id: { in: validIds },
+    },
+  });
+};

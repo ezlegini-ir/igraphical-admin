@@ -9,9 +9,11 @@ import { getCourseById } from "@/data/course";
 const SearchCourses = ({
   field,
   courseId,
+  placeHolder,
 }: {
   field: any;
   courseId?: number;
+  placeHolder?: string;
 }) => {
   const [defaultCourse, setDefaultCourse] = useState<Course | undefined>(
     undefined
@@ -33,7 +35,7 @@ const SearchCourses = ({
 
   return (
     <SearchField<Course>
-      placeholder="Search Courses..."
+      placeholder={placeHolder}
       fetchResults={fetchCourses}
       onSelect={(course) =>
         course ? field.onChange(course.id) : field.onChange(undefined)

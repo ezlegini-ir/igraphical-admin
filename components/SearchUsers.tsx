@@ -6,7 +6,15 @@ import { User } from "@prisma/client";
 import { useEffect, useState } from "react";
 import SearchField from "./forms/SearchField";
 
-const SearchPosts = ({ field, userId }: { field: any; userId?: number }) => {
+const SearchUsers = ({
+  field,
+  userId,
+  placeHolder,
+}: {
+  field: any;
+  userId?: number;
+  placeHolder?: string;
+}) => {
   const [defaultUser, setDefaultUser] = useState<User | undefined>(undefined);
 
   const fetchUsers = async (query: string): Promise<User[]> => {
@@ -25,15 +33,15 @@ const SearchPosts = ({ field, userId }: { field: any; userId?: number }) => {
 
   return (
     <SearchField<User>
-      placeholder="Search Users..."
+      placeholder={placeHolder}
       fetchResults={fetchUsers}
       onSelect={(user) =>
         user ? field.onChange(user.id) : field.onChange(undefined)
       }
-      getItemLabel={(user) => `${user.fullName} - ${user.email}`}
+      getItemLabel={(user) => `${user.fullName} - ${user.email.toLowerCase()}`}
       defaultItem={defaultUser}
     />
   );
 };
 
-export default SearchPosts;
+export default SearchUsers;
