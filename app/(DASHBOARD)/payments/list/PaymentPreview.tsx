@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,12 +7,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ViewButton from "@/components/ViewButton";
-import { Payment } from "./PaymentsList";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import Table from "@/components/Table";
-import Image from "next/image";
 import { placeHolder } from "@/public";
+import Image from "next/image";
+import Link from "next/link";
+import { Payment } from "./PaymentsList";
 
 const PaymentPreview = ({ payment }: { payment: Payment }) => {
   const paymentPreview = [

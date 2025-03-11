@@ -3,36 +3,64 @@ import NewButton from "@/components/NewButton";
 import Search from "@/components/Search";
 import prisma from "@/prisma/client";
 import EnrollmentsList from "./PaymentsList";
-import { globalPageSize } from "@/data/pagination";
+import { globalPageSize, pagination } from "@/data/pagination";
+import { EnrollmentStatus, Prisma } from "@prisma/client";
 
 interface Props {
-  searchParams: Promise<{ page: string; filer: string; search: string }>;
+  searchParams: Promise<{
+    page: string;
+    status: string;
+    search: string;
+  }>;
 }
 
-const totalPayments = 15;
-
 const page = async ({ searchParams }: Props) => {
-  // const { page, filer, search } = await searchParams;
+  const { page, status, search } = await searchParams;
 
+  const where: Prisma.EnrollmentWhereInput = {
+    status: status ? (status as EnrollmentStatus) : undefined,
+
+    user: search
+      ? {
+          OR: [
+            { fullName: { contains: search } },
+            { email: { contains: search } },
+            { nationalId: { contains: search } },
+            { phone: { contains: search } },
+          ],
+        }
+      : undefined,
+  };
+
+  const { skip, take } = pagination(page);
   const enrollments = await prisma.enrollment.findMany({
+    where,
     include: {
-      user: true,
+      user: {
+        include: { image: true },
+      },
+      course: true,
     },
+
+    skip,
+    take,
   });
+  const totalEnrollments = await prisma.enrollment.count({ where });
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
         <h3>Enrollments</h3>
         <div className="flex gap-3 justify-between items-center">
-          <Search />
+          <Search placeholder="Search Users..." />
 
           <Filter
-            placeholder="All Payments"
+            placeholder="All Statuses"
+            name="status"
             options={[
               { label: "Pending", value: "PENDING" },
               { label: "In Progress", value: "IN_PROGRESS" },
-              { label: "Submitted", value: "COMPLETED" },
+              { label: "Completed", value: "COMPLETED" },
             ]}
           />
 
@@ -42,7 +70,7 @@ const page = async ({ searchParams }: Props) => {
 
       <EnrollmentsList
         payments={enrollments}
-        totalPayments={totalPayments}
+        totalPayments={totalEnrollments}
         pageSize={globalPageSize}
       />
     </div>

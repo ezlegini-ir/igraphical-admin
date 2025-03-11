@@ -57,7 +57,9 @@ const Filter: React.FC<SelectProps> = ({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={"all"}>{placeholder}</SelectItem>
+        <SelectItem className="text-gray-500" value={"all"}>
+          {placeholder}
+        </SelectItem>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}

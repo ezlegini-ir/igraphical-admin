@@ -19,7 +19,7 @@ model User {
   joinedAt       DateTime         @default(now())
   image          Image?
   comments       Comment[]
-  Review         Review[]
+  review         Review[]
   LessonProgress LessonProgress[]
   enrollment     Enrollment[]
 }
@@ -246,7 +246,7 @@ model Lesson {
   type           LessonType
   section        Curriculum       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   sectionId      Int
-  LessonProgress LessonProgress[]
+  lessonProgress LessonProgress[]
 }
 
 enum LessonType {
@@ -313,7 +313,7 @@ model Notifbar {
   active    Boolean
 }
 
-//! Registration ---------------------------------------------------------
+//! Enrollment ---------------------------------------------------------
 
 model Enrollment {
   id          Int              @id @default(autoincrement())
@@ -351,14 +351,19 @@ enum EnrollmentStatus {
 //! Payment ---------------------------------------------------------
 
 model Payment {
-  id            Int           @id @default(autoincrement())
-  amount        Float
-  transactionId String        @unique
-  status        PaymentStatus
-  paidAt        DateTime      @default(now())
-  paymentMethod PaymentMethod
+  id             Int           @id @default(autoincrement())
+  total          Float
+  itemsTotal     Float
+  discountAmount Float
+  discountCode   String
+  transactionId  String        @unique
+  status         PaymentStatus
+  paidAt         DateTime      @default(now())
+  paymentMethod  PaymentMethod
 
   enrollment Enrollment[]
+  coupon     Coupon?      @relation(fields: [couponId], references: [id])
+  couponId   Int?
 }
 
 enum PaymentMethod {
@@ -385,6 +390,7 @@ model Coupon {
   usedCount Int        @default(0)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  payment   Payment[]
 }
 
 enum CouponType {
