@@ -1,9 +1,12 @@
 "use client";
 
+import { createReview, deleteReview, updateReview } from "@/actions/review";
 import { ReviewType } from "@/app/(DASHBOARD)/courses/reviews/ReviewsList";
 import DeleteButton from "@/components/DeleteButton";
 import Error from "@/components/Error";
 import Loader from "@/components/Loader";
+import SearchCourses from "@/components/SearchCourses";
+import SearchUsers from "@/components/SearchUsers";
 import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,23 +31,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { getCourseById } from "@/data/course";
-import { searchCourses, searchUsers } from "@/data/search";
-import { getUserById } from "@/data/user";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { cn } from "@/lib/utils";
 import { ReviewFormType, reviewFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Course, User } from "@prisma/client";
 import { format } from "date-fns";
 import { CalendarIcon, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import SearchField from "../../SearchField";
-import { createReview, deleteReview, updateReview } from "@/actions/review";
 
 interface Props {
   type: "NEW" | "UPDATE";
@@ -106,38 +102,6 @@ const ReviewForm = ({ type, review }: Props) => {
 
   //! SEARCH UTILS
   //HOOKS
-  const [defaultUser, setDefaultUser] = useState<User | undefined>(undefined);
-
-  const fetchUsers = async (query: string): Promise<User[]> => {
-    return await searchUsers(query);
-  };
-  const [defaultCourse, setDefaultCourse] = useState<Course | undefined>(
-    undefined
-  );
-
-  const fetchCourses = async (query: string): Promise<Course[]> => {
-    return await searchCourses(query);
-  };
-
-  useEffect(() => {
-    const fetchSelectedCourse = async () => {
-      if (review?.courseId) {
-        const course = await getCourseById(review.courseId);
-        setDefaultCourse(course ? course : undefined);
-      }
-    };
-    fetchSelectedCourse();
-  }, [review?.courseId]);
-
-  useEffect(() => {
-    const fetchSelectedUser = async () => {
-      if (review?.userId) {
-        const user = await getUserById(review.userId);
-        setDefaultUser(user ? user : undefined);
-      }
-    };
-    fetchSelectedUser();
-  }, [review?.userId]);
 
   return (
     <Form {...form}>
@@ -197,15 +161,7 @@ const ReviewForm = ({ type, review }: Props) => {
             <FormItem className="overflow-visible">
               <FormLabel>Course</FormLabel>
 
-              <SearchField<Course>
-                placeholder="Search Courses..."
-                fetchResults={fetchCourses}
-                onSelect={(course) =>
-                  course ? field.onChange(course.id) : field.onChange(undefined)
-                }
-                getItemLabel={(course) => `${course.title}`}
-                defaultItem={defaultCourse}
-              />
+              <SearchCourses field={field} courseId={review?.courseId} />
 
               <FormMessage />
             </FormItem>
@@ -219,15 +175,7 @@ const ReviewForm = ({ type, review }: Props) => {
             <FormItem className="overflow-visible">
               <FormLabel>User</FormLabel>
 
-              <SearchField<User>
-                placeholder="Search Users..."
-                fetchResults={fetchUsers}
-                onSelect={(user) =>
-                  user ? field.onChange(user.id) : field.onChange(undefined)
-                }
-                getItemLabel={(user) => `${user.fullName} - ${user.email}`}
-                defaultItem={defaultUser}
-              />
+              <SearchUsers field={field} userId={review?.userId} />
 
               <FormMessage />
             </FormItem>
