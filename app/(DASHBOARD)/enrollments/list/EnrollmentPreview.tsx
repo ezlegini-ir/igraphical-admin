@@ -11,9 +11,10 @@ import ViewButton from "@/components/ViewButton";
 import { formatDate } from "@/lib/date";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { EnrollmentType } from "./PaymentsList";
+import { EnrollmentType } from "./EnrollmentsList";
+import { formatPrice } from "@/lib/utils";
 
-const PaymentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
+const EnrollmentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
   const pending = enrollment.status === "PENDING";
   const in_progress = enrollment.status === "IN_PROGRESS";
 
@@ -36,7 +37,18 @@ const PaymentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
       href={`/courses/${enrollment.course.id}`}
       className="flex gap-1 items-start"
     >
-      2423 <ExternalLink size={10} />
+      {enrollment.payment?.id} <ExternalLink size={10} />
+    </Link>
+  ) : (
+    <Badge variant={"green"}>Free</Badge>
+  );
+
+  const price = enrollment.price ? (
+    <Link
+      href={`/courses/${enrollment.course.id}`}
+      className="flex gap-1 items-start"
+    >
+      {formatPrice(enrollment.price)} <ExternalLink size={10} />
     </Link>
   ) : (
     <Badge variant={"green"}>Free</Badge>
@@ -45,8 +57,13 @@ const PaymentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
   const paymentPreview = [
     { label: "Enrollment Id", value: enrollment.id },
     { label: "Course", value: enrollment.course.title },
+    { label: "Price", value: price },
     { label: "Status", value: statuses },
     { label: "Payment", value: payment },
+    {
+      label: "Payment Total",
+      value: enrollment.payment ? formatPrice(enrollment.payment?.total) : 0,
+    },
     {
       label: "User",
       value: enrollment.user.fullName,
@@ -77,7 +94,7 @@ const PaymentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
               ))}
             </ul>
 
-            <EnrollmentStatusForm />
+            <EnrollmentStatusForm enrollment={enrollment} />
           </div>
         </DialogHeader>
       </DialogContent>
@@ -85,4 +102,4 @@ const PaymentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
   );
 };
 
-export default PaymentPreview;
+export default EnrollmentPreview;

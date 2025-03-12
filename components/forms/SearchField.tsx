@@ -90,9 +90,7 @@ const SearchField = <T,>({
             setQuery(e.target.value);
             setSelected(null);
           }}
-          className={`w-full p-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300 disabled:opacity-75 ${
-            !selected ? "pl-10" : "pl-3"
-          }`}
+          className={`w-full p-2 pr-10 ${!selected ? "pl-10" : "pl-3"}`}
         />
         {!selected &&
           (loading && query.length > 2 ? (

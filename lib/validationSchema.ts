@@ -45,9 +45,7 @@ export const loginFormSchema = z.object({
   password: z.string().min(8, { message: requiredMessage }),
 });
 export type LoginFormType = z.infer<typeof loginFormSchema>;
-
 // --------------
-
 export const otpFormSchema = z.object({
   otp: z.string().min(6),
 });
@@ -187,21 +185,25 @@ export const notifbarFormSchema = z.object({
 export type NotifbarFormType = z.infer<typeof notifbarFormSchema>;
 
 //! ENROLLMENT
-
 export const enrollmentFormSchema = z.object({
   enrolledAt: z.date().default(new Date()),
   userId: z.number().positive({ message: "User ID is required." }),
   courses: z.array(
     z.object({
       courseId: z.number().positive({ message: "Course ID is required." }),
+      price: z.number(),
     })
   ),
-  status: z.enum(paymentStatus),
-  total: z.number().positive(),
-  itemsTotal: z.number().positive(),
-  discountCode: z.string().optional(),
-  discountAmount: z.number().optional(),
-  paymentMethod: z.enum(paymentMethod).default("ADMIN"),
+  payment: z
+    .object({
+      discountCode: z.string(),
+      discountAmount: z.number(),
+      paymentMethod: z.enum(paymentMethod),
+      total: z.number(),
+      itemsTotal: z.number(),
+      status: z.enum(paymentStatus),
+    })
+    .optional(),
 });
 export type EnrollmentFormType = z.infer<typeof enrollmentFormSchema>;
 

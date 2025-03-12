@@ -44,3 +44,12 @@ export async function generateUniqueSerial(): Promise<string> {
 
   return serial;
 }
+
+export function formatPrice(price: number) {
+  return price.toLocaleString("en-US") + " T";
+}
+
+export function handleError(error: unknown): { error: string } {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  return { error: `Error 500: ${errorMessage}` };
+}

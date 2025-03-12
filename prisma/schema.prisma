@@ -22,6 +22,7 @@ model User {
   review         Review[]
   LessonProgress LessonProgress[]
   enrollment     Enrollment[]
+  payment        Payment[]
 }
 
 model Admin {
@@ -321,6 +322,7 @@ model Enrollment {
   progress    Float            @default(0)
   completedAt DateTime?
   status      EnrollmentStatus @default(PENDING)
+  price       Float
 
   lessonProgress LessonProgress[]
   payment        Payment?         @relation(fields: [paymentId], references: [id])
@@ -330,6 +332,8 @@ model Enrollment {
   course         Course           @relation(fields: [courseId], references: [id])
   courseId       Int
   certificate    Certificate?
+
+  @@unique([userId, courseId])
 }
 
 model Certificate {
@@ -354,9 +358,9 @@ model Payment {
   id             Int           @id @default(autoincrement())
   total          Float
   itemsTotal     Float
-  discountAmount Float
-  discountCode   String
-  transactionId  String        @unique
+  discountAmount Float?
+  discountCode   String?
+  transactionId  String?       @unique
   status         PaymentStatus
   paidAt         DateTime      @default(now())
   paymentMethod  PaymentMethod
@@ -364,12 +368,14 @@ model Payment {
   enrollment Enrollment[]
   coupon     Coupon?      @relation(fields: [couponId], references: [id])
   couponId   Int?
+  User       User         @relation(fields: [userId], references: [id])
+  userId     Int
 }
 
 enum PaymentMethod {
   ZARRIN_PAL
   MELLI
-  FADMIN
+  ADMIN
 }
 
 enum PaymentStatus {
@@ -382,7 +388,7 @@ enum PaymentStatus {
 model Coupon {
   id        Int        @id @default(autoincrement())
   code      String     @unique
-  discount  Float
+  amount    Float
   type      CouponType
   from      DateTime?
   expiresAt DateTime?

@@ -41,5 +41,13 @@ export const getAllCoursesByIds = async (ids: number[]) => {
     where: {
       id: { in: validIds },
     },
+    include: {
+      image: true,
+      tutor: {
+        include: {
+          image: true,
+        },
+      },
+    },
   });
 };

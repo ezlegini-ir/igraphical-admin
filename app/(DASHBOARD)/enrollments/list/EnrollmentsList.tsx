@@ -4,15 +4,22 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Course, Enrollment, Image as ImageType, User } from "@prisma/client";
-import Link from "next/link";
-import PaymentPreview from "./EnrollmentPreview";
-import { ExternalLink } from "lucide-react";
 import { formatDate } from "@/lib/date";
+import { formatPrice } from "@/lib/utils";
+import {
+  Course,
+  Enrollment,
+  Image as ImageType,
+  Payment,
+  User,
+} from "@prisma/client";
+import Link from "next/link";
+import EnrollmentPreview from "./EnrollmentPreview";
 
 export interface EnrollmentType extends Enrollment {
   user: User & { image: ImageType | null };
   course: Course;
+  payment: Payment | null;
 }
 
 interface Props {
@@ -59,7 +66,7 @@ const renderRows = (enrollment: EnrollmentType) => {
           href={`/students?search=${enrollment.user.email}`}
           className="flex gap-2 items-center"
         >
-          <Avatar src={enrollment.user.image?.url} size={40} />
+          <Avatar src={enrollment.user.image?.url} size={34} />
           {enrollment.user.fullName}
         </Link>
       </TableCell>
@@ -71,13 +78,10 @@ const renderRows = (enrollment: EnrollmentType) => {
       </TableCell>
 
       <TableCell className="text-center hidden lg:table-cell">
-        {enrollment.paymentId ? (
-          <Link
-            href={`/courses/${enrollment.course.id}`}
-            className="flex gap-1 items-start"
-          >
-            2423 <ExternalLink size={10} />
-          </Link>
+        {enrollment.price !== 0 ? (
+          <div className="flex justify-center">
+            {formatPrice(enrollment.price)}
+          </div>
         ) : (
           <Badge variant={"green"}>Free</Badge>
         )}
@@ -93,7 +97,7 @@ const renderRows = (enrollment: EnrollmentType) => {
 
       <TableCell className="flex gap-2">
         <div className="flex justify-end gap-2 w-full">
-          <PaymentPreview enrollment={enrollment} />
+          <EnrollmentPreview enrollment={enrollment} />
 
           <EditButton href={`/payments/${enrollment.id}`} />
         </div>
@@ -105,7 +109,10 @@ const renderRows = (enrollment: EnrollmentType) => {
 const columns = [
   { label: "User", className: "w-[500px]" },
   { label: "Course", className: "text-left w-[400px]" },
-  { label: "Payment", className: "text-center w-[400px] hidden lg:table-cell" },
+  {
+    label: "Price",
+    className: "text-center w-[400px] hidden lg:table-cell",
+  },
   { label: "Status", className: "text-center w-[500px] hidden lg:table-cell" },
   {
     label: "Enrolled At",

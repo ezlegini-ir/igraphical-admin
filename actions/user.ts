@@ -35,7 +35,7 @@ export async function createUser(data: StudentFormType) {
     // CREATE USER
     const newUser = await prisma.user.create({
       data: {
-        email,
+        email: email.toLowerCase(),
         firstName,
         lastName,
         nationalId: nationalId || "0000000000",

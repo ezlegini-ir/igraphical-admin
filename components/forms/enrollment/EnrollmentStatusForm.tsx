@@ -21,22 +21,55 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { enrollmentStatus } from "@/lib/validationSchema";
+import { EnrollmentType } from "@/app/(DASHBOARD)/enrollments/list/EnrollmentsList";
+import { deleteEnrollment, updateEnrollment } from "@/actions/enrollment";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import DeleteButton from "@/components/DeleteButton";
 
-const FormSchema = z.object({
+export const enrollmentStatusFormForm = z.object({
   enrollmentStatus: z.enum(enrollmentStatus),
 });
+export type EnrollmentStatusFormType = z.infer<typeof enrollmentStatusFormForm>;
 
-function EnrollmentStatusForm() {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+function EnrollmentStatusForm({ enrollment }: { enrollment: EnrollmentType }) {
+  //HOOKS
+  const router = useRouter();
+
+  const form = useForm<EnrollmentStatusFormType>({
+    resolver: zodResolver(enrollmentStatusFormForm),
     defaultValues: {
-      enrollmentStatus: "PENDING",
+      enrollmentStatus: enrollment?.status,
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
-  }
+  const onSubmit = async (data: EnrollmentStatusFormType) => {
+    const res = await updateEnrollment(data, enrollment.id);
+
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      router.refresh();
+    }
+  };
+
+  const onDelete = async () => {
+    const res = await deleteEnrollment(enrollment.id!);
+
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      router.refresh();
+    }
+  };
 
   return (
     <Form {...form}>
@@ -69,7 +102,16 @@ function EnrollmentStatusForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <div className="flex gap-2">
+          <Button
+            disabled={!form.formState.isDirty}
+            className="w-full"
+            type="submit"
+          >
+            Submit
+          </Button>
+          <DeleteButton onDelete={onDelete} />
+        </div>
       </form>
     </Form>
   );

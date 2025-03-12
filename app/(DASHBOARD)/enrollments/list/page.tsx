@@ -2,7 +2,7 @@ import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
 import Search from "@/components/Search";
 import prisma from "@/prisma/client";
-import EnrollmentsList from "./PaymentsList";
+import EnrollmentsList from "./EnrollmentsList";
 import { globalPageSize, pagination } from "@/data/pagination";
 import { EnrollmentStatus, Prisma } from "@prisma/client";
 
@@ -36,11 +36,13 @@ const page = async ({ searchParams }: Props) => {
   const enrollments = await prisma.enrollment.findMany({
     where,
     include: {
+      payment: true,
       user: {
         include: { image: true },
       },
       course: true,
     },
+    orderBy: { id: "desc" },
 
     skip,
     take,
