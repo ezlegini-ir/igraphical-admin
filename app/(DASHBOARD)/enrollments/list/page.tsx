@@ -11,25 +11,30 @@ interface Props {
     page: string;
     status: string;
     search: string;
+    isFree: string;
   }>;
 }
 
 const page = async ({ searchParams }: Props) => {
-  const { page, status, search } = await searchParams;
+  const { page, status, search, isFree } = await searchParams;
 
   const where: Prisma.EnrollmentWhereInput = {
-    status: status ? (status as EnrollmentStatus) : undefined,
-
-    user: search
-      ? {
-          OR: [
-            { fullName: { contains: search } },
-            { email: { contains: search } },
-            { nationalId: { contains: search } },
-            { phone: { contains: search } },
-          ],
-        }
-      : undefined,
+    AND: [
+      search
+        ? {
+            user: {
+              OR: [
+                { fullName: { contains: search } },
+                { email: { contains: search } },
+                { nationalId: { contains: search } },
+                { phone: { contains: search } },
+              ],
+            },
+          }
+        : {},
+      status ? { status: status as EnrollmentStatus } : {},
+      isFree ? (isFree === "yes" ? { price: 0 } : { price: { not: 0 } }) : {},
+    ].filter(Boolean), // Remove undefined values
   };
 
   const { skip, take } = pagination(page);
@@ -52,7 +57,7 @@ const page = async ({ searchParams }: Props) => {
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
-        <h3>Enrollments</h3>
+        <h3>{totalEnrollments} Enrollments</h3>
         <div className="flex gap-3 justify-between items-center">
           <Search placeholder="Search Users..." />
 
@@ -63,6 +68,15 @@ const page = async ({ searchParams }: Props) => {
               { label: "Pending", value: "PENDING" },
               { label: "In Progress", value: "IN_PROGRESS" },
               { label: "Completed", value: "COMPLETED" },
+            ]}
+          />
+
+          <Filter
+            placeholder="All Prices"
+            name="isFree"
+            options={[
+              { label: "Free", value: "yes" },
+              { label: "No Free", value: "no" },
             ]}
           />
 

@@ -96,10 +96,8 @@ const renderRows = (enrollment: EnrollmentType) => {
       </TableCell>
 
       <TableCell className="flex gap-2">
-        <div className="flex justify-end gap-2 w-full">
+        <div className="flex justify-end w-full">
           <EnrollmentPreview enrollment={enrollment} />
-
-          <EditButton href={`/payments/${enrollment.id}`} />
         </div>
       </TableCell>
     </TableRow>

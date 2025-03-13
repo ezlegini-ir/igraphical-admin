@@ -59,17 +59,10 @@ const sideBarMenuItems = [
         subMenuItems: [
           { label: "New", href: "/enrollments/new" },
           { label: "List", href: "/enrollments/list" },
+          { label: "Payments", href: "/enrollments/payments" },
         ],
       },
-      {
-        tabName: "Payments",
-        tabHref: "/payments",
-        tabIcon: CreditCard,
-        subMenuItems: [
-          { label: "New", href: "/payments/new" },
-          { label: "List", href: "/payments/list" },
-        ],
-      },
+
       {
         tabName: "Marketing",
         tabHref: "/marketing",

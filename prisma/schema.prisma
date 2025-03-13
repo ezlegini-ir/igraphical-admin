@@ -317,15 +317,16 @@ model Notifbar {
 //! Enrollment ---------------------------------------------------------
 
 model Enrollment {
-  id          Int              @id @default(autoincrement())
-  enrolledAt  DateTime         @default(now())
-  progress    Float            @default(0)
-  completedAt DateTime?
-  status      EnrollmentStatus @default(PENDING)
-  price       Float
+  id                  Int              @id @default(autoincrement())
+  enrolledAt          DateTime         @default(now())
+  progress            Float            @default(0)
+  completedAt         DateTime?
+  status              EnrollmentStatus @default(PENDING)
+  price               Float
+  courseOriginalPrice Float
 
   lessonProgress LessonProgress[]
-  payment        Payment?         @relation(fields: [paymentId], references: [id])
+  payment        Payment?         @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   paymentId      Int?
   user           User             @relation(fields: [userId], references: [id])
   userId         Int
@@ -355,20 +356,21 @@ enum EnrollmentStatus {
 //! Payment ---------------------------------------------------------
 
 model Payment {
-  id             Int           @id @default(autoincrement())
-  total          Float
-  itemsTotal     Float
-  discountAmount Float?
-  discountCode   String?
-  transactionId  String?       @unique
-  status         PaymentStatus
-  paidAt         DateTime      @default(now())
-  paymentMethod  PaymentMethod
+  id                 Int           @id @default(autoincrement())
+  total              Float
+  itemsTotal         Float
+  discountAmount     Float?
+  discountCode       String?
+  discountCodeAmount Int?
+  transactionId      String?       @unique
+  status             PaymentStatus
+  paidAt             DateTime      @default(now())
+  paymentMethod      PaymentMethod
 
   enrollment Enrollment[]
   coupon     Coupon?      @relation(fields: [couponId], references: [id])
   couponId   Int?
-  User       User         @relation(fields: [userId], references: [id])
+  user       User         @relation(fields: [userId], references: [id])
   userId     Int
 }
 

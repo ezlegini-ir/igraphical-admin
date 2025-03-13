@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CourseFormBody from "./CourseFormBody";
 import CourseFormSidebar from "./CourseFormSidebar";
+import { toast } from "sonner";
 
 export interface TutorType extends Tutor {
   image: ImageType | null;
@@ -146,8 +147,6 @@ const CourseForm = ({ type, course, tutors, categories }: Props) => {
   });
 
   const onSubmit = async (data: CourseFormType) => {
-    setError("");
-    setSuccess("");
     setLoading(true);
 
     const res = isUpdateType
@@ -155,7 +154,7 @@ const CourseForm = ({ type, course, tutors, categories }: Props) => {
       : await createCourse(data);
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       setLoading(false);
       return;
     }
@@ -163,12 +162,13 @@ const CourseForm = ({ type, course, tutors, categories }: Props) => {
     if (res.success) {
       if (isUpdateType) {
         setLoading(false);
-        setSuccess(res.success);
         setGalleryPreviews([]);
         form.setValue("gallery", undefined);
         router.refresh();
+        toast.success(res.success);
       } else {
         router.push(`/courses/${res.course.id}`);
+        toast.success(res.success);
       }
     }
   };

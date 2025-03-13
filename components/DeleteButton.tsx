@@ -10,13 +10,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "./ui/button";
+import Loader from "./Loader";
 
 interface Props {
   onDelete: () => void;
   disabled?: boolean;
+  loading?: boolean;
 }
 
-const DeleteButton = ({ onDelete, disabled = false }: Props) => {
+const DeleteButton = ({
+  onDelete,
+  loading = false,
+  disabled = false,
+}: Props) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -43,6 +49,7 @@ const DeleteButton = ({ onDelete, disabled = false }: Props) => {
             onClick={onDelete}
             className="bg-red-500 hover:bg-red-600"
           >
+            <Loader loading={loading} />
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

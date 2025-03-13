@@ -45,8 +45,14 @@ export async function generateUniqueSerial(): Promise<string> {
   return serial;
 }
 
-export function formatPrice(price: number) {
-  return price.toLocaleString("en-US") + " T";
+export function formatPrice(
+  price: number | undefined,
+  options?: { noValuePlaceholder?: string; showNumber?: boolean }
+) {
+  if (!price)
+    return options?.showNumber ? 0 + " t" : options?.noValuePlaceholder || "--";
+
+  return price.toLocaleString("en-US") + " t";
 }
 
 export function handleError(error: unknown): { error: string } {

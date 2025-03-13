@@ -1,15 +1,12 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
 import { deleteCourse } from "@/actions/course";
 import { deleteImage } from "@/actions/image";
 import Avatar from "@/components/Avatar";
 import CardBox from "@/components/CardBox";
 import ComboField from "@/components/ComboField";
 import DeleteButton from "@/components/DeleteButton";
-import Error from "@/components/Error";
 import Loader from "@/components/Loader";
-import Success from "@/components/Success";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -48,8 +45,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { DateRange } from "react-day-picker";
+import { UseFormReturn } from "react-hook-form";
 import ImageField from "../../../ImageField";
 import { CourseType, TutorType } from "./CourseForm";
+import { toast } from "sonner";
 
 interface Props {
   success: string;
@@ -81,7 +80,6 @@ interface Props {
 }
 
 const CourseFormSidebar = ({
-  error,
   galleryPreviews,
   loading,
   categories,
@@ -93,7 +91,6 @@ const CourseFormSidebar = ({
   course,
   setDiscountDateEnabled,
   type,
-  success,
 }: Props) => {
   // HOOKS
   const { loading: removeImageLoading, setLoading: setRemoveImageLoading } =
@@ -141,11 +138,14 @@ const CourseFormSidebar = ({
     const res = await deleteCourse(course?.id!);
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       return;
     }
 
-    router.push("/courses/list");
+    if (res.success) {
+      router.push("/courses/list");
+      toast.success(res.success);
+    }
   };
 
   const handleDiscountToggle = (checked: boolean) => {
@@ -177,9 +177,6 @@ const CourseFormSidebar = ({
             {<Loader loading={loading} />}
             {type === "NEW" ? "Create" : "Update"}
           </Button>
-
-          <Error error={error} />
-          <Success success={success} />
 
           <div className="space-y-5">
             {isUpdateType && <DeleteButton onDelete={onDelete} />}

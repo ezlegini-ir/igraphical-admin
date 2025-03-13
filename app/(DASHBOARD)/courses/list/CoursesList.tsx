@@ -9,6 +9,7 @@ import {
   Review,
   Tutor,
 } from "@prisma/client";
+import { Frown } from "lucide-react";
 
 export interface CourseType extends Course {
   image: Image | null;
@@ -28,7 +29,10 @@ const CoursesList = async ({ courses, totalCourses, pageSize }: Props) => {
   return (
     <div className="card p-8">
       {courses.length === 0 && (
-        <div className="text-center py-10">No Courses Found</div>
+        <div className="text-center text-gray-500 flex flex-col gap-3 items-center justify-center py-10">
+          <Frown size={65} />
+          <span>No Courses Found</span>
+        </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
         {courses.map((course, index) => (

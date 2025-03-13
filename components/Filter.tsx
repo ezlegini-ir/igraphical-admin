@@ -27,7 +27,6 @@ const Filter: React.FC<SelectProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Read the current query parameter or set to default
   const currentQuery = searchParams.get(name) || defaultValue;
   const { value, setValue } = useValue(currentQuery);
 
@@ -36,14 +35,11 @@ const Filter: React.FC<SelectProps> = ({
     const params = new URLSearchParams(Array.from(searchParams.entries()));
 
     if (newValue === "all") {
-      // Remove the query if it is "all"
       params.delete(name);
     } else {
-      // Otherwise, update the query parameter
       params.set(name, newValue);
     }
 
-    // Push the new query string while keeping other parameters
     router.push(`?${params.toString()}`);
   };
 
@@ -61,8 +57,12 @@ const Filter: React.FC<SelectProps> = ({
           {placeholder}
         </SelectItem>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className="capitalize"
+          >
+            {option.label.toLowerCase()}
           </SelectItem>
         ))}
       </SelectContent>

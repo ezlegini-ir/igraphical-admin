@@ -1,4 +1,4 @@
-import EnrollmentStatusForm from "@/components/forms/enrollment/EnrollmentStatusForm";
+import EnrollmentStatusForm from "@/components/forms/payment/EnrollmentStatusForm";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -32,15 +32,13 @@ const EnrollmentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
     </Badge>
   );
 
-  const payment = enrollment.paymentId ? (
+  const payment = (
     <Link
-      href={`/courses/${enrollment.course.id}`}
+      href={`/enrollments/payments/${enrollment.paymentId}`}
       className="flex gap-1 items-start"
     >
       {enrollment.payment?.id} <ExternalLink size={10} />
     </Link>
-  ) : (
-    <Badge variant={"green"}>Free</Badge>
   );
 
   const price = enrollment.price ? (
@@ -59,10 +57,10 @@ const EnrollmentPreview = ({ enrollment }: { enrollment: EnrollmentType }) => {
     { label: "Course", value: enrollment.course.title },
     { label: "Price", value: price },
     { label: "Status", value: statuses },
-    { label: "Payment", value: payment },
+    { label: "Payment Id", value: payment },
     {
       label: "Payment Total",
-      value: enrollment.payment ? formatPrice(enrollment.payment?.total) : 0,
+      value: formatPrice(enrollment.payment?.total),
     },
     {
       label: "User",

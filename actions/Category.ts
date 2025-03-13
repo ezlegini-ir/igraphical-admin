@@ -21,7 +21,7 @@ export const createCategory = async (
   const { name, url } = data;
 
   try {
-    const encodedUrl = encodeSlug(url);
+    const encodedUrl = encodeSlug(url || name);
 
     const existingCategory =
       categoryFor === "POST"
@@ -55,7 +55,7 @@ export const updateCategory = async (
   categoryFor: CategoryFor
 ) => {
   const { name: title, url } = data;
-  const encodedUrl = encodeSlug(url);
+  const encodedUrl = encodeSlug(url || title);
 
   try {
     const existingCategoryById =

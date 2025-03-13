@@ -29,7 +29,7 @@ const Table = ({
           </TableRow>
         </TableHeader>
 
-        <TableBody>
+        <TableBody className="text-gray-800">
           {data?.map((data, index) => renderRows(data, index))}
         </TableBody>
       </MyTable>

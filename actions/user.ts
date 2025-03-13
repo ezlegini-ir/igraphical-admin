@@ -119,39 +119,31 @@ export const updateUser = async (data: StudentFormType, id: number) => {
         }
       )) as UploadApiResponse;
 
-      if (updatedUser.image) {
+      if (updatedUser.image)
         await deleteCloudImage(updatedUser.image.public_id);
 
-        // CREATE IMAGE
-        await prisma.image.update({
-          where: {
-            adminId: updatedUser.id,
-          },
-          data: {
-            url: secure_url,
-            type: "USER",
-            public_id,
-            format,
-            size: bytes,
-          },
-        });
-      } else {
-        // CREATE IMAGE
-        await prisma.image.create({
-          data: {
-            url: secure_url,
-            public_id,
-            format,
-            type: "USER",
-            size: bytes,
-            user: {
-              connect: {
-                id: updatedUser.id,
-              },
+      await prisma.image.upsert({
+        where: { id: updatedUser.id },
+        update: {
+          url: secure_url,
+          type: "USER",
+          public_id,
+          format,
+          size: bytes,
+        },
+        create: {
+          url: secure_url,
+          public_id,
+          format,
+          type: "USER",
+          size: bytes,
+          user: {
+            connect: {
+              id: updatedUser.id,
             },
           },
-        });
-      }
+        },
+      });
     }
 
     return { success: "Updated Successfully" };

@@ -10,13 +10,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import useError from "@/hooks/useError";
-import useSuccess from "@/hooks/useSuccess";
 import { avatar } from "@/public";
 import { X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 
 interface Props {
   control: any;
@@ -34,13 +33,9 @@ const AvatarField = ({
   public_id,
 }: Props) => {
   //HOOKS
-  const { error, setError } = useError();
-  const { success, setSuccess } = useSuccess();
   const router = useRouter();
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>, field: any) => {
-    setError("");
-
     const input = e.target;
 
     if (input.files?.length) {
@@ -56,13 +51,13 @@ const AvatarField = ({
       const maxSize = 4 * 1024 * 1024; // 5MB in bytes
 
       if (!allowedTypes.includes(file.type)) {
-        setError("Only Image Types Are Allowed.");
+        toast.error("Only Image Types Are Allowed.");
         input.value = "";
         return;
       }
 
       if (file.size > maxSize) {
-        setError("must be less than 4mb");
+        toast.error("must be less than 4mb");
         input.value = "";
         return;
       }
@@ -75,21 +70,20 @@ const AvatarField = ({
   };
 
   const handleImageRemove = async () => {
-    setError("");
-    setSuccess("");
-    setImagePreview(undefined);
-
-    if (public_id) {
+    if (!public_id) {
+      setImagePreview(undefined);
+    } else {
       const res = await deleteImage(public_id);
 
       if (res.error) {
-        setError(res.error);
+        toast.error(res.error);
         return;
       }
 
       if (res.success) {
-        setSuccess(res.success);
+        toast.success(res.success);
         setValue("image", undefined);
+        setImagePreview(undefined);
         router.refresh();
       }
     }
@@ -138,8 +132,6 @@ const AvatarField = ({
           </FormItem>
         )}
       />
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-green-500 text-sm">{success}</p>}
     </div>
   );
 };

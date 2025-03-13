@@ -65,7 +65,7 @@ export type PostFormType = z.infer<typeof postFormSchema>;
 // --------------
 export const categoryFormSchema = z.object({
   name: z.string().min(1),
-  url: z.string().min(1),
+  url: z.string().optional(),
 });
 export type CategoryFormType = z.infer<typeof categoryFormSchema>;
 // --------------
@@ -184,37 +184,28 @@ export const notifbarFormSchema = z.object({
 });
 export type NotifbarFormType = z.infer<typeof notifbarFormSchema>;
 
-//! ENROLLMENT
-export const enrollmentFormSchema = z.object({
+//! PAYMENT
+export const paymentFormSchema = z.object({
   enrolledAt: z.date().default(new Date()),
   userId: z.number().positive({ message: "User ID is required." }),
   courses: z.array(
     z.object({
       courseId: z.number().positive({ message: "Course ID is required." }),
+      originalPrice: z.number(),
       price: z.number(),
     })
   ),
-  payment: z
-    .object({
-      discountCode: z.string(),
-      discountAmount: z.number(),
-      paymentMethod: z.enum(paymentMethod),
-      total: z.number(),
-      itemsTotal: z.number(),
-      status: z.enum(paymentStatus),
-    })
-    .optional(),
+  payment: z.object({
+    discountCode: z.string(),
+    discountCodeAmount: z.number(),
+    discountAmount: z.number(),
+    paymentMethod: z.enum(paymentMethod),
+    total: z.number(),
+    itemsTotal: z.number(),
+    status: z.enum(paymentStatus),
+  }),
 });
-export type EnrollmentFormType = z.infer<typeof enrollmentFormSchema>;
-
-//! PAYMENTS
-export const paymentsFormSchema = z.object({
-  status: z.enum(paymentStatus),
-  total: z.number().min(0),
-  discountCode: z.string().optional(),
-  paymentMethod: z.enum(paymentMethod).default("ADMIN"),
-});
-export type PaymentsFormType = z.infer<typeof paymentsFormSchema>;
+export type EnrollmentFormType = z.infer<typeof paymentFormSchema>;
 
 //! MARKETING
 export const couponFormSchema = z.object({

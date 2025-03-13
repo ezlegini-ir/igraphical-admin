@@ -1,8 +1,14 @@
-import EnrollmentForm from "@/components/forms/enrollment/EnrollmentForm";
+import PaymentForm from "@/components/forms/payment/PaymentForm";
 import React from "react";
 
 const page = () => {
-  return <EnrollmentForm />;
+  return (
+    <div className="space-y-3">
+      <h3>Create new Enrollment/Payment</h3>
+
+      <PaymentForm type="NEW" />
+    </div>
+  );
 };
 
 export default page;

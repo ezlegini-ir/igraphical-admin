@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { enrollmentStatus } from "@/lib/validationSchema";
 import { EnrollmentType } from "@/app/(DASHBOARD)/enrollments/list/EnrollmentsList";
-import { deleteEnrollment, updateEnrollment } from "@/actions/enrollment";
+import { deleteEnrollment, updateEnrollmentStatus } from "@/actions/payment";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import DeleteButton from "@/components/DeleteButton";
@@ -44,7 +44,7 @@ function EnrollmentStatusForm({ enrollment }: { enrollment: EnrollmentType }) {
   });
 
   const onSubmit = async (data: EnrollmentStatusFormType) => {
-    const res = await updateEnrollment(data, enrollment.id);
+    const res = await updateEnrollmentStatus(data, enrollment.id);
 
     if (res.error) {
       toast.error(res.error);

@@ -27,6 +27,7 @@ import { categoryFormSchema, CategoryFormType } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface Props {
   type: "NEW" | "UPDATE";
@@ -41,9 +42,7 @@ interface Props {
 const CategoryForm = ({ type, category, categoryFor }: Props) => {
   // HOOKS
   const router = useRouter();
-  const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { success, setSuccess } = useSuccess();
 
   const isUpdateType = type === "UPDATE";
 
@@ -57,8 +56,6 @@ const CategoryForm = ({ type, category, categoryFor }: Props) => {
   });
 
   const onSubmit = async (data: CategoryFormType) => {
-    setError("");
-    setSuccess("");
     setLoading(true);
 
     let res;
@@ -69,13 +66,13 @@ const CategoryForm = ({ type, category, categoryFor }: Props) => {
     }
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       setLoading(false);
       return;
     }
 
     if (res.success) {
-      setSuccess(res.success);
+      toast.success(res.success);
       setLoading(false);
       if (type === "NEW") form.reset();
       router.refresh();
@@ -83,16 +80,16 @@ const CategoryForm = ({ type, category, categoryFor }: Props) => {
   };
 
   const onDelete = async () => {
-    setError("");
-    setSuccess("");
-
     const res = await deleteCategory(category?.id!, categoryFor);
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       return;
     }
 
+    if (res.success) {
+      toast.success(res.success);
+    }
     router.refresh();
   };
 
@@ -137,8 +134,6 @@ const CategoryForm = ({ type, category, categoryFor }: Props) => {
         </Button>
 
         {isUpdateType && <DeleteButton onDelete={onDelete} />}
-        <Error error={error} />
-        <Success success={success} />
       </form>
     </Form>
   );

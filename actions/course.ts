@@ -156,7 +156,7 @@ export const createCourse = async (data: CourseFormType) => {
             size: bytes,
             course: {
               connect: {
-                id: newCourse.id,
+                id: course.id,
               },
             },
           },
