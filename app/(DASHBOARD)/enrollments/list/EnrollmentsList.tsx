@@ -1,5 +1,4 @@
 import Avatar from "@/components/Avatar";
-import EditButton from "@/components/EditButton";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import { Badge } from "@/components/ui/badge";

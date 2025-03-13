@@ -73,33 +73,34 @@ const renderRows = (payment: PaymentType) => {
         </Link>
       </TableCell>
 
-      <TableCell className="text-center">
+      <TableCell className="text-center hidden xl:table-cell">
         {formatDate(payment.paidAt)}
       </TableCell>
 
       <TableCell className="text-center">{statuses}</TableCell>
 
-      <TableCell className="text-center text-gray-500">
+      <TableCell className="text-center text-gray-500 hidden xl:table-cell">
         {payment.discountCode || "-"}
       </TableCell>
 
-      <TableCell className="text-center text-gray-500">
+      <TableCell className="text-center text-gray-500 hidden xl:table-cell">
         {payment.discountAmount ? formatPrice(payment.discountAmount) : "-"}
       </TableCell>
 
-      <TableCell className="text-center text-gray-500">
+      <TableCell className="text-center text-gray-500 hidden xl:table-cell">
         {formatPrice(payment.itemsTotal)}
       </TableCell>
 
-      <TableCell className="hidden xl:table-cell font-semibold text-primary">
+      <TableCell className="font-semibold text-primary">
         {formatPrice(payment.total, { showNumber: true })}
       </TableCell>
 
-      <TableCell className="lg:flex gap-2 hidden ">
+      <TableCell className="lg:flex gap-2">
         <div className="flex justify-end gap-2 w-full">
           <PaymentPreview payment={payment} />
-
-          <EditButton href={`/enrollments/payments/${payment.id}`} />
+          <div className="hidden xl:block">
+            <EditButton href={`/enrollments/payments/${payment.id}`} />
+          </div>
         </div>
       </TableCell>
     </TableRow>
@@ -110,17 +111,26 @@ const columns = [
   { label: "Id", className: "w-[90px] hidden xl:table-cell" },
   { label: "User", className: "xl:w-[150px]" },
   {
-    label: "Paid At",
-    className: "text-center  xl:w-[300px]",
+    label: "Paid At ",
+    className: "text-center  xl:w-[300px] hidden xl:table-cell",
   },
   { label: "Status", className: "text-center" },
-  { label: "Discount Code", className: "text-center w-[200px]" },
-  { label: "Discount Amount", className: "text-center w-[200px]" },
-  { label: "Items Total", className: "text-center w-[200px]" },
-  { label: "Total", className: "text-left hidden xl:table-cell w-[150px]" },
+  {
+    label: "Discount Code",
+    className: "text-center w-[200px] hidden xl:table-cell",
+  },
+  {
+    label: "Discount Amount",
+    className: "text-center w-[200px] hidden xl:table-cell",
+  },
+  {
+    label: "Items Total",
+    className: "text-center w-[200px] hidden xl:table-cell",
+  },
+  { label: "Total", className: "text-left  w-[100px]" },
   {
     label: "Actions",
-    className: "text-right w-[60px] hidden lg:table-cell",
+    className: "text-right w-[60px]",
   },
 ];
 

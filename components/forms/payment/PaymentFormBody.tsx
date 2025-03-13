@@ -104,7 +104,7 @@ const PaymentFormBody = ({
   }, [JSON.stringify(courseIds)]);
 
   return (
-    <div className="col-span-9 space-y-3">
+    <div className="col-span-12 lg:col-span-6 xl:col-span-9 space-y-3">
       <div className="card flex gap-3 items-end">
         {/* //! User */}
         <FormField

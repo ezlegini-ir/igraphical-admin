@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { EnrollmentFormType, paymentStatus } from "@/lib/validationSchema";
 import { X } from "lucide-react";
 
+import { deletePayment } from "@/actions/payment";
 import DeleteButton from "@/components/DeleteButton";
 import Loader from "@/components/Loader";
 import { Badge } from "@/components/ui/badge";
@@ -27,12 +28,11 @@ import { getCouponByCode } from "@/data/coupon";
 import useLoading from "@/hooks/useLoading";
 import { formatPrice } from "@/lib/utils";
 import { User } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { CourseType, PaymentType } from "./PaymentForm";
-import { deletePayment } from "@/actions/payment";
-import { useRouter } from "next/navigation";
 
 interface Props {
   form: UseFormReturn<EnrollmentFormType>;
@@ -87,10 +87,13 @@ const PaymentFormSidebar = ({
 
   //!APPLY DISCOUNT
   const applyDiscount = async () => {
+    setApplyDiscountLoading(true);
+
     //COUPON
     const existingCoupon = await getCouponByCode(form_DiscountCoupon);
     if (!existingCoupon) {
       toast.error("Coupon Not Found...");
+      setApplyDiscountLoading(false);
       return;
     }
     setDiscountCode(existingCoupon.code);
@@ -103,6 +106,7 @@ const PaymentFormSidebar = ({
       Math.max(0, form_ItemsTotal - totalDiscount)
     );
 
+    setApplyDiscountLoading(false);
     toast.success("Discount Applied");
   };
 
@@ -137,7 +141,7 @@ const PaymentFormSidebar = ({
   };
 
   return (
-    <div className="card w-full col-span-3 h-min space-y-6">
+    <div className="card w-full col-span-12 lg:col-span-6 xl:col-span-3 h-min space-y-6">
       {/* //! Payment Status */}
       <FormField
         control={form.control}

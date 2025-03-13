@@ -4,7 +4,7 @@ import React from "react";
 const page = () => {
   return (
     <div className="space-y-3">
-      <h3>Create new Enrollment/Payment</h3>
+      <h3>Create new Payment</h3>
 
       <PaymentForm type="NEW" />
     </div>

@@ -58,7 +58,7 @@ const page = async ({ searchParams }: Props) => {
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
         <h3>{totalEnrollments} Enrollments</h3>
-        <div className="flex gap-3 justify-between items-center">
+        <div className="flex gap-3 flex-wrap justify-between items-center">
           <Search placeholder="Search Users..." />
 
           <Filter
