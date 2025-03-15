@@ -45,8 +45,8 @@ export const createCoupon = async (data: CouponFormType) => {
         amount,
         code,
         type,
-        from: date?.from,
-        to: date?.to,
+        from: date ? date.from : undefined,
+        to: date ? date.to : undefined,
         limit,
         summery,
         ...(validCourseInclude.length && {
@@ -100,15 +100,12 @@ export const updateCoupon = async (data: CouponFormType, id: number) => {
     if (existingCouponByCode && existingCouponByCode.id !== id)
       return { error: "Coupon Code Must Be Unique." };
 
-    // Get the current course IDs from DB
     const currentIncludeIds = existingCoupon.courseInclude.map((c) => c.id);
     const currentExcludeIds = existingCoupon.courseExclude.map((c) => c.id);
 
-    // Get new course IDs (ensure they are arrays)
     const newIncludeIds = courseInclude?.map((c) => c.id) || [];
     const newExcludeIds = courseExclude?.map((c) => c.id) || [];
 
-    // Compute which courses to connect (add) and disconnect (remove)
     const includeToConnect = newIncludeIds.filter(
       (id) => !currentIncludeIds.includes(id)
     );
@@ -123,18 +120,16 @@ export const updateCoupon = async (data: CouponFormType, id: number) => {
       (id) => !newExcludeIds.includes(id)
     );
 
-    // Prepare update data dynamically
     const updateData: Prisma.CouponUpdateInput = {
       amount,
       code,
       type,
-      from: date?.from,
-      to: date?.to,
+      from: date ? date.from : null,
+      to: date ? date.to : null,
       limit,
       summery,
     };
 
-    // Only include courseInclude if needed
     if (courseInclude !== undefined) {
       updateData.courseInclude = {
         ...(includeToConnect.length > 0 && {
@@ -146,7 +141,6 @@ export const updateCoupon = async (data: CouponFormType, id: number) => {
       };
     }
 
-    // Only include courseExclude if needed
     if (courseExclude !== undefined) {
       updateData.courseExclude = {
         ...(excludeToConnect.length > 0 && {

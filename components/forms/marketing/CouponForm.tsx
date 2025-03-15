@@ -37,7 +37,7 @@ import { Coupon, Course } from "@prisma/client";
 import { addDays, format } from "date-fns";
 import { CalendarIcon, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -138,8 +138,16 @@ const CouponForm = ({ type, coupon }: Props) => {
     control: form.control,
   });
 
-  console.log(form.getValues("courseInclude"));
-  console.log(form.getValues("courseExclude"));
+  useEffect(() => {
+    if (activeDate) {
+      form.setValue("date", {
+        from: coupon?.from || new Date(),
+        to: coupon?.to || addDays(new Date(), 4),
+      });
+    } else {
+      form.setValue("date", undefined);
+    }
+  }, [activeDate, coupon, form]);
 
   return (
     <Form {...form}>
@@ -246,8 +254,10 @@ const CouponForm = ({ type, coupon }: Props) => {
           />
 
           {/* //! DATE RANGE */}
-          <Switch checked={activeDate} onCheckedChange={setActiveDate} />
-
+          <div className="flex gap-2 items-center">
+            <Switch checked={activeDate} onCheckedChange={setActiveDate} />
+            <span className="text-sm">Active Date</span>
+          </div>
           <FormField
             control={form.control}
             name="date"

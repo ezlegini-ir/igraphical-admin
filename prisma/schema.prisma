@@ -389,6 +389,8 @@ enum PaymentStatus {
   CANCELED
 }
 
+//! MARKETING ---------------------------------------------------------
+
 model Coupon {
   id            Int        @id @default(autoincrement())
   code          String     @unique
@@ -407,6 +409,20 @@ model Coupon {
 }
 
 enum CouponType {
+  PERCENT
+  FIXED
+}
+
+model OverallOff {
+  id     Int            @id @default(autoincrement())
+  amount Float
+  active Boolean
+  type   OverallOffType
+  from   DateTime?
+  to     DateTime?
+}
+
+enum OverallOffType {
   PERCENT
   FIXED
 }
