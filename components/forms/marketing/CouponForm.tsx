@@ -385,6 +385,7 @@ const CouponForm = ({ type, coupon }: Props) => {
                 ))}
                 {courseIncludeFields.length < 1 && (
                   <Button
+                    disabled={courseExcludeFields.length > 0}
                     type="button"
                     variant="ghost"
                     size={"icon"}
@@ -466,6 +467,7 @@ const CouponForm = ({ type, coupon }: Props) => {
                 ))}
                 {courseExcludeFields.length < 1 && (
                   <Button
+                    disabled={courseIncludeFields.length > 0}
                     type="button"
                     variant="ghost"
                     size={"icon"}

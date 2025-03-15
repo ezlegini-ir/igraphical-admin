@@ -29,7 +29,7 @@ import useLoading from "@/hooks/useLoading";
 import { formatPrice } from "@/lib/utils";
 import { User } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { CourseType, PaymentType } from "./PaymentForm";
@@ -37,7 +37,16 @@ import { CourseType, PaymentType } from "./PaymentForm";
 interface Props {
   form: UseFormReturn<EnrollmentFormType>;
   type: "NEW" | "UPDATE";
-  prices: { price: number }[] | undefined;
+  prices: { price: number; originalPrice: number }[] | undefined;
+  setPrices: Dispatch<
+    SetStateAction<
+      | {
+          price: number;
+          originalPrice: number;
+        }[]
+      | undefined
+    >
+  >;
   selectedUser: User | undefined;
   selectedCourses: CourseType[] | undefined;
   payment?: PaymentType;
@@ -50,6 +59,7 @@ const PaymentFormSidebar = ({
   prices,
   selectedCourses,
   payment,
+  setPrices,
 }: Props) => {
   // HOOKS
   const { loading: applyDiscountLoading, setLoading: setApplyDiscountLoading } =
@@ -64,10 +74,10 @@ const PaymentFormSidebar = ({
   const form_Total = form.watch("payment.total");
   const form_ItemsTotal = form.watch("payment.itemsTotal");
   const form_DiscountAmount = form.watch("payment.discountAmount");
-  const form_DiscountCoupon = form.watch("payment.discountCode");
+  const form_DiscountCode = form.watch("payment.discountCode");
   const form_DiscountCodeAmount = form.watch("payment.discountCodeAmount");
 
-  //! UPDATE COURSES PRICE
+  //! UPDATE COURSES PRICE ---------------------------------------------------
   useEffect(() => {
     const itemsTotal = prices?.reduce((acc, curr) => acc + curr.price, 0) || 0;
     form.setValue("payment.itemsTotal", itemsTotal);
@@ -75,7 +85,7 @@ const PaymentFormSidebar = ({
     form.setValue("payment.total", itemsTotal - form_DiscountAmount);
   }, [selectedCourses, form]);
 
-  //! UPDATE PRICE
+  //! UPDATE PRICE ---------------------------------------------------
   useEffect(() => {
     const totalDiscountAmount = form_ItemsTotal - form_Total;
 
@@ -85,47 +95,228 @@ const PaymentFormSidebar = ({
     );
   }, [form_Total, form_ItemsTotal]);
 
-  //!APPLY DISCOUNT
+  //! APPLY DISCOUNT ---------------------------------------------------
+
   const applyDiscount = async () => {
     setApplyDiscountLoading(true);
 
-    //COUPON
-    const existingCoupon = await getCouponByCode(form_DiscountCoupon);
+    // COUPON CHECK ---------------
+    const existingCoupon = await getCouponByCode(form_DiscountCode);
     if (!existingCoupon) {
       toast.error("Coupon Not Found...");
       setApplyDiscountLoading(false);
       return;
     }
-    setDiscountCode(existingCoupon.code);
-    form.setValue("payment.discountCodeAmount", existingCoupon.amount);
 
-    // APPLY
-    const totalDiscount = form_ItemsTotal - form_Total + existingCoupon.amount;
-    form.setValue(
-      "payment.total",
-      Math.max(0, form_ItemsTotal - totalDiscount)
-    );
+    // DATE CHECK ---------------
+    if (existingCoupon.to) {
+      const isExpired = existingCoupon.to < new Date();
+      if (isExpired) {
+        toast.error("Code Has Been Expired");
+        setApplyDiscountLoading(false);
+        return;
+      }
+    }
+    if (existingCoupon.from) {
+      const isNotStarted = existingCoupon.from > new Date();
+      if (isNotStarted) {
+        toast.error("Code Date Has Not Yet Started");
+        setApplyDiscountLoading(false);
+        return;
+      }
+    }
+
+    // LIMIT CHECK ---------------
+    if (existingCoupon.limit) {
+      const isReachedToLimit = existingCoupon.used === existingCoupon.limit;
+      if (isReachedToLimit) {
+        toast.error("Code Limit Has Been Reached");
+        setApplyDiscountLoading(false);
+        return;
+      }
+    }
+
+    // APPLY DISOCUNT ---------------
+    if (
+      existingCoupon.courseInclude.length > 0 ||
+      existingCoupon.courseExclude.length > 0
+    ) {
+      //* COURSE INCLUDE CHECK
+      if (existingCoupon.courseInclude.length > 0) {
+        const selectedCoursesIds = selectedCourses?.map((c) => c.id)!;
+        const courseIncludeIds = existingCoupon.courseInclude.map((c) => c.id);
+
+        const isValid = courseIncludeIds.some((id) =>
+          selectedCoursesIds.includes(id)
+        );
+
+        if (!isValid) {
+          toast.error("Selected Courses are not valid for this coupon");
+          setApplyDiscountLoading(false);
+          return;
+        }
+
+        setDiscountCode(existingCoupon.code);
+
+        // Get the valid course IDs from the selected courses.
+        const validSelectedCoursesIds = selectedCoursesIds.filter((id) =>
+          courseIncludeIds.includes(id)
+        );
+
+        // Update prices for valid courses
+        const totalValidPrice =
+          prices?.reduce((acc, coursePrice, index) => {
+            const course = selectedCourses?.[index];
+            if (course && validSelectedCoursesIds.includes(course.id)) {
+              return acc + coursePrice.price;
+            }
+            return acc;
+          }, 0) || 0;
+
+        const updatedPrices = prices?.map((coursePrice, index) => {
+          const course = selectedCourses?.[index];
+          if (course && validSelectedCoursesIds.includes(course.id)) {
+            if (existingCoupon.type === "FIXED") {
+              // For a fixed discount
+              const share = coursePrice.price / totalValidPrice;
+              const discountShare = existingCoupon.amount * share;
+              return {
+                ...coursePrice,
+                price: coursePrice.price - discountShare,
+              };
+            } else {
+              // For a percentage discount
+              return {
+                ...coursePrice,
+                price: coursePrice.price * (1 - existingCoupon.amount / 100),
+              };
+            }
+          }
+          return coursePrice;
+        });
+
+        // Update prices state with the new discounted prices.
+        setPrices(updatedPrices);
+      }
+
+      //* COURSE EXCLUDE CHECK
+      if (existingCoupon.courseExclude.length > 0) {
+        const selectedCoursesIds = selectedCourses?.map((c) => c.id)!;
+        const courseExcludeIds = existingCoupon.courseExclude.map((c) => c.id);
+
+        // Get valid course IDs from selected courses (courses that are NOT excluded)
+        const validSelectedCoursesIds = selectedCoursesIds.filter(
+          (id) => !courseExcludeIds.includes(id)
+        );
+
+        if (validSelectedCoursesIds.length === 0) {
+          toast.error("Selected Courses are not valid for this coupon");
+          setApplyDiscountLoading(false);
+          return;
+        }
+
+        setDiscountCode(existingCoupon.code);
+
+        // Update prices for valid courses (those not excluded)
+        const totalValidPrice =
+          prices?.reduce((acc, coursePrice, index) => {
+            const course = selectedCourses?.[index];
+            if (course && validSelectedCoursesIds.includes(course.id)) {
+              return acc + coursePrice.price;
+            }
+            return acc;
+          }, 0) || 0;
+
+        const updatedPrices = prices?.map((coursePrice, index) => {
+          const course = selectedCourses?.[index];
+          if (course && validSelectedCoursesIds.includes(course.id)) {
+            if (existingCoupon.type === "FIXED") {
+              // For a fixed discount, distribute the coupon amount proportionally among valid courses.
+              const share = coursePrice.price / totalValidPrice;
+              const discountShare = existingCoupon.amount * share;
+              return {
+                ...coursePrice,
+                price: coursePrice.price - discountShare,
+              };
+            } else {
+              // For a percentage discount, apply the discount directly.
+              return {
+                ...coursePrice,
+                price: coursePrice.price * (1 - existingCoupon.amount / 100),
+              };
+            }
+          }
+          return coursePrice;
+        });
+
+        // Update prices state with the new discounted prices.
+        setPrices(updatedPrices);
+      }
+    } else {
+      // APPLY
+      setDiscountCode(existingCoupon.code);
+
+      let toReduce: number;
+      if (existingCoupon.type === "FIXED") {
+        toReduce = existingCoupon.amount;
+      } else {
+        toReduce = form_Total - form_Total * (1 - existingCoupon.amount / 100);
+      }
+      form.setValue("payment.discountCodeAmount", toReduce);
+
+      const totalDiscount = form_ItemsTotal - form_Total + toReduce;
+      form.setValue(
+        "payment.total",
+        Math.max(0, form_ItemsTotal - totalDiscount)
+      );
+    }
 
     setApplyDiscountLoading(false);
-    toast.success("Discount Applied");
+    toast.success(`Discount Applied Successfully`);
   };
 
-  //!REMOVE DISCOUNT
-  const removeDiscount = async () => {
-    const coupon = await getCouponByCode(form_DiscountCoupon);
+  useEffect(() => {
+    if (prices && prices.length > 0) {
+      const originalPricesSum = prices.reduce(
+        (acc, curr) => acc + (curr.originalPrice || 0),
+        0
+      );
+      const updatedPricesSum = prices.reduce(
+        (acc, curr) => acc + (curr.price || 0),
+        0
+      );
+      const pricesDiff = originalPricesSum - updatedPricesSum;
 
+      form.setValue("payment.discountCodeAmount", pricesDiff, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [prices]);
+
+  //!REMOVE DISCOUNT ---------------------------------------------------
+  const removeDiscount = async () => {
     form.setValue("payment.discountCode", "");
 
     form.setValue(
       "payment.total",
-      form.getValues("payment.total") + (coupon?.amount || 0)
+      form.getValues("payment.total") + (form_DiscountCodeAmount || 0)
     );
+
+    setPrices((prevPrices) => {
+      const newPrices = prevPrices?.map((price) => ({
+        price: price.originalPrice,
+        originalPrice: price.originalPrice,
+      }));
+
+      return newPrices;
+    });
 
     setDiscountCode("");
     form.setValue("payment.discountCodeAmount", 0);
   };
 
-  //!REMOVE PAYMENT
+  //!REMOVE PAYMENT ---------------------------------------------------
   const onDelete = async () => {
     const res = await deletePayment(payment?.id!);
 
@@ -304,11 +495,15 @@ const PaymentFormSidebar = ({
           <Separator />
           <li>
             <Badge
-              variant={isUpdateType ? "green" : "blue"}
+              variant={
+                isUpdateType && payment?.status === "SUCCESS" ? "green" : "blue"
+              }
               className="flex justify-between py-3 text-sm"
             >
               <span className="font-semibold">
-                {isUpdateType ? "Paid:" : "Payable:"}
+                {isUpdateType && payment?.status === "SUCCESS"
+                  ? "Paid:"
+                  : "Payable:"}
               </span>
               <span className="font-semibold">
                 {formatPrice(form.watch("payment.total"), { showNumber: true })}

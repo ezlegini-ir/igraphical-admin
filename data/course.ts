@@ -51,3 +51,11 @@ export const getAllCoursesByIds = async (ids: number[]) => {
     },
   });
 };
+
+export const getFirstCourseByIds = async (ids: number[]) => {
+  return await prisma.course.findFirst({
+    where: {
+      OR: ids.map((id) => ({ id })),
+    },
+  });
+};

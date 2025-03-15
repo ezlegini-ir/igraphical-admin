@@ -53,7 +53,6 @@ const PaymentForm = ({ payment, type }: Props) => {
     }))
   );
 
-  console.log(payment);
   //! MANAGE FORM
   const form = useForm<EnrollmentFormType>({
     resolver: zodResolver(paymentFormSchema),
@@ -140,6 +139,7 @@ const PaymentForm = ({ payment, type }: Props) => {
             />
             <PaymentFormSidebar
               selectedCourses={selectedCourses}
+              setPrices={setPrices}
               form={form}
               type={type}
               selectedUser={selectedUser}
