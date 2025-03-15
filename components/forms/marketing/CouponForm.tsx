@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import useLoading from "@/hooks/useLoading";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ import { Coupon, Course } from "@prisma/client";
 import { addDays, format } from "date-fns";
 import { CalendarIcon, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -53,6 +55,7 @@ interface Props {
 const CouponForm = ({ type, coupon }: Props) => {
   // HOOKS
   const router = useRouter();
+  const [activeDate, setActiveDate] = useState(!!coupon?.from || !!coupon?.to);
   const { loading, setLoading } = useLoading();
 
   const isUpdateType = type === "UPDATE";
@@ -63,10 +66,12 @@ const CouponForm = ({ type, coupon }: Props) => {
     defaultValues: {
       amount: coupon?.amount || 0,
       code: coupon?.code || "",
-      date: {
-        from: coupon?.from || new Date(),
-        to: coupon?.to || addDays(new Date(), 3),
-      },
+      date: activeDate
+        ? {
+            from: coupon?.from || new Date(),
+            to: coupon?.to || addDays(new Date(), 3),
+          }
+        : undefined,
       limit: coupon?.limit || 0,
       summery: coupon?.summery || "",
       type: coupon?.type || "FIXED",
@@ -241,6 +246,8 @@ const CouponForm = ({ type, coupon }: Props) => {
           />
 
           {/* //! DATE RANGE */}
+          <Switch checked={activeDate} onCheckedChange={setActiveDate} />
+
           <FormField
             control={form.control}
             name="date"
@@ -248,7 +255,7 @@ const CouponForm = ({ type, coupon }: Props) => {
               <FormItem className="flex flex-col py-1">
                 <FormLabel>From / To</FormLabel>
                 <Popover>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild disabled={!activeDate}>
                     <FormControl>
                       <Button
                         variant={"outline"}

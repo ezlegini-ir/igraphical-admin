@@ -45,8 +45,8 @@ export const createCoupon = async (data: CouponFormType) => {
         amount,
         code,
         type,
-        from: date.from,
-        to: date.to,
+        from: date?.from,
+        to: date?.to,
         limit,
         summery,
         ...(validCourseInclude.length && {
@@ -128,8 +128,8 @@ export const updateCoupon = async (data: CouponFormType, id: number) => {
       amount,
       code,
       type,
-      from: date.from,
-      to: date.to,
+      from: date?.from,
+      to: date?.to,
       limit,
       summery,
     };

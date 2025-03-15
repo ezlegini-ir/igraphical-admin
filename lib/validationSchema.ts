@@ -213,10 +213,12 @@ export const couponFormSchema = z.object({
   type: z.enum(couponType),
   amount: z.number().min(0),
   summery: z.string(),
-  date: z.object({
-    from: z.date().optional(),
-    to: z.date().optional(),
-  }),
+  date: z
+    .object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    })
+    .optional(),
   limit: z.number().min(0),
   courseInclude: z.array(z.object({ id: z.number() })).optional(),
   courseExclude: z.array(z.object({ id: z.number() })).optional(),
