@@ -1,7 +1,10 @@
 import EditButton from "@/components/EditButton";
-import CouponForm from "@/components/forms/marketing/CouponForm";
+import CouponForm, {
+  CouponType,
+} from "@/components/forms/marketing/CouponForm";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -11,20 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
-
-export type Coupon = {
-  id: number;
-  coupon: string;
-  type: "FIXED" | "PERCENT";
-  amount: number;
-  summery: string;
-  used: number;
-  limit: number;
-  expiresAt?: Date;
-};
+import { formatPrice } from "@/lib/utils";
+import { Infinity } from "lucide-react";
 
 interface Props {
-  coupons: Coupon[];
+  coupons: CouponType[];
   totalPayments: number;
 }
 
@@ -39,55 +33,68 @@ const CouponsList = async ({ coupons, totalPayments }: Props) => {
   );
 };
 
-const renderRows = (coupon: Coupon) => {
+const renderRows = (coupon: CouponType) => {
   const fixed = coupon.type === "FIXED";
 
   return (
     <TableRow key={coupon.id} className="odd:bg-slate-50">
-      <TableCell className="hidden xl:table-cell">{coupon.coupon}</TableCell>
+      <TableCell>{coupon.code}</TableCell>
 
-      <TableCell className="text-left capitalize">
-        {coupon.type.toLowerCase()}
+      <TableCell className="text-center capitalize">
+        <Badge className="w-[80px]" variant={fixed ? "gray" : "blue"}>
+          {coupon.type}
+        </Badge>
       </TableCell>
 
       <TableCell className="text-center">
-        {fixed ? coupon.amount.toLocaleString("en-US") : `%${coupon.amount}`}
+        {fixed ? formatPrice(coupon.amount) : `%${coupon.amount}`}
       </TableCell>
 
-      <TableCell className="text-center">{coupon.summery}</TableCell>
+      <TableCell className="text-center hidden xl:table-cell">
+        {coupon.summery}
+      </TableCell>
 
       <TableCell className="text-center hidden xl:table-cell">
-        {coupon.limit > 0 ? (
-          <span>
-            {coupon.used} / {coupon.limit}
-          </span>
-        ) : (
-          <span className="text-gray-400">No Limit</span>
-        )}
+        {[
+          coupon.courseInclude?.length
+            ? `inc: ${coupon.courseInclude.length}`
+            : "",
+          coupon.courseExclude?.length
+            ? `exc: ${coupon.courseExclude.length}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" | ")}
+      </TableCell>
+
+      <TableCell className="text-center hidden xl:table-cell">
+        <div className="flex items-center justify-center gap-1">
+          {coupon.used || 0}
+          <span>/</span>
+          {coupon.limit || <Infinity size={17} className="text-gray-400" />}
+        </div>
       </TableCell>
 
       <TableCell
-        className={`text-left hidden xl:table-cell font-medium text-primary ${
-          coupon.expiresAt && coupon.expiresAt > new Date()
-            ? "text-primary"
-            : "text-red-400"
+        className={`text-left hidden lg:table-cell font-medium text-primary ${
+          coupon.to && coupon.to > new Date() ? "text-primary" : "text-red-400"
         }`}
       >
-        {coupon.expiresAt ? (
-          formatDate(coupon.expiresAt)
+        {coupon.to ? (
+          formatDate(coupon.to)
         ) : (
           <div className="text-gray-400">No Expiration</div>
         )}
       </TableCell>
 
-      <TableCell className="lg:flex gap-2">
+      <TableCell>
         <Dialog>
           <div className="flex justify-end w-full">
             <DialogTrigger asChild>
               <EditButton />
             </DialogTrigger>
           </div>
-          <DialogContent>
+          <DialogContent className="max-w-screen-lg">
             <DialogHeader className="space-y-6">
               <DialogTitle>Update Coupon</DialogTitle>
               <CouponForm type="UPDATE" coupon={coupon} />
@@ -100,13 +107,14 @@ const renderRows = (coupon: Coupon) => {
 };
 
 const columns = [
-  { label: "Coupon", className: "w-[300px] hidden xl:table-cell" },
-  { label: "Type", className: "xl:w-[200px]" },
+  { label: "Coupon Code", className: "w-[150px]" },
+  { label: "Type", className: "xl:w-[150px] text-center" },
   {
     label: "Amount",
-    className: "text-center  xl:w-[200px]",
+    className: "text-center  xl:w-[120px]",
   },
-  { label: "Summery", className: "text-center" },
+  { label: "Summery", className: "text-center  hidden xl:table-cell" },
+  { label: "Couress", className: "text-center  hidden xl:table-cell" },
   {
     label: "Used / Limit",
     className: "text-center hidden xl:table-cell w-[250px]",
@@ -117,7 +125,7 @@ const columns = [
   },
   {
     label: "Actions",
-    className: "text-right w-[60px]",
+    className: "text-right",
   },
 ];
 

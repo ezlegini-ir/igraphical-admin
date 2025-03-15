@@ -54,7 +54,6 @@ const Search = ({
             <FormItem className={className}>
               <FormControl>
                 <Input
-                  className="h-9"
                   placeholder={placeholder}
                   {...field}
                   onKeyDown={(e) => {

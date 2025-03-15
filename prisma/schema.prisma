@@ -174,19 +174,21 @@ model Course {
   updatedAt   DateTime @updatedAt
 
   // RELATIONS
-  category     CourseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  categoryId   Int?
-  tutor        Tutor?          @relation(fields: [tutorId], references: [id], onDelete: SetNull)
-  tutorId      Int?
-  image        Image?
-  status       Status
-  learn        Learn[]
-  prerequisite Prerequisite[]
-  discount     Discount?
-  curriculum   Curriculum[]
-  gallery      GalleryItem?
-  review       Review[]
-  enrollment   Enrollment[]
+  category          CourseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId        Int?
+  tutor             Tutor?          @relation(fields: [tutorId], references: [id], onDelete: SetNull)
+  tutorId           Int?
+  image             Image?
+  status            Status
+  learn             Learn[]
+  prerequisite      Prerequisite[]
+  discount          Discount?
+  curriculum        Curriculum[]
+  gallery           GalleryItem?
+  review            Review[]
+  enrollment        Enrollment[]
+  includedInCoupons Coupon[]        @relation("IncludesCoupons")
+  excludedInCoupons Coupon[]        @relation("ExcludesCoupons")
 }
 
 model CourseCategory {
@@ -388,17 +390,20 @@ enum PaymentStatus {
 }
 
 model Coupon {
-  id        Int        @id @default(autoincrement())
-  code      String     @unique
-  amount    Float
-  type      CouponType
-  from      DateTime?
-  expiresAt DateTime?
-  limit     Int?
-  usedCount Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  payment   Payment[]
+  id            Int        @id @default(autoincrement())
+  code          String     @unique
+  amount        Float
+  type          CouponType
+  from          DateTime?
+  to            DateTime?
+  used          Int        @default(0)
+  summery       String?
+  limit         Int?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  payment       Payment[]
+  courseInclude Course[]   @relation("IncludesCoupons")
+  courseExclude Course[]   @relation("ExcludesCoupons")
 }
 
 enum CouponType {

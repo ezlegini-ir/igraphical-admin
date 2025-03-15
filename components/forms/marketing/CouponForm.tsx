@@ -1,9 +1,9 @@
 "use client";
 
+import { createCoupon, deleteCoupon, updateCoupon } from "@/actions/coupon";
 import DeleteButton from "@/components/DeleteButton";
-import Error from "@/components/Error";
 import Loader from "@/components/Loader";
-import Success from "@/components/Success";
+import SearchCourses from "@/components/SearchCourses";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -28,32 +28,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
-import useSuccess from "@/hooks/useSuccess";
 import { cn } from "@/lib/utils";
-import {
-  CouponFormType,
-  couponFormSchema,
-  couponType,
-} from "@/lib/validationSchema";
+import { CouponFormType, couponFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { Coupon, Course } from "@prisma/client";
+import { addDays, format } from "date-fns";
+import { CalendarIcon, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { DateRange } from "react-day-picker";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+export interface CouponType extends Coupon {
+  courseInclude: Course[] | null;
+  courseExclude: Course[] | null;
+}
 
 interface Props {
   type: "NEW" | "UPDATE";
-  coupon?: CouponFormType & { id: number };
+  coupon?: CouponType;
 }
 
 const CouponForm = ({ type, coupon }: Props) => {
   // HOOKS
   const router = useRouter();
-  const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { success, setSuccess } = useSuccess();
 
   const isUpdateType = type === "UPDATE";
 
@@ -62,178 +62,428 @@ const CouponForm = ({ type, coupon }: Props) => {
     mode: "onSubmit",
     defaultValues: {
       amount: coupon?.amount || 0,
-      coupon: coupon?.coupon || "",
-      expiresAt: coupon?.expiresAt || undefined,
+      code: coupon?.code || "",
+      date: {
+        from: coupon?.from || new Date(),
+        to: coupon?.to || addDays(new Date(), 3),
+      },
       limit: coupon?.limit || 0,
       summery: coupon?.summery || "",
       type: coupon?.type || "FIXED",
+      courseInclude: coupon?.courseInclude?.length
+        ? coupon.courseInclude.map((c) => ({ id: c.id }))
+        : [],
+      courseExclude: coupon?.courseExclude?.length
+        ? coupon.courseExclude.map((c) => ({ id: c.id }))
+        : [],
     },
   });
 
   const onSubmit = async (data: CouponFormType) => {
-    setError("");
     setLoading(true);
 
-    console.log(data);
+    const res = isUpdateType
+      ? await updateCoupon(data, coupon?.id!)
+      : await createCoupon(data);
 
-    form.reset();
-    router.refresh();
-    setSuccess("Created Successfully");
-    setLoading(false);
+    if (res.error) {
+      toast.error(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      router.refresh();
+      setLoading(false);
+    }
   };
 
-  const onDelete = (id: number | string) => {
-    console.log("Delete" + id);
+  const onDelete = async () => {
+    const res = await deleteCoupon(coupon?.id!);
+
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      router.refresh();
+    }
   };
+
+  // COURSE INCLUDE FIELDS
+  const {
+    append: appendCourseInclude,
+    remove: removeCourseInclude,
+    fields: courseIncludeFields,
+  } = useFieldArray({
+    name: "courseInclude",
+    control: form.control,
+  });
+
+  // COURSE EXCLUDE FIELDS
+  const {
+    append: appendCourseExclude,
+    remove: removeCourseExclude,
+    fields: courseExcludeFields,
+  } = useFieldArray({
+    name: "courseExclude",
+    control: form.control,
+  });
+
+  console.log(form.getValues("courseInclude"));
+  console.log(form.getValues("courseExclude"));
 
   return (
     <Form {...form}>
-      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-        <FormField
-          control={form.control}
-          name="coupon"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Coupon</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount</FormLabel>
-              <FormControl>
-                <Input
-                  min={0}
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="limit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Limit</FormLabel>
-              <FormControl>
-                <Input
-                  min={0}
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+      <form
+        className="grid grid-cols-12 gap-5"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="col-span-12 md:col-span-6 space-y-3">
+          {/* //! COUPON */}
+          <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Coupon</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a verified email to display" />
-                  </SelectTrigger>
+                  <Input {...field} />
                 </FormControl>
-                <SelectContent>
-                  {couponType?.map((coupun, index) => (
-                    <SelectItem key={index} value={coupun}>
-                      {coupun}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="expiresAt"
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-1 w-full">
-              <FormLabel>Expiration Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
+          {/* //! AMOUNT */}
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Amount</FormLabel>
+                <FormControl>
+                  <Input
+                    min={0}
+                    type="number"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === "" ? 0 : Number(value));
+                    }}
                   />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="summery"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Summery</FormLabel>
-              <FormControl>
-                <Textarea dir="rtl" className="text-left" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          {/* //! LIMIT */}
+          <FormField
+            control={form.control}
+            name="limit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Limit</FormLabel>
+                <FormControl>
+                  <Input
+                    min={0}
+                    type="number"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === "" ? 0 : Number(value));
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button
-          disabled={!form.formState.isValid || loading}
-          className="w-full flex gap-2"
-          type="submit"
-        >
-          {<Loader loading={loading} />}
-          {isUpdateType ? "Update" : "Create"}
-        </Button>
+          {/* //! TYPE */}
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Discount Type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="FIXED">
+                      <div className="flex items-center gap-1 font-medium">
+                        <span className="text-xl pr-1 text-primary">$</span>{" "}
+                        Fixed
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="PERCENT">
+                      <div className="flex items-center gap-1 font-medium">
+                        <span className="text-xl pr-1 text-orange-500">%</span>{" "}
+                        Percent
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {isUpdateType && <DeleteButton id={coupon?.id!} onDelete={onDelete} />}
-        <Error error={error} />
-        <Success success={success} />
+          {/* //! DATE RANGE */}
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col py-1">
+                <FormLabel>From / To</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          <div className="flex gap-1">
+                            {format(field.value.from || new Date(), "MMMM dd")}
+                            <span>-</span>
+                            {format(
+                              field.value.to || addDays(new Date(), 3),
+                              "MMMM dd"
+                            )}
+                          </div>
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0 en-digits"
+                    align="start"
+                  >
+                    <Calendar
+                      mode="range"
+                      selected={field.value as DateRange}
+                      onSelect={field.onChange}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* //! SUMMERY */}
+          <FormField
+            control={form.control}
+            name="summery"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Summery</FormLabel>
+                <FormControl>
+                  <Textarea dir="rtl" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button
+            disabled={!form.formState.isValid || loading}
+            className="w-full flex gap-2"
+            type="submit"
+          >
+            {<Loader loading={loading} />}
+            {isUpdateType ? "Update" : "Create"}
+          </Button>
+          {isUpdateType && <DeleteButton onDelete={onDelete} />}
+        </div>
+
+        <div className="col-span-12 md:col-span-6 space-y-3">
+          {/* //! Course Include */}
+          <FormItem>
+            <FormLabel>Course Includes</FormLabel>
+            <div className="card">
+              <div className="w-full">
+                {courseIncludeFields.map((arrayField, index) => (
+                  <div key={arrayField.id} className="space-y-6">
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`courseInclude.${index}.id`}
+                        render={({ field }) => (
+                          <FormItem className="w-full border-b last:border-none flex items-center gap-3">
+                            <div className="w-full">
+                              <div className="flex gap-1 items-center space-y-2">
+                                <div
+                                  className={`w-full ${form.getValues("courseInclude")?.[index].id && "pointer-events-none"}`}
+                                >
+                                  <SearchCourses
+                                    field={field}
+                                    courseId={
+                                      coupon?.courseInclude?.[index]?.id
+                                    }
+                                    placeHolder={`Course ${index + 1}`}
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeCourseInclude(index)}
+                                  className="aspect-square"
+                                >
+                                  <Trash className="text-gray-400" size={16} />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  disabled={
+                                    index + 1 < courseIncludeFields.length
+                                  }
+                                  size={"icon"}
+                                  onClick={() => {
+                                    appendCourseInclude({
+                                      id: 0,
+                                    });
+                                  }}
+                                  className="aspect-square"
+                                >
+                                  <Plus className="text-gray-400" size={16} />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {courseIncludeFields.length < 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size={"icon"}
+                    onClick={() => {
+                      appendCourseInclude({
+                        id: 0,
+                      });
+                    }}
+                    className="aspect-square"
+                  >
+                    <Plus className="text-gray-400" size={16} />
+                  </Button>
+                )}
+              </div>
+            </div>
+            <FormMessage />
+          </FormItem>
+
+          {/* //! Course Exclude */}
+          <FormItem>
+            <FormLabel>Course Excludes</FormLabel>
+            <div className="card">
+              <div className="w-full">
+                {courseExcludeFields.map((arrayField, index) => (
+                  <div key={arrayField.id} className="space-y-6">
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`courseExclude.${index}.id`}
+                        render={({ field }) => (
+                          <FormItem className="w-full border-b last:border-none flex items-center gap-3">
+                            <div className="w-full">
+                              <div className="flex gap-1 items-center space-y-2">
+                                <div
+                                  className={`w-full ${form.getValues("courseExclude")?.[index].id && "pointer-events-none"}`}
+                                >
+                                  <SearchCourses
+                                    field={field}
+                                    courseId={
+                                      coupon?.courseExclude?.[index]?.id
+                                    }
+                                    placeHolder={`Course ${index + 1}`}
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeCourseExclude(index)}
+                                  className="aspect-square"
+                                >
+                                  <Trash className="text-gray-400" size={16} />
+                                </Button>
+                                <Button
+                                  disabled={
+                                    index + 1 < courseExcludeFields.length
+                                  }
+                                  type="button"
+                                  variant="ghost"
+                                  size={"icon"}
+                                  onClick={() => {
+                                    appendCourseExclude({
+                                      id: 0,
+                                    });
+                                  }}
+                                  className="aspect-square"
+                                >
+                                  <Plus className="text-gray-400" size={16} />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {courseExcludeFields.length < 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size={"icon"}
+                    onClick={() => {
+                      appendCourseExclude({
+                        id: 0,
+                      });
+                    }}
+                    className="aspect-square"
+                  >
+                    <Plus className="text-gray-400" size={16} />
+                  </Button>
+                )}
+              </div>
+            </div>
+            <FormMessage />
+          </FormItem>
+        </div>
       </form>
     </Form>
   );

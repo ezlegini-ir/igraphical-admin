@@ -209,15 +209,22 @@ export type EnrollmentFormType = z.infer<typeof paymentFormSchema>;
 
 //! MARKETING
 export const couponFormSchema = z.object({
-  coupon: z.string(),
+  code: z.string(),
   type: z.enum(couponType),
   amount: z.number().min(0),
   summery: z.string(),
+  date: z.object({
+    from: z.date().optional(),
+    to: z.date().optional(),
+  }),
   limit: z.number().min(0),
-  expiresAt: z.date().optional(),
+  courseInclude: z.array(z.object({ id: z.number() })).optional(),
+  courseExclude: z.array(z.object({ id: z.number() })).optional(),
 });
 export type CouponFormType = z.infer<typeof couponFormSchema>;
-// --------------
+
+// -------------------------------------
+
 export const overallOffFormSchema = z.object({
   amount: z.number().min(0),
   expiresAt: z.date(),
