@@ -7,10 +7,10 @@ import prisma from "@/prisma/client";
 import { DiscountType } from "@prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import {
-  deleteCloudImage,
-  deleteManyCloudImages,
-  uploadCloudImage,
-  uploadManyCloudImages,
+  deleteCloudFile,
+  deleteManyCloudFiles,
+  uploadCloudFile,
+  uploadManyCloudFiles,
 } from "./cloudinary";
 
 function discountedPrice(
@@ -141,11 +141,13 @@ export const createCourse = async (data: CourseFormType) => {
       if (image && image instanceof File) {
         const buffer = Buffer.from(await image.arrayBuffer());
 
-        const { secure_url, public_id, format, bytes } =
-          (await uploadCloudImage(buffer, {
+        const { secure_url, public_id, format, bytes } = (await uploadCloudFile(
+          buffer,
+          {
             folder: "course",
             width: 800,
-          })) as UploadApiResponse;
+          }
+        )) as UploadApiResponse;
 
         await tx.image.create({
           data: {
@@ -169,7 +171,7 @@ export const createCourse = async (data: CourseFormType) => {
           gallery.map(async (item) => Buffer.from(await item.arrayBuffer()))
         );
 
-        const uploadedGallery = (await uploadManyCloudImages(buffers, {
+        const uploadedGallery = (await uploadManyCloudFiles(buffers, {
           folder: "course",
           width: 800,
         })) as UploadApiResponse[];
@@ -339,14 +341,16 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
       if (image && image instanceof File) {
         const buffer = Buffer.from(await image.arrayBuffer());
 
-        const { secure_url, public_id, format, bytes } =
-          (await uploadCloudImage(buffer, {
+        const { secure_url, public_id, format, bytes } = (await uploadCloudFile(
+          buffer,
+          {
             folder: "course",
             width: 800,
-          })) as UploadApiResponse;
+          }
+        )) as UploadApiResponse;
 
         if (course.image) {
-          await deleteCloudImage(course.image.public_id);
+          await deleteCloudFile(course.image.public_id);
         }
 
         await tx.image.upsert({
@@ -378,7 +382,7 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
           gallery.map(async (item) => Buffer.from(await item.arrayBuffer()))
         );
 
-        const uploadedGallery = (await uploadManyCloudImages(buffers, {
+        const uploadedGallery = (await uploadManyCloudFiles(buffers, {
           folder: "course",
           width: 800,
         })) as UploadApiResponse[];
@@ -434,12 +438,12 @@ export const deleteCourse = async (id: number) => {
 
     // DELETE IMAGES
     if (deletedCourse.image) {
-      await deleteCloudImage(deletedCourse.image?.public_id);
+      await deleteCloudFile(deletedCourse.image?.public_id);
     }
 
     const public_ids = deletedCourse.gallery?.image.map((img) => img.public_id);
     if (public_ids) {
-      await deleteManyCloudImages(public_ids);
+      await deleteManyCloudFiles(public_ids);
     }
 
     return { success: "Course Remvoed Successfully" };

@@ -3,21 +3,21 @@
 import prisma from "@/prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import {
-  deleteCloudImage,
-  uploadCloudImage,
-  UploadOptions,
+  deleteCloudFile,
+  uploadCloudFile,
+  FileUploadOptions,
 } from "./cloudinary";
 
 //* CREATE ------------------------------------------------------------
 
 export const createPostAssetImage = async (
   file: File,
-  options?: UploadOptions
+  options?: FileUploadOptions
 ) => {
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const { secure_url, public_id, format, bytes } = (await uploadCloudImage(
+    const { secure_url, public_id, format, bytes } = (await uploadCloudFile(
       buffer,
       options
     )) as UploadApiResponse;
@@ -46,7 +46,7 @@ export const deleteImage = async (public_id: string) => {
       where: { public_id },
     });
 
-    const res = (await deleteCloudImage(deletedImage.public_id)) as {
+    const res = (await deleteCloudFile(deletedImage.public_id)) as {
       result: "ok";
     };
 

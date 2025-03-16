@@ -37,11 +37,7 @@ import { parseAllowedFontSize } from "./plugins/ToolbarPlugin/fontSize";
 import TypingPerfPlugin from "./plugins/TypingPerfPlugin";
 import PlaygroundEditorTheme from "./themes/PlaygroundEditorTheme";
 import { parseAllowedColor } from "./ui/ColorPicker";
-import Settings from "./Settings";
-
-// console.warn(
-//   "If you are profiling the playground app, please ensure you turn off the debug view. You can disable it by pressing on the settings control in the bottom-left of your screen and toggling the debug view setting."
-// );
+import SimpleEditor from "./SimpleEditor";
 
 function $prepopulatedRichText() {
   const root = $getRoot();
@@ -195,7 +191,7 @@ interface TextEditorProps {
   value: string;
 }
 
-export default function TextEditor({
+export default function SimpleTextEditor({
   onChange,
   value,
 }: TextEditorProps): JSX.Element {
@@ -236,7 +232,7 @@ export default function TextEditor({
             <ToolbarContext>
               <div className="editor-shell">
                 {/* The Editor component that renders the actual editable area */}
-                <Editor />
+                <SimpleEditor />
               </div>
               {/* <Settings /> */}
               {measureTypingPerf ? <TypingPerfPlugin /> : null}

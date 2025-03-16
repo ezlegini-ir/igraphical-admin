@@ -4,7 +4,7 @@ import { SlidersFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 import { SliderType } from "@prisma/client";
 import { UploadApiResponse } from "cloudinary";
-import { deleteCloudImage, uploadManyCloudImages } from "./cloudinary";
+import { deleteCloudFile, uploadManyCloudFiles } from "./cloudinary";
 
 //* CREATE ------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export const createSlider = async (data: SlidersFormType, type: SliderType) => {
         .map(async (item) => Buffer.from(await item.image!.arrayBuffer()))
     );
 
-    const uploadedSliders = (await uploadManyCloudImages(buffers, {
+    const uploadedSliders = (await uploadManyCloudFiles(buffers, {
       folder: "slider",
       width: 1500,
     })) as UploadApiResponse[];
@@ -92,7 +92,7 @@ export const updateSlider = async (
           // If a new file was provided, update the image record too
           if (img.image) {
             const buffer = Buffer.from(await img.image.arrayBuffer());
-            const [uploadedImage] = (await uploadManyCloudImages([buffer], {
+            const [uploadedImage] = (await uploadManyCloudFiles([buffer], {
               folder: "slider",
               width: 1500,
             })) as UploadApiResponse[];
@@ -129,7 +129,7 @@ export const updateSlider = async (
 
           if (img.image) {
             const buffer = Buffer.from(await img.image.arrayBuffer());
-            const [uploadedImage] = (await uploadManyCloudImages([buffer], {
+            const [uploadedImage] = (await uploadManyCloudFiles([buffer], {
               folder: "slider",
               width: 1500,
             })) as UploadApiResponse[];
@@ -170,7 +170,7 @@ export const deleteSlider = async (id: number, public_id?: string) => {
     await prisma.$transaction(async (tx) => {
       // Delete the Cloudinary image first (if exists)
       if (public_id && existingSlider.image) {
-        await deleteCloudImage(public_id);
+        await deleteCloudFile(public_id);
       }
 
       // Delete the associated image record (if needed)

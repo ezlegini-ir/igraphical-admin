@@ -4,56 +4,63 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { avatar } from "@/public";
-import { Eye } from "lucide-react";
+import { Eye, Frown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 interface Props {
   tickets: TicketType[];
   totalTickets: number;
+  pageSize: number;
 }
 
-const TicketsList = async ({ tickets, totalTickets }: Props) => {
-  const pageSize = 10;
-
+const TicketsList = async ({ tickets, totalTickets, pageSize }: Props) => {
   return (
-    <div className="space-y-3">
-      <div className="grid grid-col gap-5">
-        {tickets.map((ticket, index) => (
-          <TicketCard key={index} ticket={ticket} />
-        ))}
-      </div>
+    <>
+      {tickets.length === 0 && (
+        <div className="py-10 card flex flex-col items-center text-gray-500">
+          <Frown size={70} />
+          <span>No Data Available</span>
+        </div>
+      )}
+      <div className="space-y-3">
+        <div className="space-y-5">
+          {tickets.map((ticket, index) => (
+            <TicketCard key={index} ticket={ticket} />
+          ))}
+        </div>
 
-      <Pagination pageSize={pageSize} totalItems={totalTickets} />
-    </div>
+        <Pagination pageSize={pageSize} totalItems={totalTickets} />
+      </div>
+    </>
   );
 };
 
 const TicketCard = ({ ticket }: { ticket: TicketType }) => {
   const pending = ticket.status === "PENDING";
-  const answered = ticket.status === "ANSWERED";
+  const replied = ticket.status === "REPLIED";
 
   const statuses = (
     <Badge
       className={`font-medium w-[100px] text-sm  flex justify-center py-2 px-4`}
-      variant={pending ? "orange" : answered ? "green" : "gray"}
+      variant={pending ? "orange" : replied ? "green" : "gray"}
     >
       <div className="md:hidden">
-        {pending ? "Pending" : answered ? "Answered" : "Closed"}
+        {pending ? "Pending" : replied ? "Answered" : "Closed"}
       </div>
       <div className="hidden md:block">
-        {pending ? "Pending" : answered ? "Answered" : "Closed"}
+        {pending ? "Pending" : replied ? "Replied" : "Closed"}
       </div>
     </Badge>
   );
 
   return (
-    <div className="card space-y-4">
+    <div className="card group space-y-4">
       <div className="flex flex-col lg:flex-row gap-5 justify-between lg:items-center">
         <div className="flex items-center gap-2">
           <Image alt="" src={avatar} width={40} height={40} />
           <div className="flex flex-col gap-0">
-            <p className="w-full h-6">{ticket.user.name}</p>
+            <p className="w-full h-6">{ticket.user.fullName}</p>
             <div className="flex gap-2">
               <p className="text-xs text-gray-500">
                 <span className="font-semibold">Created At:</span>{" "}
@@ -87,10 +94,12 @@ const TicketCard = ({ ticket }: { ticket: TicketType }) => {
 
       <p
         dir="rtl"
-        className="bg-slate-50 p-3 px-6 text-xs rounded-sm text-gray-500  flex-col gap-2 hidden lg:flex"
+        className="bg-slate-50 border p-3 px-6 text-xs rounded-sm text-gray-500  flex-col gap-2 hidden lg:flex"
       >
-        <span className="font-semibold text-sm">{ticket.subject}</span>
-        <span>{ticket.comments[0].message.slice(0, 250)}...</span>
+        <span className="font-semibold text-base text-primary">
+          {ticket.subject}
+        </span>
+        <span>{ticket.messages[0]?.message.slice(0, 250)}...</span>
       </p>
     </div>
   );

@@ -1,83 +1,35 @@
-import { CartProvider, useCart } from "react-use-cart";
+"use client";
 
-function Page() {
-  const { addItem } = useCart();
+import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from "next/dynamic";
+import React, { useState } from "react";
+const TextEditor = dynamic(
+  () => import("@/components/LexicalEditor/TextEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="w-full h-[450px] bg-white border rounded-sm" />
+    ),
+  }
+);
+const SimpleTextEditor = dynamic(
+  () => import("@/components/LexicalEditor/SimpleTextEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="w-full h-[450px] bg-white border rounded-sm" />
+    ),
+  }
+);
 
-  const products = [
-    {
-      id: 1,
-      name: "Malm",
-      price: 9900,
-      quantity: 1,
-    },
-    {
-      id: 2,
-      name: "Nordli",
-      price: 16500,
-      quantity: 5,
-    },
-    {
-      id: 3,
-      name: "Kullen",
-      price: 4500,
-      quantity: 1,
-    },
-  ];
-
+const page = () => {
+  const [content, setContent] = useState("");
   return (
-    <div>
-      {products.map((p) => (
-        <div key={p.id}>
-          <button onClick={() => addItem(p)}>Add to cart</button>
-        </div>
-      ))}
+    <div className="space-y-3">
+      <SimpleTextEditor onChange={setContent} value={content} />
+      <TextEditor onChange={setContent} value={content} />
     </div>
   );
-}
+};
 
-function Cart() {
-  const { isEmpty, totalUniqueItems, items, updateItemQuantity, removeItem } =
-    useCart();
-
-  if (isEmpty) return <p>Your cart is empty</p>;
-
-  return (
-    <>
-      <h1>Cart ({totalUniqueItems})</h1>
-
-      <ul>
-        {items.map((item) => (
-          <li key={item.id}>
-            {item.quantity} x {item.name} &mdash;
-            <button
-              onClick={() =>
-                updateItemQuantity(item.id, (item.quantity ?? 0) - 1)
-              }
-            >
-              -
-            </button>
-            <button
-              onClick={() =>
-                updateItemQuantity(item.id, (item.quantity ?? 0) + 1)
-              }
-            >
-              +
-            </button>
-            <button onClick={() => removeItem(item.id)}>&times;</button>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
-
-function App() {
-  return (
-    <CartProvider>
-      <Page />
-      <Cart />
-    </CartProvider>
-  );
-}
-
-export default App;
+export default page;

@@ -2,25 +2,40 @@
 
 import { v2 as cloudinary } from "cloudinary";
 
-export interface UploadOptions {
-  folder?: "admin" | "tutor" | "user" | "course" | "post" | "asset" | "slider";
+export interface FileUploadOptions {
+  folder?:
+    | "admin"
+    | "tutor"
+    | "user"
+    | "course"
+    | "post"
+    | "asset"
+    | "slider"
+    | "ticket";
   width?: number;
-  public_id?: string;
+  format?: string;
+  resource_type: "image" | "video" | "raw" | "auto";
 }
 
-// Cloudinary upload function
-export const uploadCloudImage = async (
+//* UPLOAD FILE --------------------------------------------------------------
+
+export const uploadCloudFile = async (
   buffer: Buffer,
-  options?: UploadOptions
+  options?: FileUploadOptions
 ) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload_stream(
         {
-          folder: options?.folder ? `/images/${options?.folder}` : "/images",
-          format: "webp",
+          folder:
+            options?.resource_type === "raw"
+              ? `/files/${options.folder}`
+              : options?.resource_type === "video"
+                ? `/videos/${options.folder}`
+                : `/images/${options?.folder}`,
+          format: options?.resource_type === "image" ? "webp" : options?.format,
+          resource_type: options?.resource_type,
           transformation: [{ width: options?.width || 500, crop: "limit" }],
-          public_id: options?.public_id,
         },
         (error, result) => {
           if (error) reject(error);
@@ -31,19 +46,20 @@ export const uploadCloudImage = async (
   });
 };
 
-export const uploadManyCloudImages = async (
+//* UPLOAD MANY IMAGE --------------------------------------------------------------
+
+export const uploadManyCloudFiles = async (
   buffers: Buffer[],
-  options?: UploadOptions
+  options?: FileUploadOptions
 ) => {
   const uploadPromises = buffers.map((image) => {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
-            folder: options?.folder ? `/images/${options.folder}` : "/images",
-            format: "webp",
+            folder: options?.folder || "/files",
+            format: options?.format || "auto",
             transformation: [{ width: options?.width || 500, crop: "limit" }],
-            public_id: options?.public_id,
           },
           (error, result) => {
             if (error) reject(error);
@@ -56,22 +72,36 @@ export const uploadManyCloudImages = async (
   return Promise.all(uploadPromises);
 };
 
-export const deleteCloudImage = async (public_id: string) => {
+//! DELETE IMAGE --------------------------------------------------------------
+
+export const deleteCloudFile = async (
+  public_id: string,
+  resource_type: "image" | "raw" | "video" | "auto" = "image"
+) => {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(public_id, (error, result) => {
-      if (error) reject(error);
-      resolve(result);
-    });
+    cloudinary.uploader.destroy(
+      public_id,
+      { resource_type },
+      (error, result) => {
+        if (error) reject(error);
+        resolve(result);
+      }
+    );
   });
 };
 
-export const deleteManyCloudImages = async (
-  public_ids: string[]
+export const deleteManyCloudFiles = async (
+  public_ids: string[],
+  resource_type: "image" | "raw" | "video" | "auto" = "image"
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    cloudinary.api.delete_resources(public_ids, (error, result) => {
-      if (error) return reject(error);
-      resolve(result);
-    });
+    cloudinary.api.delete_resources(
+      public_ids,
+      { resource_type },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
   });
 };

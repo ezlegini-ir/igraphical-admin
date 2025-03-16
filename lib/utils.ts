@@ -59,3 +59,13 @@ export function handleError(error: unknown): { error: string } {
   const errorMessage = error instanceof Error ? error.message : String(error);
   return { error: `Error 500: ${errorMessage}` };
 }
+
+export function truncateFileName(name: string, maxLength = 20) {
+  if (name.length <= maxLength) return name;
+
+  const extIndex = name.lastIndexOf(".");
+  const extension = extIndex !== -1 ? name.slice(extIndex) : "";
+  const baseName = name.slice(0, extIndex);
+
+  return baseName.slice(0, 10) + "....." + baseName.slice(-10) + extension;
+}

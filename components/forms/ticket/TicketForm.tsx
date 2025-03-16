@@ -1,10 +1,16 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import Error from "@/components/Error";
+import {
+  createTicket,
+  deleteTicket,
+  deleteTicketMessage,
+  sendTicketMessage,
+  updateTicket,
+} from "@/actions/ticket";
+import CardBox from "@/components/CardBox";
+import DeleteButton from "@/components/DeleteButton";
 import Loader from "@/components/Loader";
-import Success from "@/components/Success";
+import SearchUsers from "@/components/SearchUsers";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,57 +28,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import useError from "@/hooks/useError";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import useFileName from "@/hooks/useFileName";
 import useLoading from "@/hooks/useLoading";
-import useSuccess from "@/hooks/useSuccess";
+import { formatDate } from "@/lib/date";
+import { truncateFileName as truncateName } from "@/lib/utils";
 import {
-  StudentFormType,
   TicketFormSchema,
+  TicketFormType,
   ticketDepartment,
   ticketStatus,
 } from "@/lib/validationSchema";
-import { useRouter } from "next/navigation";
-import { Textarea } from "@/components/ui/textarea";
-import { Download, Link as LinkIcon, Send } from "lucide-react";
-import useFileName from "@/hooks/useFileName";
-import CardBox from "@/components/CardBox";
-import DeleteButton from "@/components/DeleteButton";
-import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
 import { avatar, igraphLogoCard } from "@/public";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  File,
+  Image as ImageType,
+  Ticket,
+  TicketMessage,
+  User,
+} from "@prisma/client";
+import { Download, Link as LinkIcon, Send, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
-type TicketCommentType = {
-  id: number;
-  ticketId: 1;
-  type: "ADMIN" | "STUDENT";
-  user: {
-    id: number;
-    name: string;
-  };
-  message: string;
-  createdAt: Date;
-  attachment?: {
-    id: number;
-    fileUrl: string;
-  };
-};
-
-export type TicketType = {
-  id: number;
-  subject: string;
-  status: "PENDING" | "CLOSED" | "ANSWERED";
-  createdAt: Date;
-  updatedAt: Date;
-  department: "TECHNICAL" | "FINANCE" | "COURSE" | "SUGGEST";
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-  };
-  comments: TicketCommentType[];
-};
+export interface TicketType extends Ticket {
+  messages: (TicketMessage & {
+    user: (User & { image: ImageType | null }) | null;
+    attachment: File | null;
+  })[];
+  user: User & { image: ImageType | null };
+}
 
 interface Props {
   type: "NEW" | "UPDATE";
@@ -82,29 +72,28 @@ interface Props {
 const TicketForm = ({ type, ticket }: Props) => {
   // HOOKS
   const router = useRouter();
-  const { error, setError } = useError();
-  const { loading, setLoading } = useLoading();
-  const { success, setSuccess } = useSuccess();
+  const { loading: sendMessageLoading, setLoading: setSendMessageLoading } =
+    useLoading();
   const { fileName, setFileName } = useFileName();
 
   const isUpdateType = type === "UPDATE";
+  const initalMessage = `با سلام و وقت بخیر،
+  کاربر محترم آی‌گرافیکال:`;
 
-  const form = useForm<StudentFormType>({
+  const form = useForm<TicketFormType>({
     resolver: zodResolver(TicketFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      subject: ticket?.subject,
+      subject: ticket?.subject || "",
       file: undefined,
-      message: `
-      با سلام و وقت بخیر،
-      کاربر محترم آی‌گرافیکال:
-
-      `,
-      status: ticket?.status || "ANSWERED",
-      user: ticket?.user.id.toString() || "",
+      message: initalMessage,
+      status: ticket?.status || "REPLIED",
+      userId: ticket?.user.id || 0,
       department: ticket?.department || "COURSE",
     },
   });
+
+  const { isValid, dirtyFields, isSubmitting } = form.formState;
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -117,20 +106,75 @@ const TicketForm = ({ type, ticket }: Props) => {
     }
   };
 
-  const onSubmit = async (data: StudentFormType) => {
-    setError("");
-    setLoading(true);
+  const onSubmit = async (data: TicketFormType) => {
+    const res = isUpdateType
+      ? await updateTicket(data, ticket?.id!)
+      : await createTicket(data);
 
-    console.log(data);
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
 
-    form.reset();
-    router.refresh();
-    setSuccess("Created Successfully");
-    setLoading(false);
+    if (res.success) {
+      toast.success(res.success);
+      if (isUpdateType) router.refresh();
+      else router.push(`/tickets/${res.data.id}`);
+    }
   };
 
-  const onDelete = (id: string | number) => {
-    console.log("Deleted" + id);
+  const onSendMessage = async () => {
+    setSendMessageLoading(true);
+
+    const message = form.watch("message");
+    const file = form.watch("file");
+
+    const data = { message, file };
+
+    const res = await sendTicketMessage(data, ticket?.id!);
+
+    if (res?.error) {
+      toast.error(res.error);
+      setSendMessageLoading(false);
+      return;
+    }
+
+    if (res?.success) {
+      toast.success(res.success);
+      setSendMessageLoading(false);
+      form.reset({ message: initalMessage, file: undefined });
+      setFileName("");
+      router.refresh();
+      return;
+    }
+  };
+
+  const onDelete = async () => {
+    const res = await deleteTicket(ticket?.id!);
+
+    if (res?.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      router.push("/tickets/list");
+    }
+  };
+
+  const onDeleteMessage = async (id: number) => {
+    const res = await deleteTicketMessage(id);
+
+    if (res?.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    if (res.success) {
+      toast.success(res.success);
+      router.refresh();
+    }
   };
 
   return (
@@ -160,24 +204,49 @@ const TicketForm = ({ type, ticket }: Props) => {
                 name="file"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel
-                      htmlFor="file-upload"
-                      className="cursor-pointer flex items-center gap-2"
-                    >
-                      <div className="card p-2">
-                        <LinkIcon
-                          size={18}
-                          className="text-gray-400 hover:text-blue-500"
-                        />
-                      </div>
+                    <div className="flex gap-1 items-center">
+                      <FormLabel
+                        htmlFor="file-upload"
+                        className="cursor-pointer flex items-center gap-2"
+                      >
+                        <div className="flex gap-2 items-center">
+                          <div className="card p-2">
+                            <LinkIcon
+                              size={18}
+                              className="text-gray-400 hover:text-blue-500"
+                            />
+                          </div>
+                          {!fileName && (
+                            <span className="text-gray-400 text-xs">
+                              <div>Max: 5MB</div>
+                              <div>Image or .zip</div>
+                            </span>
+                          )}
+                        </div>
+                        {fileName && (
+                          <span className="text-sm text-gray-600 max-w-[200px] truncate block">
+                            {truncateName(fileName)}
+                          </span>
+                        )}
+                      </FormLabel>
                       {fileName && (
-                        <span className="text-sm text-gray-600">
-                          {fileName}
-                        </span>
+                        <Button
+                          type="button"
+                          variant={"ghost"}
+                          size={"icon"}
+                          className="w-7 h-7"
+                          onClick={() => {
+                            setFileName("");
+                            form.setValue("file", undefined);
+                          }}
+                        >
+                          <X className="text-gray-500 hover:text-black" />
+                        </Button>
                       )}
-                    </FormLabel>
+                    </div>
                     <FormControl>
                       <Input
+                        accept=".png, .zip, .jpeg, .jpg, .webp"
                         type="file"
                         className="hidden"
                         onChange={(e) => handleFileChange(e, field)}
@@ -189,46 +258,87 @@ const TicketForm = ({ type, ticket }: Props) => {
                 )}
               />
 
-              <Button type="button">
-                <Send />
-                Send
-              </Button>
+              {isUpdateType && (
+                <Button
+                  disabled={
+                    sendMessageLoading ||
+                    !(dirtyFields.message || dirtyFields.file)
+                  }
+                  onClick={onSendMessage}
+                  type="button"
+                >
+                  <Loader loading={sendMessageLoading} />
+                  <Send />
+                  Send
+                </Button>
+              )}
             </div>
 
-            <Separator />
+            {ticket?.messages && ticket.messages.length > 0 && <Separator />}
 
             {isUpdateType && (
               <div className="py-3 space-y-3" dir="rtl">
-                {ticket?.comments.map((comment, index) => (
+                {ticket?.messages?.map((message, index) => (
                   <div key={index} className="space-y-3 text-sm">
                     <div
-                      className={`card flex justify-between gap-5 items-end py-2 ${
-                        comment.type === "ADMIN" && "bg-slate-100"
+                      className={`card py-2 group relative ${
+                        message.senderType === "ADMIN" && "bg-slate-100"
                       }`}
                     >
-                      <div>
+                      <Button
+                        variant={"link"}
+                        size={"icon"}
+                        className="absolute left-0 top-0 hidden group-hover:flex"
+                        onClick={() => onDeleteMessage(message.id)}
+                      >
+                        <X />
+                      </Button>
+
+                      <div className="w-full">
                         <div className="flex items-center gap-2">
                           <Image
                             alt=""
                             src={
-                              comment.type === "ADMIN" ? igraphLogoCard : avatar
+                              message.senderType === "ADMIN"
+                                ? igraphLogoCard
+                                : avatar
                             }
                             width={40}
                             height={40}
                           />
-                          <div>
-                            <p>{comment.user.name}</p>
-                            <span className="text-xs text-gray-500">
-                              {comment.createdAt.toLocaleString("en-US")}
+                          <div className="flex flex-col">
+                            <span>
+                              {message.senderType === "ADMIN"
+                                ? "آی‌گرافیکال"
+                                : message.user?.fullName}
+                            </span>
+                            <span className="text-xs text-gray-500 en-digits">
+                              {formatDate(message.createdAt)}
                             </span>
                           </div>
                         </div>
-                        <p>{comment.message}</p>
+                        <pre
+                          style={{
+                            lineHeight: 1.8,
+                            fontFamily: "KalamehWebFaNum",
+                            whiteSpace: "pre-wrap", // Allows text wrapping
+                            wordBreak: "break-word", // Break long words if needed
+                          }}
+                          className="text-black bg-transparent"
+                        >
+                          {message.message}
+                        </pre>
                       </div>
-
-                      {comment.attachment && (
-                        <div>
-                          <Link href={comment.attachment.fileUrl}>
+                      {message.attachment && (
+                        <>
+                          <hr className="border-dashed border-slate-300" />
+                          <Link
+                            href={message.attachment.url}
+                            className="flex justify-end gap-2 items-center text-nowrap text-xs text-gray-500"
+                          >
+                            <span title={message.attachment.fileName}>
+                              {truncateName(message.attachment.fileName, 30)}
+                            </span>
                             <Button
                               size={"icon"}
                               className="h-8 w-8"
@@ -237,7 +347,7 @@ const TicketForm = ({ type, ticket }: Props) => {
                               <Download />
                             </Button>
                           </Link>
-                        </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -256,14 +366,18 @@ const TicketForm = ({ type, ticket }: Props) => {
               <div className="flex justify-between text-gray-500 text-xs">
                 <p className="flex flex-col">
                   <span>Created At</span>
-                  <span className="text-sm">{new Date().toLocaleString()}</span>
+                  <span className="text-sm">
+                    {formatDate(ticket?.createdAt!)}
+                  </span>
                 </p>
                 <div>
                   <Separator orientation="vertical" />
                 </div>
                 <p className="flex flex-col">
                   <span>Last Update</span>
-                  <span className="text-sm">{new Date().toLocaleString()}</span>
+                  <span className="text-sm">
+                    {formatDate(ticket?.updatedAt!)}
+                  </span>
                 </p>
               </div>
 
@@ -272,7 +386,7 @@ const TicketForm = ({ type, ticket }: Props) => {
               <ul className="text-xs text-gray-500">
                 <li className="flex justify-between">
                   <span>User</span>
-                  <span>{ticket?.user.name}</span>
+                  <span>{ticket?.user.fullName}</span>
                 </li>
                 <li className="flex justify-between">
                   <span>Email</span>
@@ -300,7 +414,6 @@ const TicketForm = ({ type, ticket }: Props) => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="status"
@@ -321,11 +434,11 @@ const TicketForm = ({ type, ticket }: Props) => {
                       <SelectItem key={index} value={status}>
                         <span
                           className={`capitalize font-medium ${
-                            status === "ANSWERED"
+                            status === "REPLIED"
                               ? "text-green-600"
                               : status === "PENDING"
-                              ? "text-yellow-500"
-                              : "text-red-500"
+                                ? "text-yellow-500"
+                                : "text-red-500"
                           }`}
                         >
                           {status.toLowerCase()}
@@ -338,33 +451,25 @@ const TicketForm = ({ type, ticket }: Props) => {
               </FormItem>
             )}
           />
-
           {!isUpdateType && (
             <FormField
               control={form.control}
-              name="user"
+              name={"userId"}
               render={({ field }) => (
-                <FormItem>
+                <FormItem
+                  className={`w-full ${isUpdateType && "pointer-events-none"}`}
+                >
                   <FormLabel>User</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a user...." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={"1"}>علیرضا ازلگینی</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SearchUsers
+                    field={field}
+                    placeHolder="Search Users..."
+                    userId={ticket?.userId}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
-
           <FormField
             control={form.control}
             name="department"
@@ -396,24 +501,23 @@ const TicketForm = ({ type, ticket }: Props) => {
               </FormItem>
             )}
           />
-
           <Button
             disabled={
-              !form.formState.isValid || !form.formState.isDirty || loading
+              !isValid ||
+              !(
+                dirtyFields.subject ||
+                dirtyFields.status ||
+                dirtyFields.department
+              ) ||
+              isSubmitting
             }
             className="w-full flex gap-2"
             type="submit"
           >
-            {<Loader loading={loading} />}
+            {<Loader loading={isSubmitting} />}
             {isUpdateType ? "Update" : "Create"}
           </Button>
-
-          {isUpdateType && (
-            <DeleteButton id={ticket?.id!} onDelete={onDelete} />
-          )}
-
-          <Error error={error} />
-          <Success success={success} />
+          {isUpdateType && <DeleteButton onDelete={onDelete} />}
         </CardBox>
       </form>
     </Form>

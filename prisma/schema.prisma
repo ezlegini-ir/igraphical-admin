@@ -23,6 +23,8 @@ model User {
   LessonProgress LessonProgress[]
   enrollment     Enrollment[]
   payment        Payment[]
+  ticket         Ticket[]
+  TicketMessage  TicketMessage[]
 }
 
 model Admin {
@@ -113,6 +115,33 @@ enum ImageType {
   TICKET_ASSET
 
   OTHER
+}
+
+model File {
+  id              Int            @id @default(autoincrement())
+  public_id       String         @unique
+  url             String         @unique
+  format          String
+  resource_type   ResourceType
+  fileName        String
+  type            FileType
+  size            Int
+  createdAt       DateTime       @default(now())
+  ticketMessage   TicketMessage? @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
+  ticketMessageId Int?           @unique
+}
+
+enum FileType {
+  TICKET_ASSET
+  QA_ASSET
+  OTHER
+}
+
+enum ResourceType {
+  image
+  raw
+  auto
+  video
 }
 
 //! Posts ---------------------------------------------------------
@@ -425,4 +454,49 @@ model OverallOff {
 enum OverallOffType {
   PERCENT
   FIXED
+}
+
+//! TICKET ---------------------------------------------------------
+
+model Ticket {
+  id         Int              @id @default(autoincrement())
+  subject    String
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  status     TicketStatus
+  department TicketDepartment
+  messages   TicketMessage[]
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+}
+
+model TicketMessage {
+  id        Int      @id @default(autoincrement())
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  Int
+
+  senderType SenderType
+  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int?
+  attachment File?
+}
+
+enum SenderType {
+  USER
+  ADMIN
+}
+
+enum TicketStatus {
+  PENDING
+  REPLIED
+  CLOSED
+}
+
+enum TicketDepartment {
+  COURSE
+  FINANCE
+  TECHNICAL
+  SUGGEST
 }
