@@ -100,8 +100,9 @@ export const updateUser = async (data: StudentFormType, id: number) => {
       },
       data: {
         firstName,
-        nationalId,
         lastName,
+        fullName: `${firstName} ${lastName}`,
+        nationalId,
         id,
         email,
         phone,

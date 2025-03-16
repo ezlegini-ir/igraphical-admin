@@ -25,6 +25,7 @@ model User {
   payment        Payment[]
   ticket         Ticket[]
   TicketMessage  TicketMessage[]
+  askTutor       AskTutor[]
 }
 
 model Admin {
@@ -41,16 +42,17 @@ model Admin {
 }
 
 model Tutor {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   displayName String
   slug        String
   password    String
-  phone       String   @unique
-  email       String   @unique
-  joinedAt    DateTime @default(now())
+  phone       String     @unique
+  email       String     @unique
+  joinedAt    DateTime   @default(now())
   image       Image?
   courses     Course[]
+  askTutor    AskTutor[]
 }
 
 enum AdminRole {
@@ -118,17 +120,19 @@ enum ImageType {
 }
 
 model File {
-  id              Int            @id @default(autoincrement())
-  public_id       String         @unique
-  url             String         @unique
-  format          String
-  resource_type   ResourceType
-  fileName        String
-  type            FileType
-  size            Int
-  createdAt       DateTime       @default(now())
-  ticketMessage   TicketMessage? @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
-  ticketMessageId Int?           @unique
+  id                Int               @id @default(autoincrement())
+  public_id         String            @unique
+  url               String            @unique
+  format            String
+  resource_type     ResourceType
+  fileName          String
+  type              FileType
+  size              Int
+  createdAt         DateTime          @default(now())
+  ticketMessage     TicketMessage?    @relation(fields: [ticketMessageId], references: [id], onDelete: Cascade)
+  ticketMessageId   Int?              @unique
+  askTutorMessage   AskTutorMessages? @relation(fields: [askTutorMessageId], references: [id], onDelete: Cascade)
+  askTutorMessageId Int?              @unique
 }
 
 enum FileType {
@@ -218,6 +222,7 @@ model Course {
   enrollment        Enrollment[]
   includedInCoupons Coupon[]        @relation("IncludesCoupons")
   excludedInCoupons Coupon[]        @relation("ExcludesCoupons")
+  askTutor          AskTutor[]
 }
 
 model CourseCategory {
@@ -474,10 +479,10 @@ model TicketMessage {
   id        Int      @id @default(autoincrement())
   message   String   @db.Text
   createdAt DateTime @default(now())
-  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId  Int
 
   senderType SenderType
+  ticket     Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId   Int
   user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int?
   attachment File?
@@ -499,4 +504,36 @@ enum TicketDepartment {
   FINANCE
   TECHNICAL
   SUGGEST
+}
+
+//! ASK TUTOR ---------------------------------------------------------
+
+model AskTutor {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages AskTutorMessages[]
+  course   Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int
+  user     User               @relation(fields: [userId], references: [id])
+  userId   Int
+  tutor    Tutor              @relation(fields: [tutorId], references: [id])
+  tutorId  Int
+}
+
+model AskTutorMessages {
+  id        Int      @id @default(autoincrement())
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  senderType AskTutorSenderType
+  attachment File?
+  askTutor   AskTutor?          @relation(fields: [askTutorId], references: [id])
+  askTutorId Int?
+}
+
+enum AskTutorSenderType {
+  USER
+  TUTOR
 }

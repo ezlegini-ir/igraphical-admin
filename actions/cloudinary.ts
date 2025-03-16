@@ -14,7 +14,7 @@ export interface FileUploadOptions {
     | "ticket";
   width?: number;
   format?: string;
-  resource_type: "image" | "video" | "raw" | "auto";
+  resource_type?: "image" | "video" | "raw" | "auto";
 }
 
 //* UPLOAD FILE --------------------------------------------------------------
@@ -34,7 +34,7 @@ export const uploadCloudFile = async (
                 ? `/videos/${options.folder}`
                 : `/images/${options?.folder}`,
           format: options?.resource_type === "image" ? "webp" : options?.format,
-          resource_type: options?.resource_type,
+          resource_type: options?.resource_type || "image",
           transformation: [{ width: options?.width || 500, crop: "limit" }],
         },
         (error, result) => {

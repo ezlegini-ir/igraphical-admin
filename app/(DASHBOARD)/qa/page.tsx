@@ -1,106 +1,125 @@
-import React from "react";
-import QaList, { QaType } from "./QaList";
-import { coursePic } from "@/public";
-import Filter from "@/components/Filter";
+import Avatar from "@/components/Avatar";
+import Pagination from "@/components/Pagination";
 import Search from "@/components/Search";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { pagination } from "@/data/pagination";
+import prisma from "@/prisma/client";
+import { placeHolder } from "@/public";
+import {
+  AskTutor,
+  AskTutorMessages,
+  Course,
+  Image as ImageType,
+  Prisma,
+  Tutor,
+} from "@prisma/client";
+import Image from "next/image";
+import Link from "next/link";
 
-const totalQa = 15;
+interface CourseType extends Course {
+  image: ImageType | null;
+  tutor: (Tutor & { image: ImageType | null }) | null;
+  askTutor: (AskTutor & {
+    messages: AskTutorMessages[] | null;
+    _count: { messages: number };
+  })[];
+}
 
-const page = () => {
+interface PageProps {
+  searchParams: Promise<{ page: string; search: string }>;
+}
+
+const page = async ({ searchParams }: PageProps) => {
+  const { page, search } = await searchParams;
+
+  const where: Prisma.CourseWhereInput = {
+    title: { contains: search },
+  };
+
+  const { skip, take } = pagination(page);
+  const courses = await prisma.course.findMany({
+    where,
+    include: {
+      image: true,
+      tutor: {
+        include: { image: true },
+      },
+      askTutor: {
+        include: { messages: true, _count: { select: { messages: true } } },
+      },
+    },
+
+    skip,
+    take,
+  });
+  const totalCourses = await prisma.course.count({ where });
+
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
         <h3>Questions and Answers</h3>
-        <div className="flex gap-3 justify-between items-center">
-          <Search />
-
-          <Filter
-            defaultValue="all"
-            placeholder="All Q&A"
-            name="course"
-            options={[
-              { label: "All Courses", value: "all" },
-              {
-                label: "دوره جامع نرم افزار ادوبی ایلوستریتور",
-                value: "1",
-              },
-              {
-                label: "دوره جامع نرم افزار ادوبی ایندیزاین",
-                value: "2",
-              },
-              {
-                label: "دوره جامع نرم افزار ادوبی فتوشاپ",
-                value: "3",
-              },
-            ]}
-          />
-
-          <Filter
-            defaultValue="all"
-            placeholder="All Q&A"
-            name="tutor"
-            options={[
-              { label: "All Tutors", value: "all" },
-              {
-                label: "علیرضا ازلگینی",
-                value: "1",
-              },
-            ]}
-          />
-        </div>
+        <Search placeholder="Search Courses" />
       </div>
-
-      <QaList qa={qa} totalQa={totalQa} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {courses.map((course, index) => (
+          <CourseCard key={index} course={course} index={index} />
+        ))}
+      </div>
+      <Pagination pageSize={16} totalItems={totalCourses} />
     </div>
   );
 };
 
 export default page;
 
-const qa: QaType[] = [
-  {
-    course: {
-      id: 1,
-      image: { url: coursePic },
-      title: "دوره جامع نرم افزار ادوبی ایلوستریتور",
-    },
-    createdAt: new Date(),
-    id: 1,
-    status: "ANSWERED",
-    tutor: {
-      email: "elztgin@mgailc.om",
-      id: 1,
-      name: "علیرذضا ازلگینی",
-      phone: "091274652869",
-    },
+interface Props {
+  course: CourseType;
+  index: number;
+}
+const CourseCard = ({ course, index }: Props) => {
+  return (
+    <div className="card">
+      <Image
+        alt=""
+        src={course.image?.url || placeHolder}
+        width={400}
+        height={400}
+        className="object-cover aspect-video rounded-sm w-full"
+      />
+      <div className="text-right font-semibold">{course.title}</div>
 
-    updatedAt: new Date(),
-    user: {
-      email: "ezlegini.ir@gmail.com",
-      id: 1,
-      name: "فاطمه احمدی",
-      phone: "09127452859",
-    },
+      <ul>
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Tutor</span>
+          <span className="flex items-center gap-1">
+            <Avatar src={course.tutor?.image?.url} size={20} />
+            <span>{course?.tutor?.name}</span>
+          </span>
+        </li>
 
-    qa: [
-      {
-        createdAt: new Date(),
-        id: 1,
-        message: "سلام",
-        qaId: 1,
-        type: "TUTOR",
-        user: { id: 1, name: "علیرضا ازلگینی" },
-        attachment: { fileUrl: "url", id: 1 },
-      },
-      {
-        createdAt: new Date(),
-        id: 1,
-        message: "سلام",
-        qaId: 1,
-        type: "STUDENT",
-        user: { id: 1, name: "علیرضا ازلگینی" },
-        attachment: { fileUrl: "url", id: 1 },
-      },
-    ],
-  },
-];
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Chats</span>
+          <span>{course.askTutor.length.toLocaleString("en-US")}</span>
+        </li>
+
+        <Separator />
+        <li className="flex justify-between py-2 text-gray-500 text-sm">
+          <span>Messages</span>
+          <span>
+            {(course.askTutor[index]?.messages?.length || 0).toLocaleString(
+              "en-US"
+            )}
+          </span>
+        </li>
+      </ul>
+
+      <Link href={`/qa/courses/${course.id}`}>
+        <Button variant={"outline"} className="w-full">
+          View Chats
+        </Button>
+      </Link>
+    </div>
+  );
+};
