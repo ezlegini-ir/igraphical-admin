@@ -61,7 +61,16 @@ export const MyLineChart = ({
 
   return (
     <ChartContainer config={chartConfig} className="h-[70px] w-full">
-      <LineChart accessibilityLayer data={chartData}>
+      <LineChart
+        margin={{
+          top: 12,
+          bottom: 10,
+          left: 10,
+          right: 10,
+        }}
+        accessibilityLayer
+        data={chartData}
+      >
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent hideLabel />}
@@ -154,7 +163,7 @@ export default function MyLineChartWide({ data, config }: Props) {
           <Area
             key={key}
             dataKey={key}
-            type="natural"
+            type="monotone"
             fill={`url(#${key})`}
             fillOpacity={0.6}
             stroke={config[key].color}

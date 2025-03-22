@@ -1,20 +1,22 @@
 import CardBox from "@/components/CardBox";
 import Table from "@/components/Table";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Comment, Post, User } from "@prisma/client";
 import Link from "next/link";
 
+interface CommentType extends Comment {
+  author: User | null;
+  post: Post;
+}
+
 interface Props {
-  comments: {
-    comment: string;
-    author: string;
-    post: { title: string; href: string };
-  }[];
+  comments: CommentType[];
 }
 
 const RecentComments = ({ comments }: Props) => {
   return (
     <CardBox
-      btn={{ title: "View All", href: "#" }}
+      btn={{ title: "View All", href: "/posts/comments" }}
       title="Recent Comments"
       className="col-span-6"
     >
@@ -28,22 +30,25 @@ const RecentComments = ({ comments }: Props) => {
   );
 };
 
-const renderRows = (data: {
-  comment: string;
-  author: string;
-  post: { href: string; title: string };
-}) => {
+const renderRows = (comment: CommentType) => {
   return (
-    <TableRow className="text-xs text-gray-500">
+    <TableRow className="text-xs text-gray-500 odd:bg-slate-50">
       <TableCell className="flex flex-col gap-1">
-        {data.comment}
-        <Link className="text-primary/60" href={data.author}>
-          {data.author}
+        {comment.content}
+        <Link
+          className="text-primary/60"
+          href={`/students?search=${comment.author?.email}`}
+        >
+          {comment.author?.fullName || "GUEST"}
         </Link>
       </TableCell>
       <TableCell className="text-right">
-        <Link dir="rtl" className="text-primary/60" href={data.post.href}>
-          {data.post.title}
+        <Link
+          dir="rtl"
+          className="text-primary/60"
+          href={`/posts/${comment.post.id}`}
+        >
+          {comment.post.title}
         </Link>
       </TableCell>
     </TableRow>
@@ -52,7 +57,7 @@ const renderRows = (data: {
 
 const columns = [
   { label: "Comment", className: "text-left" },
-  { label: "Post", className: "w-[200px]" },
+  { label: "Post", className: "w-[200px] text-right" },
 ];
 
 export default RecentComments;

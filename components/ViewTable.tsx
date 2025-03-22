@@ -2,6 +2,7 @@ import Table from "@/components/Table";
 import { Button } from "@/components/ui/button";
 
 import { TableCell, TableRow } from "@/components/ui/table";
+import { formatNumber } from "@/lib/utils";
 import Link from "next/link";
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 
 const ViewsTable = ({ tableData }: Props) => {
   return (
-    <div className="card col-span-3 p-6 space-y-3">
+    <div className="card col-span-6 2xl:col-span-3 p-6 space-y-3">
       <div className="flex justify-between items-center">
         <p className="font-medium">Views Data</p>
         <Link href={"#"}>
@@ -24,12 +25,7 @@ const ViewsTable = ({ tableData }: Props) => {
         </Link>
       </div>
 
-      <Table
-        columns={columns}
-        data={tableData}
-        renderRows={renderRows}
-        noDataMessage={"No Data Available"}
-      />
+      <Table columns={columns} data={tableData} renderRows={renderRows} />
     </div>
   );
 };
@@ -47,15 +43,17 @@ const renderRows = (data: {
         {data.title}
       </TableCell>
       <TableCell className="text-center text-orange-600">
-        {data.sessions}K
+        {formatNumber(data.sessions)}
       </TableCell>
-      <TableCell className="text-right text-primary">{data.views}K</TableCell>
+      <TableCell className="text-right text-primary">
+        {formatNumber(data.views)}
+      </TableCell>
     </TableRow>
   );
 };
 
 const columns = [
-  { label: "Title", className: "text-left w-1/3" },
+  { label: "Title", className: "text-left w-1/2" },
   { label: "Sessions", className: "text-center w-1/3" },
-  { label: "Views", className: "w-1/3" },
+  { label: "Views", className: "w-1/3 text-right" },
 ];

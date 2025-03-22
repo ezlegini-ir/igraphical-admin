@@ -8,7 +8,7 @@ import { RadialBar, RadialBarChart, PolarRadiusAxis, Label } from "recharts";
 interface RadialChartProps {
   chartData: { left: number; right: number }[];
   chartConfig: any;
-  total: number;
+  total: string;
   innerRadius?: number;
   outerRadius?: number;
   dataKeys: { left: string; right: string };
@@ -18,7 +18,7 @@ interface RadialChartProps {
 const RadialChartBar = ({
   chartData,
   chartConfig,
-  total: totalVisitors,
+  total,
   innerRadius = 80,
   outerRadius = 135,
   dataKeys,
@@ -52,7 +52,7 @@ const RadialChartBar = ({
                         y={(viewBox.cy || 0) - 25}
                         className="fill-foreground text-2xl font-bold"
                       >
-                        {totalVisitors.toLocaleString()}
+                        {total}
                       </tspan>
                       <tspan
                         x={viewBox.cx}

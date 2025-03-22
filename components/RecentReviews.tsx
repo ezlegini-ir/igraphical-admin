@@ -3,22 +3,17 @@ import Table from "@/components/Table";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Star } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import { ReviewType } from "./ReviewCard";
 
 interface Props {
-  reviews: {
-    review: string;
-    rate: number;
-    course: { title: string; href: string };
-    student: { name: string; href: string };
-  }[];
+  reviews: ReviewType[];
 }
 
 const RecentReviews = ({ reviews }: Props) => {
   return (
     <CardBox
-      btn={{ title: "View All", href: "#" }}
-      title="Recent Comments"
+      btn={{ title: "View All", href: "/courses/reviews" }}
+      title="Recent Reviews"
       className="col-span-6"
     >
       <Table
@@ -31,22 +26,21 @@ const RecentReviews = ({ reviews }: Props) => {
   );
 };
 
-const renderRows = (data: {
-  review: string;
-  rate: number;
-  course: { href: string; title: string };
-  student: { name: string; href: string };
-}) => {
+const renderRows = (review: ReviewType) => {
   return (
-    <TableRow className="text-xs text-gray-500">
+    <TableRow className="text-xs text-gray-500 odd:bg-slate-50">
       <TableCell className="flex flex-col gap-1">
-        {data.review}
+        {review.content}
         <span className="flex items-center gap-1">
-          <Link dir="rtl" className="text-primary/60" href={data.course.href}>
-            {data.course.title}
+          <Link
+            dir="rtl"
+            className="text-primary/60"
+            href={`/courses/${review.course.id}`}
+          >
+            {review.course.title}
           </Link>
           <div className="flex">
-            {Array.from({ length: data.rate }).map((_, index) => (
+            {Array.from({ length: review.rate }).map((_, index) => (
               <Star
                 key={index}
                 fill="#eab308"
@@ -58,7 +52,12 @@ const renderRows = (data: {
         </span>
       </TableCell>
       <TableCell className="text-right">
-        <Link href={data.student.href}>{data.student.name}</Link>
+        <Link
+          className="text-primary/60"
+          href={`/students?search=${review.user?.email}`}
+        >
+          {review.user.fullName}
+        </Link>
       </TableCell>
     </TableRow>
   );
@@ -66,7 +65,7 @@ const renderRows = (data: {
 
 const columns = [
   { label: "Review", className: "text-left" },
-  { label: "Student", className: "w-[150px]" },
+  { label: "Student", className: "w-[150px] text-right" },
 ];
 
 export default RecentReviews;

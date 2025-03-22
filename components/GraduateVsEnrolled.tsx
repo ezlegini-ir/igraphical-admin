@@ -9,10 +9,11 @@ interface Props {
 }
 
 const GraduateVsEnrolled = ({ chartData }: Props) => {
-  const totalVisitors = chartData[0].left + chartData[0].right;
+  const total =
+    "%" + ((chartData[0].left / chartData[0].right) * 100).toFixed(1);
 
   return (
-    <div className="card p-6 col-span-3 space-y-5">
+    <div className="card p-6 col-span-12 sm:col-span-6 xl:col-span-3 space-y-5">
       <div className="flex justify-between items-center">
         <p className="font-medium">Completion Rate</p>
         <EllipsisVertical size={18} className="text-gray-500" />
@@ -21,9 +22,9 @@ const GraduateVsEnrolled = ({ chartData }: Props) => {
       <RadialChartBar
         chartConfig={chartConfig}
         chartData={chartData}
-        total={totalVisitors}
+        total={total}
         dataKeys={{ left: "left", right: "right" }}
-        label="Total Enrollments"
+        label="Completion Rate"
       />
     </div>
   );

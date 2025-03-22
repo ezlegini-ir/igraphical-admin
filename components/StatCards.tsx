@@ -10,47 +10,49 @@ type statsDataType = {
 }[];
 
 interface Props {
-  data: {
-    revenue: statsDataType;
-    students: statsDataType;
-    solvedTickets: statsDataType;
-  };
+  revenue: statsDataType;
+  students: statsDataType;
+  solvedTickets: statsDataType;
 }
 
-const StatCards = ({ data }: Props) => {
-  const totalRevenue = calculateSum(data.revenue, "value");
-  const totalStudents = calculateSum(data.students, "value");
-  const totalSolvedTickets = calculateSum(data.solvedTickets, "value");
+const StatCards = ({ revenue, solvedTickets, students }: Props) => {
+  const totalRevenue = calculateSum(revenue, "value");
+  const totalStudents = calculateSum(students, "value");
+  const totalSolvedTickets = calculateSum(solvedTickets, "value");
+
+  const responsiveStyles = "col-span-12 sm:col-span-6 xl:col-span-3";
 
   return (
     <>
-      <div className="col-span-3">
+      <div className={responsiveStyles}>
         <StatCard
-          chartData={data.students}
+          chartData={students}
           dataKey="value"
           total={totalStudents}
           icon={<Users size={18} />}
           title={"Students"}
           valueChange={30.5}
           colorVariant={"blue"}
+          chartType="line"
         />
       </div>
 
-      <div className="col-span-3">
+      <div className={responsiveStyles}>
         <StatCard
-          chartData={data.revenue}
+          chartData={revenue}
           dataKey="value"
           total={totalRevenue}
           icon={<CreditCard size={18} />}
           title={"Revenue"}
           valueChange={30.5}
           colorVariant={"green"}
+          chartType="line"
         />
       </div>
 
-      <div className="col-span-3">
+      <div className={responsiveStyles}>
         <StatCard
-          chartData={data.solvedTickets}
+          chartData={solvedTickets}
           dataKey="value"
           total={totalSolvedTickets}
           icon={<MessageCircle size={18} />}

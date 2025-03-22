@@ -4,16 +4,18 @@ import { getSessionAdmin } from "@/data/admin";
 import { Home, MessageCircle, MessageSquareMore, Star } from "lucide-react";
 import Link from "next/link";
 import AdminUserBar from "./AdminUserBar";
+import { getOnlineUsers } from "@/data/ga";
 
 const DashboardHeader = async () => {
   const sessionUser = await getSessionAdmin();
+  const onlineUsers = (await getOnlineUsers()).data;
 
   return (
     <div className=" flex justify-between items-center">
       <div className="flex gap-3 items-center">
         <SidebarTrigger className="h-6 w-6" />
         <Badge variant={"blue"} className="py-3 px-4 text-sm leading-none">
-          Online: 16
+          Online: {onlineUsers}
         </Badge>
       </div>
 

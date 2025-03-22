@@ -1,24 +1,13 @@
 import Avatar from "@/components/Avatar";
-import { avatar, profile } from "@/public";
+import { avatar } from "@/public";
+import { Course, Review, User } from "@prisma/client";
 import { Star } from "lucide-react";
 import CardBox from "./CardBox";
 
-export type ReviewType = {
-  id: number;
-  content: string;
-  user: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  rate: number;
-  createdAt: Date;
-  course: {
-    id: number;
-    title: string;
-  };
-};
+export interface ReviewType extends Review {
+  user: User;
+  course: Course;
+}
 
 export interface ReviewCardProps {
   review: ReviewType;
