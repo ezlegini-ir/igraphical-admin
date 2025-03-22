@@ -2,7 +2,7 @@
 
 import { CreditCard, MessageCircle, Users } from "lucide-react";
 import StatCard from "./StatCard";
-import { calculateSum } from "@/lib/calculate";
+import { calculateSum } from "@/lib/utils";
 
 type statsDataType = {
   date: string;
@@ -11,11 +11,21 @@ type statsDataType = {
 
 interface Props {
   revenue: statsDataType;
+  revenueComparison: number;
   students: statsDataType;
+  studentComparison: number;
   solvedTickets: statsDataType;
+  solvedTicketsComparison: number;
 }
 
-const StatCards = ({ revenue, solvedTickets, students }: Props) => {
+const StatCards = ({
+  revenue,
+  solvedTickets,
+  students,
+  studentComparison,
+  revenueComparison,
+  solvedTicketsComparison,
+}: Props) => {
   const totalRevenue = calculateSum(revenue, "value");
   const totalStudents = calculateSum(students, "value");
   const totalSolvedTickets = calculateSum(solvedTickets, "value");
@@ -31,7 +41,7 @@ const StatCards = ({ revenue, solvedTickets, students }: Props) => {
           total={totalStudents}
           icon={<Users size={18} />}
           title={"Students"}
-          valueChange={30.5}
+          valueChange={+studentComparison.toFixed()}
           colorVariant={"blue"}
           chartType="line"
         />
@@ -44,7 +54,7 @@ const StatCards = ({ revenue, solvedTickets, students }: Props) => {
           total={totalRevenue}
           icon={<CreditCard size={18} />}
           title={"Revenue"}
-          valueChange={30.5}
+          valueChange={+revenueComparison.toFixed()}
           colorVariant={"green"}
           chartType="line"
         />
@@ -57,7 +67,7 @@ const StatCards = ({ revenue, solvedTickets, students }: Props) => {
           total={totalSolvedTickets}
           icon={<MessageCircle size={18} />}
           title={"Solved Tickets"}
-          valueChange={30.5}
+          valueChange={+solvedTicketsComparison.toFixed()}
           colorVariant={"orange"}
           chartType="line"
         />

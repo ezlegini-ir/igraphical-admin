@@ -83,7 +83,7 @@ export function aggregateByDay<T>(
   days: number = 13
 ): { date: string; value: number }[] {
   const endDate = new Date();
-  const startDate = subDays(endDate, days - 1);
+  const startDate = subDays(endDate, days);
 
   const aggregation: Record<string, number> = items.reduce(
     (acc, item) => {
@@ -141,3 +141,7 @@ export const getSumByTimeRange = (
       0
     );
 };
+
+export function calculateSum(values: any[], key: string) {
+  return values.reduce((acc, curr) => acc + curr[key], 0);
+}

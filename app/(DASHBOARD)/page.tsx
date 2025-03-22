@@ -12,7 +12,7 @@ import DashboardViewsChart from "../../components/ViewsChart";
 import ViewsTable from "../../components/ViewTable";
 
 const page = async () => {
-  const dateCriteria = { gte: subDays(new Date(), 14) };
+  const dateCriteria = { gte: subDays(new Date(), 28) };
 
   //! STUDENTS ---------------------------------------
   const students = await prisma.user.findMany({
@@ -52,6 +52,14 @@ const page = async () => {
   }
 
   const studentsData = getUserCountByDay(students);
+  const thisPeroidStudents = studentsData.reduce(
+    (acc, curr) => acc + curr.value,
+    0
+  );
+  const lastPeroidStudents = students.length - thisPeroidStudents;
+
+  const studentComparison =
+    ((thisPeroidStudents - lastPeroidStudents) / lastPeroidStudents) * 100;
 
   //! REVENUE ---------------------------------------
   const payments = await prisma.payment.findMany({
@@ -65,6 +73,17 @@ const page = async () => {
     (payment) => payment.paidAt.toISOString().split("T")[0],
     (payment) => payment.total
   );
+
+  const thisPeroidRevenueSum = revenue.reduce(
+    (acc, curr) => acc + curr.value,
+    0
+  );
+  const lastPeroidRevenueSum =
+    payments.reduce((acc, curr) => acc + curr.total, 0) - thisPeroidRevenueSum;
+
+  const revenueComparison =
+    ((thisPeroidRevenueSum - lastPeroidRevenueSum) / lastPeroidRevenueSum) *
+    100;
 
   //! SOLVED TICKETS ---------------------------------------
 
@@ -81,6 +100,18 @@ const page = async () => {
     (ticket) => ticket.updatedAt.toISOString().split("T")[0],
     () => 1
   );
+
+  const thisPeroidSolvedTickets = solvedTicketsData.reduce(
+    (acc, curr) => acc + curr.value,
+    0
+  );
+  const lastPeroidSolvedTickets =
+    solvedTickets.length - thisPeroidSolvedTickets;
+
+  const solvedTicketsComparison =
+    ((thisPeroidSolvedTickets - lastPeroidSolvedTickets) /
+      lastPeroidSolvedTickets) *
+    100;
 
   //! Graduate Vs Enrolled ---------------------------------------
 
@@ -131,8 +162,11 @@ const page = async () => {
     <div className="grid grid-cols-12 gap-6">
       <StatCards
         revenue={revenue}
-        solvedTickets={solvedTicketsData}
+        revenueComparison={revenueComparison}
         students={studentsData}
+        studentComparison={studentComparison}
+        solvedTickets={solvedTicketsData}
+        solvedTicketsComparison={solvedTicketsComparison}
       />
 
       <GraduateVsEnrolled chartData={GraduateVsEnrolledChartData} />
