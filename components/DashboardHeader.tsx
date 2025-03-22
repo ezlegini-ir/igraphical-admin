@@ -1,17 +1,22 @@
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getSessionAdmin } from "@/data/admin";
-import { Home, MessageCircle, MessageSquareMore, Star } from "lucide-react";
+import { getOnlineUsers } from "@/data/ga";
+import prisma from "@/prisma/client";
+import { Home, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import AdminUserBar from "./AdminUserBar";
-import { getOnlineUsers } from "@/data/ga";
 
 const DashboardHeader = async () => {
   const sessionUser = await getSessionAdmin();
   const onlineUsers = (await getOnlineUsers()).data;
 
+  const pendingTicketsCount = await prisma.ticket.count({
+    where: { status: "PENDING" },
+  });
+
   return (
-    <div className=" flex justify-between items-center">
+    <div className="flex justify-between items-center">
       <div className="flex gap-3 items-center">
         <SidebarTrigger className="h-6 w-6" />
         <Badge variant={"blue"} className="py-3 px-4 text-sm leading-none">
@@ -19,35 +24,52 @@ const DashboardHeader = async () => {
         </Badge>
       </div>
 
-      <div className="flex items-center gap-5 lg:gap-8">
+      <div className="flex items-center gap-5 lg:gap-6 text-gray-500/75">
         <div>
-          <Link href={"/tickets/list"} className="relative">
-            <MessageCircle className="text-gray-600" size={22} />
-            <div className="bg-red-500 text-white aspect-square w-4 h-4 flex justify-center items-center rounded text-xs absolute -top-[7px] -right-[7px]">
-              3
-            </div>
+          <Link href={"/tickets/list?status=PENDING"} className="relative">
+            <MessageCircle size={22} />
+            {pendingTicketsCount > 0 && (
+              <Badge
+                variant={"red"}
+                className="p-0 w-4 h-4 absolute -top-[7px] -right-[7px]"
+              >
+                {pendingTicketsCount}
+              </Badge>
+            )}
           </Link>
         </div>
-        <div>
+
+        {/* <div>
           <Link href={"/courses/reviews"} className="relative">
-            <Star className="text-gray-600" size={22} />
-            <div className="bg-primary text-white aspect-square w-4 h-4 flex justify-center items-center rounded text-xs absolute -top-[7px] -right-[7px]">
+            <Star size={22} />
+            <Badge
+              variant={"blue"}
+              className="p-0 w-4 h-4 absolute -top-[7px] -right-[7px]"
+            >
               1
-            </div>
-          </Link>
-        </div>
-        <div>
-          <Link href={"/posts/comments"} className="relative">
-            <MessageSquareMore className="text-gray-600" size={22} />
-            <div className="bg-green-500 text-white aspect-square w-4 h-4 flex justify-center items-center rounded text-xs absolute -top-[7px] -right-[7px]">
-              1
-            </div>
+            </Badge>
           </Link>
         </div>
 
         <div>
-          <Link href={"/tickets/list"} className="relative">
-            <Home className="text-gray-600" size={22} />
+          <Link href={"/posts/comments"} className="relative">
+            <MessageSquareMore size={22} />
+            <Badge
+              variant={"green"}
+              className="p-0 w-4 h-4 absolute -top-[7px] -right-[7px]"
+            >
+              1
+            </Badge>
+          </Link>
+        </div> */}
+
+        <div>
+          <Link
+            target="_blank"
+            href={`${process.env.NEXT_PUBLIC_MAIN_URL}`}
+            className="relative"
+          >
+            <Home size={22} />
           </Link>
         </div>
 

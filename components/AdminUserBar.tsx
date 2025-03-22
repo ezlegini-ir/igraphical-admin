@@ -7,17 +7,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import {
-  ChartNoAxesCombined,
   FilePlus2,
   GalleryHorizontal,
   LogOut,
   MessageCircle,
   Percent,
   Plus,
-  User as UserIcon,
-  UserPlus,
+  User,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -47,24 +45,21 @@ const UserBar = ({ user }: Props) => {
           </div>
 
           <div className="flex flex-col">
-            {menuItems.map((item, index) => (
-              <Link key={index} href={`/${item.href}`}>
-                <Button className="w-full justify-start" variant={"ghost"}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Button>
-              </Link>
+            {menuItems.map((group, index) => (
+              <div key={index}>
+                <span className="text-gray-400 text-xs">
+                  {group.groupLabel}
+                </span>
+                {group.items.map((items, index) => (
+                  <Link key={index} href={items.href}>
+                    <Button className="w-full justify-start" variant={"ghost"}>
+                      <items.icon />
+                      <span>{items.label}</span>
+                    </Button>
+                  </Link>
+                ))}
+              </div>
             ))}
-          </div>
-
-          <div className="space-y-3">
-            <Separator />
-
-            <Button className="w-full justify-start" variant={"ghost"}>
-              <UserIcon />
-              <span>My Profile</span>
-            </Button>
-            <Separator />
           </div>
 
           <form
@@ -85,13 +80,30 @@ const UserBar = ({ user }: Props) => {
 };
 
 const menuItems = [
-  { label: "Dashboard", href: "", icon: ChartNoAxesCombined },
-  { label: "Announcements", href: "announcements", icon: GalleryHorizontal },
-  { label: "Tickets", href: "tickets", icon: MessageCircle },
-  { label: "Overall Off", href: "panel/profile", icon: Percent },
-  { label: "New Post", href: "posts/new", icon: FilePlus2 },
-  { label: "New Student", href: "students/new", icon: UserPlus },
-  { label: "New Course", href: "courses/new", icon: Plus },
+  {
+    groupLabel: "Add Content",
+    items: [
+      { label: "New Post", href: "/posts/new", icon: FilePlus2 },
+      { label: "New Course", href: "/courses/new", icon: Plus },
+    ],
+  },
+  {
+    groupLabel: "Quick Access",
+    items: [
+      { label: "Students", href: "/students", icon: Users },
+      {
+        label: "Announcements",
+        href: "announcements",
+        icon: GalleryHorizontal,
+      },
+      { label: "Tickets", href: "/tickets", icon: MessageCircle },
+      { label: "Coupons", href: "/marketing/coupons", icon: Percent },
+    ],
+  },
+  {
+    groupLabel: "Profile",
+    items: [{ label: "My Profile", href: "#", icon: User }],
+  },
 ];
 
 export default UserBar;
