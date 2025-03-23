@@ -31,7 +31,7 @@ const NotifBarForm = ({ notifBar }: Props) => {
     resolver: zodResolver(notifbarFormSchema),
     mode: "onSubmit",
     defaultValues: {
-      content: notifBar?.content || "",
+      content: notifBar?.content || "Write Here...",
       link: notifBar?.link || "",
       active: notifBar?.active || false,
       bgColor: notifBar?.bgColor || "#3b82f6",
@@ -58,8 +58,8 @@ const NotifBarForm = ({ notifBar }: Props) => {
     }
   };
 
-  const bgColor = form.getValues("bgColor");
-  const textColor = form.getValues("textColor");
+  const bgColor = form.watch("bgColor");
+  const textColor = form.watch("textColor");
 
   return (
     <div className="w-full">

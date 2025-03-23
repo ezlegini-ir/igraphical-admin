@@ -9,7 +9,8 @@ import { deleteCloudFile, uploadManyCloudFiles } from "./cloudinary";
 //* CREATE ------------------------------------------------------------
 
 export const createSlider = async (data: SlidersFormType, type: SliderType) => {
-  const { images: images } = data;
+  console.log("started");
+  const { images } = data;
 
   try {
     const buffers = await Promise.all(
@@ -20,8 +21,11 @@ export const createSlider = async (data: SlidersFormType, type: SliderType) => {
 
     const uploadedSliders = (await uploadManyCloudFiles(buffers, {
       folder: "slider",
+      resource_type: "image",
       width: 1500,
     })) as UploadApiResponse[];
+
+    console.log(uploadedSliders);
 
     await prisma.$transaction(async (tx) => {
       const newSliders = await Promise.all(
@@ -58,7 +62,7 @@ export const createSlider = async (data: SlidersFormType, type: SliderType) => {
 
     return { success: "Sliders Created Successfully" };
   } catch (error) {
-    return { error: "Error 500: " + error };
+    return { error: String(error) };
   }
 };
 

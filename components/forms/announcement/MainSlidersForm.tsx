@@ -1,13 +1,9 @@
 "use client";
 
 import { createSlider, updateSlider } from "@/actions/slider";
-import Error from "@/components/Error";
-import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
-import useSuccess from "@/hooks/useSuccess";
 import { SlidersFormType, slidersFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image, Slider } from "@prisma/client";
@@ -27,9 +23,7 @@ export interface SlidersProps {
 
 const MainSlidersForm = ({ sliders }: SlidersProps) => {
   // HOOKS
-  const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { success, setSuccess } = useSuccess();
   const router = useRouter();
 
   const form = useForm<SlidersFormType>({
@@ -38,12 +32,12 @@ const MainSlidersForm = ({ sliders }: SlidersProps) => {
     defaultValues: {
       images: sliders?.map((slider) => ({
         active: slider.active,
-        link: slider.link || "", // Ensure it's always a string
-        image: undefined, // File remains undefined if not provided
+        link: slider.link || "",
+        image: undefined,
       })) || [
         {
           active: false,
-          link: "", // Default to empty string
+          link: "",
           image: undefined,
         },
       ],
@@ -56,8 +50,6 @@ const MainSlidersForm = ({ sliders }: SlidersProps) => {
   });
 
   const onSubmit = async (data: SlidersFormType) => {
-    setError("");
-    setSuccess("");
     setLoading(true);
 
     const operationPromise = sliders?.length
@@ -103,9 +95,6 @@ const MainSlidersForm = ({ sliders }: SlidersProps) => {
               Save
             </Button>
           </div>
-
-          <Error error={error} />
-          <Success success={success} />
 
           <SlidersForm
             fields={fields}

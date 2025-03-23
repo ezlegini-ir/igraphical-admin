@@ -146,7 +146,7 @@ const SlidersForm = ({ form, remove, fields, images, sliders }: Props) => {
     <div>
       <FormItem>
         <div className="space-y-2">
-          {fields.map((fielde, index) => (
+          {fields.map((field, index) => (
             <div key={fields[index].id} className="flex flex-col gap-2">
               <Accordion type="single" collapsible>
                 <AccordionItem value={`item-${index}`} className="card py-0">

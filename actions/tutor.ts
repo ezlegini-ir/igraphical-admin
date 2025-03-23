@@ -10,7 +10,17 @@ import { UploadApiResponse } from "cloudinary";
 //* CREATE ------------------------------------------------------------
 
 export const createTutor = async (data: TutorFormType) => {
-  const { displayName, email, name, phone, password, image, slug } = data;
+  const {
+    displayName,
+    email,
+    name,
+    phone,
+    password,
+    image,
+    slug,
+    bio,
+    titles,
+  } = data;
   if (!password) return { error: "Password Required." };
 
   try {
@@ -32,6 +42,8 @@ export const createTutor = async (data: TutorFormType) => {
         password: hashedPassword,
         phone,
         slug,
+        titles,
+        bio,
       },
     });
 
@@ -64,7 +76,7 @@ export const createTutor = async (data: TutorFormType) => {
       });
     }
 
-    return { success: "Created Successfully" };
+    return { success: "Tutor Created Successfully" };
   } catch (error) {
     return { error: "Error 500: " + error };
   }
@@ -73,7 +85,18 @@ export const createTutor = async (data: TutorFormType) => {
 //? UPDATE ------------------------------------------------------------
 
 export const updateTutor = async (data: TutorFormType & { id: number }) => {
-  const { displayName, email, id, name, phone, password, image, slug } = data;
+  const {
+    displayName,
+    email,
+    id,
+    name,
+    phone,
+    password,
+    image,
+    slug,
+    bio,
+    titles,
+  } = data;
 
   try {
     const existingTutor = await getTutorById(id);
@@ -102,6 +125,8 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
         password: password ? hashedPassword : existingTutor.password,
         phone,
         slug,
+        bio,
+        titles,
       },
       include: { image: true },
     });
@@ -152,7 +177,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
       }
     }
 
-    return { success: "Updated Successfully" };
+    return { success: "Tutor Updated Successfully" };
   } catch (error) {
     return { error: "Error 500: " + error };
   }

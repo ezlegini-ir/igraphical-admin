@@ -57,8 +57,15 @@ export const uploadManyCloudFiles = async (
       cloudinary.uploader
         .upload_stream(
           {
-            folder: options?.folder || "/files",
-            format: options?.format || "auto",
+            folder:
+              options?.resource_type === "raw"
+                ? `/files/${options.folder}`
+                : options?.resource_type === "video"
+                  ? `/videos/${options.folder}`
+                  : `/images/${options?.folder}`,
+            format:
+              options?.resource_type === "image" ? "webp" : options?.format,
+            resource_type: options?.resource_type || "image",
             transformation: [{ width: options?.width || 500, crop: "limit" }],
           },
           (error, result) => {

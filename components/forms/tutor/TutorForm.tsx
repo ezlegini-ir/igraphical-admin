@@ -1,9 +1,9 @@
 "use client";
 
+import { createTutor, deleteTutor, updateTutor } from "@/actions/tutor";
+import { TutorType } from "@/app/(DASHBOARD)/tutors/TutorsList";
 import DeleteButton from "@/components/DeleteButton";
-import Error from "@/components/Error";
 import Loader from "@/components/Loader";
-import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,17 +15,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import useError from "@/hooks/useError";
+import { Textarea } from "@/components/ui/textarea";
+import useImagePreview from "@/hooks/useImagePreview";
 import useLoading from "@/hooks/useLoading";
-import useSuccess from "@/hooks/useSuccess";
 import { TutorFormType, tutorFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { createTutor, deleteTutor, updateTutor } from "@/actions/tutor";
-import { TutorType } from "@/app/(DASHBOARD)/tutors/TutorsList";
+import { toast } from "sonner";
 import AvatarField from "../AvatarField";
-import useImagePreview from "@/hooks/useImagePreview";
 
 interface Props {
   tutor?: TutorType;
@@ -35,9 +33,7 @@ interface Props {
 const TutorForm = ({ type, tutor }: Props) => {
   // HOOKS
   const router = useRouter();
-  const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
-  const { success, setSuccess } = useSuccess();
   const { imagePreview, setImagePreview } = useImagePreview(tutor?.image?.url);
 
   const isUpdateType = type === "UPDATE";
@@ -52,11 +48,12 @@ const TutorForm = ({ type, tutor }: Props) => {
       email: tutor?.email || "",
       phone: tutor?.phone || "",
       slug: tutor?.slug || "",
+      bio: tutor?.bio || "",
+      titles: tutor?.titles || "",
     },
   });
 
   const onSubmit = async (data: TutorFormType) => {
-    setError("");
     setLoading(true);
 
     let res;
@@ -67,13 +64,13 @@ const TutorForm = ({ type, tutor }: Props) => {
     }
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       setLoading(false);
       return;
     }
 
     if (res.success) {
-      setSuccess(res.success);
+      toast.success(res.success);
       router.refresh();
       setLoading(false);
       form.reset();
@@ -81,18 +78,19 @@ const TutorForm = ({ type, tutor }: Props) => {
   };
 
   const onDelete = async () => {
-    setError("");
-    setSuccess("");
     setLoading(true);
 
     const res = await deleteTutor(tutor?.id!);
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       setLoading(false);
     }
 
-    router.refresh();
+    if (res.success) {
+      toast.success(res.success);
+      router.refresh();
+    }
   };
 
   return (
@@ -106,14 +104,57 @@ const TutorForm = ({ type, tutor }: Props) => {
           public_id={tutor?.image?.public_id}
         />
 
+        <div className="flex gap-3">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Display Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormField
           control={form.control}
-          name="name"
+          name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Textarea dir="rtl" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="titles"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Titles</FormLabel>
+              <FormControl>
+                <Textarea dir="rtl" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,47 +175,35 @@ const TutorForm = ({ type, tutor }: Props) => {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="displayName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Display Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex gap-3">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input className="en-digits" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input className="en-digits" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input maxLength={11} className="en-digits" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Phone</FormLabel>
+                <FormControl>
+                  <Input maxLength={11} className="en-digits" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
@@ -198,7 +227,9 @@ const TutorForm = ({ type, tutor }: Props) => {
         />
 
         <Button
-          disabled={!form.formState.isValid || loading}
+          disabled={
+            !form.formState.isValid || loading || !form.formState.isDirty
+          }
           className="w-full flex gap-2"
           type="submit"
         >
@@ -207,8 +238,6 @@ const TutorForm = ({ type, tutor }: Props) => {
         </Button>
 
         {isUpdateType && <DeleteButton onDelete={onDelete} />}
-        <Error error={error} />
-        <Success success={success} />
       </form>
     </Form>
   );

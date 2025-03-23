@@ -45,8 +45,10 @@ model Tutor {
   id          Int        @id @default(autoincrement())
   name        String
   displayName String
-  slug        String
+  slug        String     @unique
   password    String
+  bio         String     @db.Text
+  titles      String
   phone       String     @unique
   email       String     @unique
   joinedAt    DateTime   @default(now())

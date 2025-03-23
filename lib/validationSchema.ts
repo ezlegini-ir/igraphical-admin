@@ -167,7 +167,7 @@ export type ReviewFormType = z.infer<typeof reviewFormSchema>;
 export const slidersFormSchema = z.object({
   images: z.array(
     z.object({
-      link: z.string().min(1).optional(),
+      link: z.string().optional(),
       image: z.instanceof(File).optional(),
       active: z.boolean(),
     })
@@ -177,7 +177,7 @@ export type SlidersFormType = z.infer<typeof slidersFormSchema>;
 // --------------
 export const notifbarFormSchema = z.object({
   content: z.string().min(1),
-  link: z.string().min(1),
+  link: z.string().optional(),
   bgColor: z.string().min(1),
   textColor: z.string().min(1),
   active: z.boolean(),
@@ -269,6 +269,8 @@ export const tutorFormSchema = z.object({
   email: z.string().min(1),
   slug: z.string().min(1),
   phone: z.string().min(1),
+  bio: z.string().min(1),
+  titles: z.string().min(1),
   image,
   password: z
     .string()
