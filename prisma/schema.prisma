@@ -26,6 +26,7 @@ model User {
   ticket         Ticket[]
   TicketMessage  TicketMessage[]
   askTutor       AskTutor[]
+  classroom      ClassRoom[]
 }
 
 model Admin {
@@ -297,13 +298,13 @@ enum LessonType {
 model LessonProgress {
   id          Int       @id @default(autoincrement())
   completed   Boolean   @default(false)
-  completedAt DateTime? @default(now())
+  completedAt DateTime?
 
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
   lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   lessonId     Int
-  Enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  Enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   enrollmentId Int
 
   @@unique([userId, lessonId])
@@ -371,8 +372,7 @@ model Enrollment {
   course         Course           @relation(fields: [courseId], references: [id])
   courseId       Int
   certificate    Certificate?
-
-  @@unique([userId, courseId])
+  classroom      ClassRoom?
 }
 
 model Certificate {
@@ -538,4 +538,15 @@ model AskTutorMessages {
 enum AskTutorSenderType {
   USER
   TUTOR
+}
+
+//! CLASSROOM ---------------------------------------------------------
+
+model ClassRoom {
+  id String @id @default(uuid())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  enrollmentId Int        @unique
 }

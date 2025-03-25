@@ -59,20 +59,31 @@ export const createPayment = async (data: PaymentFormType) => {
 
       if (coursesToEnroll.length !== courses.length) {
         throw new Error(
-          `User is already enrolled in ${coursesToEnroll.length === 0 ? "ALL" : courses.length - coursesToEnroll.length} of selected courses.`
+          `User is already enrolled in ${
+            courses.length - coursesToEnroll.length
+          } of the selected courses.`
         );
       }
 
-      await tx.enrollment.createMany({
-        data: coursesToEnroll.map((course) => ({
-          enrolledAt,
-          courseId: course.courseId,
-          userId,
-          paymentId: newerPayment.id,
-          price: course.price,
-          courseOriginalPrice: course.originalPrice,
-        })),
-      });
+      for (const course of coursesToEnroll) {
+        const enrollment = await tx.enrollment.create({
+          data: {
+            enrolledAt,
+            courseId: course.courseId,
+            userId,
+            paymentId: newerPayment.id,
+            price: course.price,
+            courseOriginalPrice: course.originalPrice,
+          },
+        });
+
+        await tx.classRoom.create({
+          data: {
+            userId,
+            enrollmentId: enrollment.id,
+          },
+        });
+      }
 
       return newerPayment;
     });
@@ -80,8 +91,8 @@ export const createPayment = async (data: PaymentFormType) => {
     return {
       success:
         payment && payment.total !== 0
-          ? "Payment and Enrollment Created Successfully"
-          : "Enrollment Created Successfully",
+          ? "Payment, Enrollment, and Classroom Created Successfully"
+          : "Enrollment and Classroom Created Successfully",
       payment: newPayment?.id,
     };
   } catch (error) {

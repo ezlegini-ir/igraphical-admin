@@ -7,6 +7,7 @@ import {
   sendTicketMessage,
   updateTicket,
 } from "@/actions/ticket";
+import Avatar from "@/components/Avatar";
 import CardBox from "@/components/CardBox";
 import DeleteButton from "@/components/DeleteButton";
 import Loader from "@/components/Loader";
@@ -40,7 +41,7 @@ import {
   ticketDepartment,
   ticketStatus,
 } from "@/lib/validationSchema";
-import { avatar, igraphLogoCard } from "@/public";
+import { igraphLogoCard } from "@/public";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   File,
@@ -277,7 +278,10 @@ const TicketForm = ({ type, ticket }: Props) => {
             {ticket?.messages && ticket.messages.length > 0 && <Separator />}
 
             {isUpdateType && (
-              <div className="py-3 space-y-3" dir="rtl">
+              <div
+                className="py-3 space-y-3 max-h-[750px] overflow-auto"
+                dir="rtl"
+              >
                 {ticket?.messages?.map((message, index) => (
                   <div key={index} className="space-y-3 text-sm">
                     <div
@@ -296,16 +300,16 @@ const TicketForm = ({ type, ticket }: Props) => {
 
                       <div className="w-full">
                         <div className="flex items-center gap-2">
-                          <Image
-                            alt=""
-                            src={
-                              message.senderType === "ADMIN"
-                                ? igraphLogoCard
-                                : avatar
-                            }
-                            width={40}
-                            height={40}
-                          />
+                          {message.senderType === "ADMIN" ? (
+                            <Image
+                              alt=""
+                              src={igraphLogoCard}
+                              width={40}
+                              height={40}
+                            />
+                          ) : (
+                            <Avatar src={message.user?.image?.url} />
+                          )}
                           <div className="flex flex-col">
                             <span>
                               {message.senderType === "ADMIN"
@@ -340,6 +344,7 @@ const TicketForm = ({ type, ticket }: Props) => {
                               {truncateName(message.attachment.fileName, 30)}
                             </span>
                             <Button
+                              variant={"lightBlue"}
                               size={"icon"}
                               className="h-8 w-8"
                               type="button"

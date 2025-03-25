@@ -93,6 +93,13 @@ export const sendTicketMessage = async (
       },
     });
 
+    await prisma.ticket.update({
+      where: { id },
+      data: {
+        status: "REPLIED",
+      },
+    });
+
     if (file && file instanceof File) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const fileName = file.name;

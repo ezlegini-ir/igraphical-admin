@@ -1,11 +1,11 @@
+import Avatar from "@/components/Avatar";
 import { TicketType } from "@/components/forms/ticket/TicketForm";
 import Pagination from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { avatar } from "@/public";
+import { formatDate } from "@/lib/date";
 import { Eye, Frown } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 interface Props {
@@ -58,7 +58,7 @@ const TicketCard = ({ ticket }: { ticket: TicketType }) => {
     <div className="card group space-y-4">
       <div className="flex flex-col lg:flex-row gap-5 justify-between lg:items-center">
         <div className="flex items-center gap-2">
-          <Image alt="" src={avatar} width={40} height={40} />
+          <Avatar src={ticket.user.image?.url} />
           <div className="flex flex-col gap-0">
             <p className="w-full h-6">{ticket.user.fullName}</p>
             <div className="flex gap-2">
@@ -71,7 +71,7 @@ const TicketCard = ({ ticket }: { ticket: TicketType }) => {
               </div>
               <p className="text-xs text-gray-500 hidden xl:block">
                 <span className="font-semibold">Last Update:</span>{" "}
-                {ticket.updatedAt.toLocaleString()}
+                {formatDate(ticket.updatedAt)}
               </p>
             </div>
           </div>

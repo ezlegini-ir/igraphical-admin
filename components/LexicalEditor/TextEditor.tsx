@@ -37,7 +37,6 @@ import { parseAllowedFontSize } from "./plugins/ToolbarPlugin/fontSize";
 import TypingPerfPlugin from "./plugins/TypingPerfPlugin";
 import PlaygroundEditorTheme from "./themes/PlaygroundEditorTheme";
 import { parseAllowedColor } from "./ui/ColorPicker";
-import Settings from "./Settings";
 
 // console.warn(
 //   "If you are profiling the playground app, please ensure you turn off the debug view. You can disable it by pressing on the settings control in the bottom-left of your screen and toggling the debug view setting."
@@ -220,7 +219,6 @@ export default function TextEditor({
 
   // Local state for debugging (optional)
   const [editorStateSerialized, setEditorStateSerialized] = useState("");
-
   // Wrap the onChange to update local state then pass it upward
   function handleChange(editorState: EditorState) {
     const serialized = JSON.stringify(editorState.toJSON());
