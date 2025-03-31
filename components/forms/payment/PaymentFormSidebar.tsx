@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { EnrollmentFormType, paymentStatus } from "@/lib/validationSchema";
-import { X } from "lucide-react";
 
 import { deletePayment } from "@/actions/payment";
 import DeleteButton from "@/components/DeleteButton";
@@ -26,30 +25,29 @@ import Loader from "@/components/Loader";
 import { Badge } from "@/components/ui/badge";
 import { getCouponByCode } from "@/data/coupon";
 import useLoading from "@/hooks/useLoading";
-import { formatPrice } from "@/lib/utils";
-import { User } from "@prisma/client";
+import { cashBackCalculator, formatPrice } from "@/lib/utils";
+import { Coupon, CouponType, User, Wallet } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { CourseType, PaymentType } from "./PaymentForm";
+import { Switch } from "@/components/ui/switch";
+
+export interface priceType {
+  price: number;
+  originalPrice: number;
+}
 
 interface Props {
   form: UseFormReturn<EnrollmentFormType>;
   type: "NEW" | "UPDATE";
-  prices: { price: number; originalPrice: number }[] | undefined;
-  setPrices: Dispatch<
-    SetStateAction<
-      | {
-          price: number;
-          originalPrice: number;
-        }[]
-      | undefined
-    >
-  >;
+  prices: priceType[];
+  setPrices: Dispatch<SetStateAction<priceType[]>>;
   selectedUser: User | undefined;
-  selectedCourses: CourseType[] | undefined;
+  selectedCourses: CourseType[];
   payment?: PaymentType;
+  wallet?: Wallet;
 }
 
 const PaymentFormSidebar = ({
@@ -58,6 +56,7 @@ const PaymentFormSidebar = ({
   selectedUser,
   prices,
   selectedCourses,
+  wallet,
   payment,
   setPrices,
 }: Props) => {
@@ -65,54 +64,165 @@ const PaymentFormSidebar = ({
   const { loading: applyDiscountLoading, setLoading: setApplyDiscountLoading } =
     useLoading();
   const router = useRouter();
-
-  const [discountCode, setDiscountCode] = useState(payment?.discountCode);
+  const [coupon, setCoupon] = useState<Coupon>();
 
   // CONSTS
+  const { setValue, watch } = form;
   const isUpdateType = type === "UPDATE";
+  const form_Total = watch("payment.total");
+  const form_ItemsTotal = watch("payment.itemsTotal");
+  const form_DiscountAmount = watch("payment.discountAmount");
+  const form_CouponCode = watch("payment.discountCode");
+  const form_CouponCodeAmount = watch("payment.discountCodeAmount");
+  const walletBalance = wallet?.balance || 0;
+  const useWallet = watch("payment.usedWallet");
+  const usedWalletAmount = watch("payment.usedWalletAmount") || 0;
+  const initialCartTotal =
+    selectedCourses.reduce((acc, curr) => acc + curr.price, 0) || 0;
 
-  const form_Total = form.watch("payment.total");
-  const form_ItemsTotal = form.watch("payment.itemsTotal");
-  const form_DiscountAmount = form.watch("payment.discountAmount");
-  const form_DiscountCode = form.watch("payment.discountCode");
-  const form_DiscountCodeAmount = form.watch("payment.discountCodeAmount");
-
-  //! UPDATE COURSES PRICE ---------------------------------------------------
+  //! EFFECTS ------------------------
   useEffect(() => {
-    const itemsTotal = prices?.reduce((acc, curr) => acc + curr.price, 0) || 0;
-    form.setValue("payment.itemsTotal", itemsTotal);
+    const recalcTotals = () => {
+      const itemsTotal = prices.reduce(
+        (acc, curr) => acc + curr.originalPrice,
+        0
+      );
+      setValue("payment.itemsTotal", itemsTotal);
 
-    form.setValue("payment.total", itemsTotal - form_DiscountAmount);
-  }, [selectedCourses, form]);
+      const total = prices.reduce((acc, curr) => acc + curr.price, 0);
+      setValue("payment.total", total);
 
-  //! UPDATE PRICE ---------------------------------------------------
-  useEffect(() => {
-    const totalDiscountAmount = form_ItemsTotal - form_Total;
+      const discount = itemsTotal - form_Total - usedWalletAmount;
+      setValue("payment.discountAmount", discount);
 
-    form.setValue(
-      "payment.discountAmount",
-      Math.min(form_ItemsTotal, totalDiscountAmount)
-    );
-  }, [form_Total, form_ItemsTotal]);
+      let computedTotal = total;
 
-  //! APPLY DISCOUNT ---------------------------------------------------
+      if (coupon) {
+        computedTotal = initialCartTotal - form_CouponCodeAmount;
+      }
 
+      if (useWallet) {
+        const walletUsed = Math.min(walletBalance, computedTotal);
+        setValue("payment.usedWalletAmount", walletUsed);
+        computedTotal -= walletUsed;
+      } else {
+        setValue("payment.usedWalletAmount", 0);
+      }
+
+      setValue("payment.total", computedTotal);
+    };
+
+    recalcTotals();
+  }, [
+    prices,
+    form_Total,
+    useWallet,
+    walletBalance,
+    form_CouponCodeAmount,
+    usedWalletAmount,
+  ]);
+
+  //! APPLY DISCOUNT  ---------------------------
   const applyDiscount = async () => {
+    // REMOVE DISCOUNT CODE if already applied
+    if (coupon) {
+      setPrices((prev) =>
+        prev?.map((item, index) => ({
+          ...item,
+          price: selectedCourses[index].price,
+        }))
+      );
+
+      setCoupon(undefined);
+      setValue("payment.total", form_Total + form_CouponCodeAmount);
+      setValue("payment.discountCodeAmount", 0);
+
+      toast.warning("Coupon Removed.");
+
+      if (useWallet && usedWalletAmount > 0) {
+        const usedWalletAmount = Math.min(form_Total, walletBalance);
+        setValue("payment.usedWalletAmount", usedWalletAmount);
+        setValue("payment.total", form_Total - usedWalletAmount);
+      }
+
+      return;
+    }
+
     setApplyDiscountLoading(true);
 
     // COUPON CHECK ---------------
-    const existingCoupon = await getCouponByCode(form_DiscountCode);
+    const existingCoupon = await getCouponByCode(form_CouponCode);
     if (!existingCoupon) {
-      toast.error("Coupon Not Found...");
+      toast.error("Invalid Coupon Code.");
       setApplyDiscountLoading(false);
       return;
+    }
+
+    // Handler Fn
+    function applyDiscountAmount(type: CouponType) {
+      if (!existingCoupon) return;
+      setCoupon(existingCoupon);
+
+      switch (type) {
+        case "PERCENT": {
+          const discountFactor = existingCoupon.amount / 100;
+          const discountValue = form_Total * discountFactor;
+          setValue("payment.discountCodeAmount", discountValue);
+          setPrices(
+            prices.map((item) => ({
+              ...item,
+              price: item.price * (1 - discountFactor),
+            }))
+          );
+
+          break;
+        }
+        case "FIXED_ON_CART": {
+          const existingCouponValue = existingCoupon.amount;
+
+          if (existingCouponValue >= form_Total) {
+            setValue("payment.discountCodeAmount", form_Total);
+            setValue("payment.total", 0);
+            setPrices(prices.map((item) => ({ ...item, price: 0 })));
+          } else {
+            const totalCart = prices.reduce((acc, item) => acc + item.price, 0);
+            const updatedPrices = prices.map((item) => {
+              const reduction = (item.price / totalCart) * existingCouponValue;
+              return {
+                ...item,
+                price: Math.max(0, item.price - reduction),
+              };
+            });
+            setValue("payment.discountCodeAmount", existingCouponValue);
+
+            setPrices(updatedPrices);
+          }
+          break;
+        }
+        case "FIXED_ON_COURSE": {
+          const discountFactor = existingCoupon.amount;
+          setValue(
+            "payment.discountCodeAmount",
+            Math.min(form_Total, discountFactor * prices.length)
+          );
+
+          setPrices(
+            prices.map((item) => ({
+              ...item,
+              price: Math.max(0, item.price - discountFactor),
+            }))
+          );
+
+          break;
+        }
+      }
     }
 
     // DATE CHECK ---------------
     if (existingCoupon.to) {
       const isExpired = existingCoupon.to < new Date();
       if (isExpired) {
-        toast.error("Code Has Been Expired");
+        toast.error("این کد تخفیف منقضی شده است.");
         setApplyDiscountLoading(false);
         return;
       }
@@ -120,7 +230,7 @@ const PaymentFormSidebar = ({
     if (existingCoupon.from) {
       const isNotStarted = existingCoupon.from > new Date();
       if (isNotStarted) {
-        toast.error("Code Date Has Not Yet Started");
+        toast.error("زمان این کد تخفیف شروع نشده است.");
         setApplyDiscountLoading(false);
         return;
       }
@@ -130,193 +240,57 @@ const PaymentFormSidebar = ({
     if (existingCoupon.limit) {
       const isReachedToLimit = existingCoupon.used === existingCoupon.limit;
       if (isReachedToLimit) {
-        toast.error("Code Limit Has Been Reached");
+        toast.error("این کد تخفیف به سقف مجاز استفاده رسیده است");
         setApplyDiscountLoading(false);
         return;
       }
     }
 
-    // APPLY DISOCUNT ---------------
+    // COURSE INCLUDE/EXCLUDE CHECK ---------------
     if (
       existingCoupon.courseInclude.length > 0 ||
       existingCoupon.courseExclude.length > 0
     ) {
       //* COURSE INCLUDE CHECK
       if (existingCoupon.courseInclude.length > 0) {
-        const selectedCoursesIds = selectedCourses?.map((c) => c.id)!;
         const courseIncludeIds = existingCoupon.courseInclude.map((c) => c.id);
-
-        const isValid = courseIncludeIds.some((id) =>
-          selectedCoursesIds.includes(id)
-        );
+        const coursesIds = selectedCourses?.map((c) => c.id);
+        const isValid = coursesIds?.some((id) => courseIncludeIds.includes(id));
 
         if (!isValid) {
-          toast.error("Selected Courses are not valid for this coupon");
+          toast.error("این کد تخفیف برای این دوره (ها) مجاز نمی باشد.");
           setApplyDiscountLoading(false);
           return;
         }
 
-        setDiscountCode(existingCoupon.code);
-
-        // Get the valid course IDs from the selected courses.
-        const validSelectedCoursesIds = selectedCoursesIds.filter((id) =>
-          courseIncludeIds.includes(id)
-        );
-
-        // Update prices for valid courses
-        const totalValidPrice =
-          prices?.reduce((acc, coursePrice, index) => {
-            const course = selectedCourses?.[index];
-            if (course && validSelectedCoursesIds.includes(course.id)) {
-              return acc + coursePrice.price;
-            }
-            return acc;
-          }, 0) || 0;
-
-        const updatedPrices = prices?.map((coursePrice, index) => {
-          const course = selectedCourses?.[index];
-          if (course && validSelectedCoursesIds.includes(course.id)) {
-            if (existingCoupon.type === "FIXED") {
-              // For a fixed discount
-              const share = coursePrice.price / totalValidPrice;
-              const discountShare = existingCoupon.amount * share;
-              return {
-                ...coursePrice,
-                price: coursePrice.price - discountShare,
-              };
-            } else {
-              // For a percentage discount
-              return {
-                ...coursePrice,
-                price: coursePrice.price * (1 - existingCoupon.amount / 100),
-              };
-            }
-          }
-          return coursePrice;
-        });
-
-        // Update prices state with the new discounted prices.
-        setPrices(updatedPrices);
+        applyDiscountAmount(existingCoupon.type);
       }
 
       //* COURSE EXCLUDE CHECK
       if (existingCoupon.courseExclude.length > 0) {
-        const selectedCoursesIds = selectedCourses?.map((c) => c.id)!;
         const courseExcludeIds = existingCoupon.courseExclude.map((c) => c.id);
-
-        // Get valid course IDs from selected courses (courses that are NOT excluded)
-        const validSelectedCoursesIds = selectedCoursesIds.filter(
-          (id) => !courseExcludeIds.includes(id)
+        const coursesIds = selectedCourses?.map((c) => c.id);
+        const isNotValid = coursesIds?.some((id) =>
+          courseExcludeIds.includes(id)
         );
 
-        if (validSelectedCoursesIds.length === 0) {
-          toast.error("Selected Courses are not valid for this coupon");
+        if (isNotValid) {
+          toast.error("این کد تخفیف برای حداقل یکی از دوره ها مجاز نمی باشد.");
           setApplyDiscountLoading(false);
           return;
         }
 
-        setDiscountCode(existingCoupon.code);
-
-        // Update prices for valid courses (those not excluded)
-        const totalValidPrice =
-          prices?.reduce((acc, coursePrice, index) => {
-            const course = selectedCourses?.[index];
-            if (course && validSelectedCoursesIds.includes(course.id)) {
-              return acc + coursePrice.price;
-            }
-            return acc;
-          }, 0) || 0;
-
-        const updatedPrices = prices?.map((coursePrice, index) => {
-          const course = selectedCourses?.[index];
-          if (course && validSelectedCoursesIds.includes(course.id)) {
-            if (existingCoupon.type === "FIXED") {
-              // For a fixed discount, distribute the coupon amount proportionally among valid courses.
-              const share = coursePrice.price / totalValidPrice;
-              const discountShare = existingCoupon.amount * share;
-              return {
-                ...coursePrice,
-                price: coursePrice.price - discountShare,
-              };
-            } else {
-              // For a percentage discount, apply the discount directly.
-              return {
-                ...coursePrice,
-                price: coursePrice.price * (1 - existingCoupon.amount / 100),
-              };
-            }
-          }
-          return coursePrice;
-        });
-
-        // Update prices state with the new discounted prices.
-        setPrices(updatedPrices);
+        applyDiscountAmount(existingCoupon.type);
       }
     } else {
-      // APPLY
-      setDiscountCode(existingCoupon.code);
-
-      let toReduce: number;
-      if (existingCoupon.type === "FIXED") {
-        toReduce = existingCoupon.amount;
-      } else {
-        toReduce = form_Total - form_Total * (1 - existingCoupon.amount / 100);
-      }
-      form.setValue("payment.discountCodeAmount", toReduce);
-
-      const totalDiscount = form_ItemsTotal - form_Total + toReduce;
-      form.setValue(
-        "payment.total",
-        Math.max(0, form_ItemsTotal - totalDiscount)
-      );
+      applyDiscountAmount(existingCoupon.type);
     }
 
     setApplyDiscountLoading(false);
-    toast.success(`Discount Applied Successfully`);
+    toast.success("کد تخفیف با موفقیت اعمال شد.");
   };
 
-  useEffect(() => {
-    if (prices && prices.length > 0) {
-      const originalPricesSum = prices.reduce(
-        (acc, curr) => acc + (curr.originalPrice || 0),
-        0
-      );
-      const updatedPricesSum = prices.reduce(
-        (acc, curr) => acc + (curr.price || 0),
-        0
-      );
-      const pricesDiff = originalPricesSum - updatedPricesSum;
-
-      form.setValue("payment.discountCodeAmount", pricesDiff, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    }
-  }, [prices]);
-
-  //!REMOVE DISCOUNT ---------------------------------------------------
-  const removeDiscount = async () => {
-    form.setValue("payment.discountCode", "");
-
-    form.setValue(
-      "payment.total",
-      form.getValues("payment.total") + (form_DiscountCodeAmount || 0)
-    );
-
-    setPrices((prevPrices) => {
-      const newPrices = prevPrices?.map((price) => ({
-        price: price.originalPrice,
-        originalPrice: price.originalPrice,
-      }));
-
-      return newPrices;
-    });
-
-    setDiscountCode("");
-    form.setValue("payment.discountCodeAmount", 0);
-  };
-
-  //!REMOVE PAYMENT ---------------------------------------------------
+  //!REMOVE PAYMENT -------------------
   const onDelete = async () => {
     const res = await deletePayment(payment?.id!);
 
@@ -384,22 +358,8 @@ const PaymentFormSidebar = ({
                     <div className="relative">
                       <Input
                         {...field}
-                        disabled={
-                          !!discountCode || isUpdateType || !form_ItemsTotal
-                        }
-                        className={`${discountCode && !isUpdateType && "pl-9"}`}
+                        disabled={!!coupon || isUpdateType || !form_ItemsTotal}
                       />
-                      {!!form_DiscountCodeAmount && !isUpdateType && (
-                        <Button
-                          size={"icon"}
-                          type="button"
-                          onClick={removeDiscount}
-                          variant={"link"}
-                          className="absolute top-0 left-0"
-                        >
-                          <X />
-                        </Button>
-                      )}
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -407,43 +367,14 @@ const PaymentFormSidebar = ({
               )}
             />
 
-            <Button
-              type="button"
-              disabled={
-                !!discountCode || !!!form.getValues("payment.discountCode")
-              }
-              onClick={applyDiscount}
-              variant={"outline"}
-            >
-              <Loader loading={applyDiscountLoading} />
-              Apply
-            </Button>
+            {!isUpdateType && (
+              <Button type="button" onClick={applyDiscount} variant={"outline"}>
+                <Loader loading={applyDiscountLoading} />
+                {coupon ? "Delete" : "Apply"}
+              </Button>
+            )}
           </div>
         </div>
-
-        {/* //! Total */}
-        <FormField
-          control={form.control}
-          name="payment.total"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total</FormLabel>
-              <FormControl>
-                <Input
-                  disabled={isUpdateType || !form_ItemsTotal}
-                  min={0}
-                  type="number"
-                  {...field}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    field.onChange(value === "" ? 0 : Number(value));
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <Separator />
 
@@ -465,6 +396,33 @@ const PaymentFormSidebar = ({
                   {selectedUser.email.toLowerCase()}
                 </span>
               </li>
+              {!isUpdateType && (
+                <Badge
+                  variant={useWallet ? "blue" : "gray"}
+                  className={`flex justify-between items-center text-sm font-medium py-3 hover:bg-slate-50 
+            ${
+              form_Total === 0 &&
+              coupon &&
+              !usedWalletAmount &&
+              "pointer-events-none opacity-50"
+            }
+            `}
+                >
+                  <div className="flex flex-col gap-1">
+                    <span>Use Wallet</span>
+                    <span className="text-xs">
+                      Balance: {formatPrice(walletBalance)}
+                    </span>
+                  </div>
+
+                  <Switch
+                    checked={useWallet}
+                    onCheckedChange={(checked: boolean) =>
+                      setValue("payment.usedWallet", checked)
+                    }
+                  />
+                </Badge>
+              )}
               <Separator />
             </>
           )}
@@ -475,14 +433,19 @@ const PaymentFormSidebar = ({
           </li>
 
           <li className="flex justify-between text-gray-500">
-            <span className="font-medium">Discount Code</span>
-            <span>{formatPrice(form_DiscountCodeAmount)}</span>
+            <span className="font-medium">Wallet Reduction</span>
+            <span>{formatPrice(usedWalletAmount)}</span>
           </li>
 
           <li className="flex justify-between text-gray-500">
-            <span className="font-medium">Manual Discount</span>
+            <span className="font-medium">Discount Code</span>
+            <span>{formatPrice(form_CouponCodeAmount)}</span>
+          </li>
+
+          <li className="flex justify-between text-gray-500">
+            <span className="font-medium">Fix Discount</span>
             <span>
-              {formatPrice(form_DiscountAmount - form_DiscountCodeAmount)}
+              {formatPrice(form_DiscountAmount - form_CouponCodeAmount)}
             </span>
           </li>
 
@@ -493,6 +456,26 @@ const PaymentFormSidebar = ({
             <span>{formatPrice(form.watch("payment.discountAmount"))}</span>
           </li>
           <Separator />
+          {!isUpdateType && (
+            <li className="flex justify-between">
+              <Badge
+                className="w-full p-2 justify-between font-medium text-sm"
+                variant={"green"}
+              >
+                Charge Waller{" "}
+                {formatPrice(cashBackCalculator(form_Total), {
+                  showNumber: true,
+                })}
+                <Switch
+                  className="data-[state=checked]:bg-green-600"
+                  defaultChecked={form.getValues("payment.chargeWallet")}
+                  onCheckedChange={(checked: boolean) =>
+                    setValue("payment.chargeWallet", checked)
+                  }
+                />
+              </Badge>
+            </li>
+          )}
           <li>
             <Badge
               variant={

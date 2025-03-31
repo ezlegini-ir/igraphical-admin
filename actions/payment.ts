@@ -5,7 +5,7 @@ import { getCouponByCode } from "@/data/coupon";
 import { getAllCoursesByIds } from "@/data/course";
 import { getPaymentById } from "@/data/payment";
 import { getUserById } from "@/data/user";
-import { handleError } from "@/lib/utils";
+import { cashBackCalculator, handleError } from "@/lib/utils";
 import { EnrollmentFormType as PaymentFormType } from "@/lib/validationSchema";
 import prisma from "@/prisma/client";
 
@@ -39,13 +39,64 @@ export const createPayment = async (data: PaymentFormType) => {
           discountCode: payment?.discountCode,
           discountCodeAmount: payment?.discountCodeAmount,
           itemsTotal: payment?.itemsTotal,
+          walletUsed: payment.usedWallet,
+          walletUsedAmount: payment.usedWalletAmount,
           paymentMethod: "ADMIN",
           status: payment?.status,
-          couponId: existingCoupon ? existingCoupon.id : undefined,
+          couponId: existingCoupon?.id,
           userId,
           paidAt: enrolledAt,
         },
       });
+
+      //* CASHBACK
+      const cashbackAmount = cashBackCalculator(payment.total);
+      if (cashbackAmount > 0 && payment.chargeWallet) {
+        await tx.wallet.upsert({
+          where: { userId },
+          update: {
+            balance: { increment: cashbackAmount },
+            transactions: {
+              create: {
+                amount: cashbackAmount,
+                type: "INCREMENT",
+                description: "شارژ کیف پول جهت خرید دوره",
+                paymentId: newerPayment.id,
+              },
+            },
+          },
+          create: {
+            balance: cashbackAmount,
+            userId,
+            transactions: {
+              create: {
+                amount: cashbackAmount,
+                type: "INCREMENT",
+                description: "شارژ کیف پول جهت خرید دوره",
+                paymentId: newerPayment.id,
+              },
+            },
+          },
+        });
+      }
+
+      if (payment.usedWallet && payment.usedWalletAmount) {
+        await tx.wallet.update({
+          where: { userId },
+          data: {
+            balance: { decrement: payment.usedWalletAmount },
+            used: { increment: 1 },
+            transactions: {
+              create: {
+                amount: payment.usedWalletAmount,
+                type: "DECREMENT",
+                description: "کسر کیف پول جهت خرید دوره",
+                paymentId: newerPayment.id,
+              },
+            },
+          },
+        });
+      }
 
       const courseIds = courses.map((c) => c.courseId);
       const existingEnrollments = await tx.enrollment.findMany({

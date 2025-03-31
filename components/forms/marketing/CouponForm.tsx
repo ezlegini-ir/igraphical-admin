@@ -74,7 +74,7 @@ const CouponForm = ({ type, coupon }: Props) => {
         : undefined,
       limit: coupon?.limit || 0,
       summery: coupon?.summery || "",
-      type: coupon?.type || "FIXED",
+      type: coupon?.type || "FIXED_ON_COURSE",
       courseInclude: coupon?.courseInclude?.length
         ? coupon.courseInclude.map((c) => ({ id: c.id }))
         : [],
@@ -194,6 +194,48 @@ const CouponForm = ({ type, coupon }: Props) => {
             )}
           />
 
+          {/* //! TYPE */}
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Discount Type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="FIXED_ON_COURSE">
+                      <div className="flex items-center gap-1 font-medium">
+                        <span className="text-xl pr-1 text-primary">$</span>{" "}
+                        Fixed On Course
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="FIXED_ON_CART">
+                      <div className="flex items-center gap-1 font-medium">
+                        <span className="text-xl pr-1 text-primary">$</span>{" "}
+                        Fixed On Cart
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="PERCENT">
+                      <div className="flex items-center gap-1 font-medium">
+                        <span className="text-xl pr-1 text-orange-500">%</span>{" "}
+                        Percent
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* //! LIMIT */}
           <FormField
             control={form.control}
@@ -212,42 +254,6 @@ const CouponForm = ({ type, coupon }: Props) => {
                     }}
                   />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* //! TYPE */}
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Discount Type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="FIXED">
-                      <div className="flex items-center gap-1 font-medium">
-                        <span className="text-xl pr-1 text-primary">$</span>{" "}
-                        Fixed
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="PERCENT">
-                      <div className="flex items-center gap-1 font-medium">
-                        <span className="text-xl pr-1 text-orange-500">%</span>{" "}
-                        Percent
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}

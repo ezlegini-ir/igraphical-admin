@@ -14,6 +14,7 @@ import {
   Payment,
   Tutor,
   User,
+  Wallet,
 } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -40,17 +41,16 @@ const PaymentForm = ({ payment, type }: Props) => {
   // HOOKS
   const router = useRouter();
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  const [selectedCourses, setSelectedCourses] = useState<
-    CourseType[] | undefined
-  >();
+  const [wallet, setWallet] = useState<Wallet | undefined>(undefined);
+  const [selectedCourses, setSelectedCourses] = useState<CourseType[]>([]);
 
   const [prices, setPrices] = useState<
-    { price: number; originalPrice: number }[] | undefined
+    { price: number; originalPrice: number }[]
   >(
     payment?.enrollment.map((item) => ({
       price: item.price,
       originalPrice: item.courseOriginalPrice,
-    }))
+    })) || []
   );
 
   //! MANAGE FORM
@@ -84,6 +84,9 @@ const PaymentForm = ({ payment, type }: Props) => {
             total: 0,
             itemsTotal: 0,
             status: "SUCCESS",
+            usedWallet: false,
+            usedWalletAmount: undefined,
+            chargeWallet: true,
           },
     },
   });
@@ -128,6 +131,7 @@ const PaymentForm = ({ payment, type }: Props) => {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-5 grid-cols-12">
             <PaymentFormBody
+              setWallet={setWallet}
               payment={payment}
               form={form}
               type={type}
@@ -138,6 +142,7 @@ const PaymentForm = ({ payment, type }: Props) => {
               selectedCourses={selectedCourses}
             />
             <PaymentFormSidebar
+              wallet={wallet}
               selectedCourses={selectedCourses}
               setPrices={setPrices}
               form={form}

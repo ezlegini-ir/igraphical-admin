@@ -15,8 +15,17 @@ export const enrollmentStatus = [
   "IN_PROGRESS",
   "COMPLETED",
 ] as const;
-export const paymentMethod = ["ZARRIN_PAL", "MELLI", "ADMIN"] as const;
-export const couponType = ["FIXED", "PERCENT"] as const;
+export const paymentMethod = [
+  "ZARRIN_PAL",
+  "MELLI",
+  "ADMIN",
+  "NO_METHOD",
+] as const;
+export const couponType = [
+  "FIXED_ON_COURSE",
+  "FIXED_ON_CART",
+  "PERCENT",
+] as const;
 export const ticketStatus = ["PENDING", "CLOSED", "REPLIED"] as const;
 export const ticketDepartment = [
   "TECHNICAL",
@@ -203,6 +212,9 @@ export const paymentFormSchema = z.object({
     total: z.number(),
     itemsTotal: z.number(),
     status: z.enum(paymentStatus),
+    chargeWallet: z.boolean().default(true),
+    usedWallet: z.boolean().default(false),
+    usedWalletAmount: z.number().optional(),
   }),
 });
 export type EnrollmentFormType = z.infer<typeof paymentFormSchema>;

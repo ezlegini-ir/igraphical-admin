@@ -34,14 +34,15 @@ const CouponsList = async ({ coupons, totalPayments }: Props) => {
 };
 
 const renderRows = (coupon: CouponType) => {
-  const fixed = coupon.type === "FIXED";
+  const fixed =
+    coupon.type === "FIXED_ON_COURSE" || coupon.type === "FIXED_ON_CART";
 
   return (
     <TableRow key={coupon.id} className="odd:bg-slate-50">
       <TableCell>{coupon.code}</TableCell>
 
       <TableCell className="text-center capitalize">
-        <Badge className="w-[80px]" variant={fixed ? "gray" : "blue"}>
+        <Badge className="max-w-[130px]" variant={fixed ? "gray" : "blue"}>
           {coupon.type}
         </Badge>
       </TableCell>

@@ -239,7 +239,6 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
     : basePrice;
 
   try {
-    // Encode URL and check if another course with this URL exists
     const encodedUrl = encodeUrl(url);
     const existingCourseByUrl = await getCourseByUrl(encodedUrl);
     if (existingCourseByUrl && existingCourseByUrl.id !== id) {
@@ -247,7 +246,6 @@ export const updateCourse = async (data: CourseFormType, id: number) => {
     }
 
     const updatedCourse = await prisma.$transaction(async (tx) => {
-      // Update main course fields
       const course = await tx.course.update({
         where: { id },
         data: {

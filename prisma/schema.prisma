@@ -27,6 +27,9 @@ model User {
   TicketMessage  TicketMessage[]
   askTutor       AskTutor[]
   classroom      ClassRoom[]
+  quickCart      QuickCart[]
+  cart           Cart?
+  wallet         Wallet?
 }
 
 model Admin {
@@ -226,6 +229,9 @@ model Course {
   includedInCoupons Coupon[]        @relation("IncludesCoupons")
   excludedInCoupons Coupon[]        @relation("ExcludesCoupons")
   askTutor          AskTutor[]
+  quickCart         QuickCart[]
+
+  CartItem CartItem?
 }
 
 model CourseCategory {
@@ -358,6 +364,7 @@ model Notifbar {
 model Enrollment {
   id                  Int              @id @default(autoincrement())
   enrolledAt          DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
   progress            Float            @default(0)
   completedAt         DateTime?
   status              EnrollmentStatus @default(PENDING)
@@ -393,6 +400,37 @@ enum EnrollmentStatus {
 
 //! Payment ---------------------------------------------------------
 
+model Wallet {
+  id        String   @id @default(uuid())
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  used      Int      @default(0)
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId Int  @unique
+
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id          String          @id @default(uuid())
+  amount      Float
+  type        TransactionType
+  description String?
+  createdAt   DateTime        @default(now())
+
+  wallet    Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  walletId  String
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+  paymentId Int?
+}
+
+enum TransactionType {
+  INCREMENT
+  DECREMENT
+}
+
 model Payment {
   id                 Int           @id @default(autoincrement())
   total              Float
@@ -400,22 +438,29 @@ model Payment {
   discountAmount     Float?
   discountCode       String?
   discountCodeAmount Int?
-  transactionId      String?       @unique
+  transactionId      Int?          @unique
   status             PaymentStatus
-  paidAt             DateTime      @default(now())
+  paidAt             DateTime?
+  createdAt          DateTime      @default(now())
   paymentMethod      PaymentMethod
+  walletUsed         Boolean?
+  walletUsedAmount   Float?
 
-  enrollment Enrollment[]
-  coupon     Coupon?      @relation(fields: [couponId], references: [id])
-  couponId   Int?
-  user       User         @relation(fields: [userId], references: [id])
-  userId     Int
+  enrollment        Enrollment[]
+  coupon            Coupon?             @relation(fields: [couponId], references: [id])
+  couponId          Int?
+  user              User                @relation(fields: [userId], references: [id])
+  userId            Int
+  QuickCart         QuickCart[]
+  Cart              Cart[]
+  WalletTransaction WalletTransaction[]
 }
 
 enum PaymentMethod {
   ZARRIN_PAL
   MELLI
   ADMIN
+  NO_METHOD
 }
 
 enum PaymentStatus {
@@ -446,7 +491,8 @@ model Coupon {
 
 enum CouponType {
   PERCENT
-  FIXED
+  FIXED_ON_CART
+  FIXED_ON_COURSE
 }
 
 model OverallOff {
@@ -511,17 +557,24 @@ enum TicketDepartment {
 //! ASK TUTOR ---------------------------------------------------------
 
 model AskTutor {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int            @id @default(autoincrement())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  status    AskTutorStatus
 
-  messages AskTutorMessages[]
-  course   Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  courseId Int
-  user     User               @relation(fields: [userId], references: [id])
-  userId   Int
-  tutor    Tutor              @relation(fields: [tutorId], references: [id])
-  tutorId  Int
+  messages  AskTutorMessages[]
+  course    Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId  Int
+  user      User               @relation(fields: [userId], references: [id])
+  userId    Int
+  tutor     Tutor              @relation(fields: [tutorId], references: [id])
+  tutorId   Int
+  classRoom ClassRoom?
+}
+
+enum AskTutorStatus {
+  PENDING
+  REPLIED
 }
 
 model AskTutorMessages {
@@ -531,7 +584,7 @@ model AskTutorMessages {
 
   senderType AskTutorSenderType
   attachment File?
-  askTutor   AskTutor?          @relation(fields: [askTutorId], references: [id])
+  askTutor   AskTutor?          @relation(fields: [askTutorId], references: [id], onDelete: Cascade)
   askTutorId Int?
 }
 
@@ -549,4 +602,49 @@ model ClassRoom {
   userId       Int
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   enrollmentId Int        @unique
+  askTutor     AskTutor?  @relation(fields: [askTutorId], references: [id])
+  askTutorId   Int?       @unique
+
+  @@unique([userId, enrollmentId, askTutorId])
+}
+
+//! CARTS -------------------------------------------------------------
+
+model QuickCart {
+  id        String   @id @default(uuid())
+  amount    Float
+  authority String   @unique
+  createdAt DateTime @default(now())
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId  Int
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId Int
+}
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  amount    Float?
+  authority String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int        @unique
+  payment   Payment?   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId Int?
+  cartItem  CartItem[]
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  paidPrice Float?
+
+  cart     Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId   Int
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int    @unique
 }

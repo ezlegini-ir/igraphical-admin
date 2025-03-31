@@ -13,25 +13,28 @@ import {
 } from "@/components/ui/form";
 import { getAllCoursesByIds as getCoursesByIds } from "@/data/course";
 import { getUserById } from "@/data/user";
+import { getWalletByUserId } from "@/data/wallet";
 import { formatPrice } from "@/lib/utils";
 import { EnrollmentFormType } from "@/lib/validationSchema";
 import { placeHolder } from "@/public";
-import { User } from "@prisma/client";
-import { Pencil, Plus, Trash } from "lucide-react";
+import { User, Wallet } from "@prisma/client";
+import { Plus, Trash } from "lucide-react";
 import Image from "next/image";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { CourseType, PaymentType } from "./PaymentForm";
+import { priceType } from "./PaymentFormSidebar";
 
 interface Props {
   form: UseFormReturn<EnrollmentFormType>;
-  prices: { price: number }[] | undefined;
+  prices: priceType[] | undefined;
   setPrices: Dispatch<
-    SetStateAction<{ price: number; originalPrice: number }[] | undefined>
+    SetStateAction<{ price: number; originalPrice: number }[]>
   >;
   setSelectedUser: Dispatch<SetStateAction<User | undefined>>;
-  setSelectedCourses: Dispatch<SetStateAction<CourseType[] | undefined>>;
+  setSelectedCourses: Dispatch<SetStateAction<CourseType[]>>;
+  setWallet: Dispatch<SetStateAction<Wallet | undefined>>;
   selectedCourses: CourseType[] | undefined;
   type: "NEW" | "UPDATE";
   payment?: PaymentType;
@@ -45,12 +48,10 @@ const PaymentFormBody = ({
   selectedCourses,
   setSelectedCourses,
   type,
+  setWallet,
   payment,
 }: Props) => {
   const isUpdateType = type === "UPDATE";
-
-  // HOOKS
-  const [inputIndex, setInputIndex] = useState<number | undefined>();
 
   const { append, remove, fields } = useFieldArray({
     name: "courses",
@@ -59,12 +60,13 @@ const PaymentFormBody = ({
 
   //! SEARCH FIELDS
   const userId = form.getValues("userId");
-
   useEffect(() => {
     const fetchSelectedUser = async () => {
       if (userId) {
         const user = await getUserById(userId);
+        const wallet = await getWalletByUserId(userId);
         setSelectedUser(user ? user : undefined);
+        setWallet(wallet || undefined);
       }
     };
 
@@ -72,11 +74,6 @@ const PaymentFormBody = ({
   }, [userId]);
 
   //! setSelectedCourse + setPrices
-  useEffect(() => {
-    const itemsTotal = prices?.reduce((acc, curr) => acc + curr.price, 0) || 0;
-    form.setValue("payment.total", itemsTotal);
-  }, [prices, form]);
-
   const watchedCourses = form.watch("courses");
   const courseIds = watchedCourses?.map((c) => c.courseId);
 
@@ -84,19 +81,16 @@ const PaymentFormBody = ({
     const fetchSelectedCourses = async () => {
       if (courseIds.length > 0) {
         const courses = await getCoursesByIds(courseIds);
-        const orderedCourses = courseIds
-          .map((courseId) => courses.find((course) => course.id === courseId))
-          .filter((course): course is CourseType => course !== undefined);
 
-        setSelectedCourses(orderedCourses);
+        setSelectedCourses(courses);
         setPrices(
-          orderedCourses.map((course) => ({
+          courses.map((course) => ({
             price: course.price,
-            originalPrice: course.price,
+            originalPrice: course.basePrice,
           }))
         );
       } else {
-        setSelectedCourses(undefined);
+        setSelectedCourses([]);
         setPrices([]);
       }
     };
@@ -181,7 +175,7 @@ const PaymentFormBody = ({
                                     payment
                                       ? payment.enrollment[index]
                                           .courseOriginalPrice
-                                      : selectedCourses[index].price,
+                                      : prices?.[index].originalPrice,
                                     { showNumber: true }
                                   )}
                                 </span>
@@ -191,57 +185,13 @@ const PaymentFormBody = ({
                                 <span className="text-xs text-gray-500">
                                   Final Price
                                 </span>
-                                <span
-                                  className={`border-b flex items-center gap-0.5 ${isUpdateType && "pointer-events-none opacity-50"}`}
-                                >
-                                  <div
-                                    onClick={() => setInputIndex(index)}
-                                    className="cursor-pointer p-1 group"
-                                  >
-                                    <Pencil
-                                      size={12}
-                                      className="text-gray-500 group-hover:text-black"
-                                    />
-                                  </div>
-                                  <input
-                                    disabled={index !== inputIndex}
-                                    title="Do Not Touch This Unless You Have to."
-                                    className="w-[100px] disabled:text-gray-500 disabled:bg-transparent"
-                                    type="number"
-                                    value={
-                                      payment?.enrollment[index].price ||
-                                      prices?.[index]?.price
-                                    }
-                                    onChange={(e) => {
-                                      const newPrice = Number(e.target.value);
-
-                                      setPrices((prevPrices) => {
-                                        if (!prevPrices) {
-                                          return (
-                                            selectedCourses?.map(
-                                              (course, idx) => ({
-                                                price:
-                                                  idx === index
-                                                    ? newPrice
-                                                    : course.price,
-                                                originalPrice: course.price,
-                                              })
-                                            ) ?? []
-                                          );
-                                        }
-
-                                        return prevPrices.map(
-                                          (item, priceIndex) =>
-                                            priceIndex === index
-                                              ? {
-                                                  ...item,
-                                                  price: newPrice,
-                                                }
-                                              : item
-                                        );
-                                      });
-                                    }}
-                                  />
+                                <span className="text-gray-500 text-right text-primary">
+                                  {formatPrice(
+                                    payment
+                                      ? payment.enrollment[index].price
+                                      : prices?.[index].price,
+                                    { showNumber: true }
+                                  )}
                                 </span>
                               </div>
                             </div>
