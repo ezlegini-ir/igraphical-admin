@@ -9,6 +9,7 @@ import Loader from "@/components/Loader";
 import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { v4 as uuidv4 } from "uuid";
 import {
   Form,
   FormControl,
@@ -41,6 +42,7 @@ import ImageField from "../../ImageField";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Dynamically load the text editor
 const TextEditor = dynamic(
   () => import("@/components/LexicalEditor/TextEditor"),
   {
@@ -56,6 +58,49 @@ interface Props {
   post?: PostType;
   categories: PostCategory[];
   authors: Admin[];
+}
+
+//
+// Helper functions for processing Lexical JSON
+//
+
+// We'll use a counter to assign sequential IDs to heading nodes.
+let headingCounter = 0;
+
+/**
+ * Recursively traverse the Lexical JSON nodes and add an id to any heading
+ * that doesn't have one. The id will be a sequential number as a string.
+ */
+function addIdsToHeadings(nodes: any[]) {
+  for (const node of nodes) {
+    if (node.type === "heading" && node.tag) {
+      if (!node.id) {
+        node.id = String(headingCounter++);
+      }
+    }
+    if (node.children) {
+      addIdsToHeadings(node.children);
+    }
+  }
+}
+
+/**
+ * Processes the Lexical JSON content by parsing it, adding sequential IDs
+ * to heading nodes, and returning a stringified JSON.
+ */
+function processLexicalJSON(lexicalContent: string) {
+  try {
+    // Reset the heading counter for each new content processing
+    headingCounter = 0;
+    const content = JSON.parse(lexicalContent);
+    if (content.root && content.root.children) {
+      addIdsToHeadings(content.root.children);
+    }
+    return JSON.stringify(content);
+  } catch (error) {
+    console.error("Error processing Lexical JSON:", error);
+    return lexicalContent;
+  }
 }
 
 const PostForm = ({ type, post, categories, authors }: Props) => {
@@ -83,34 +128,33 @@ const PostForm = ({ type, post, categories, authors }: Props) => {
     },
   });
 
+  // onSubmit handles post creation/updating.
   const onSubmit = async (data: PostFormType) => {
     setError("");
     setLoading(true);
 
-    if (isUpdateType) {
-      const res = await updatePost(data, post?.id!);
+    // Process the Lexical JSON to ensure headings have sequential IDs.
+    const updatedData: PostFormType = {
+      ...data,
+      content: processLexicalJSON(data.content),
+    };
 
-      if (res.error) {
-        setError(res.error);
-        setLoading(false);
-        return;
-      }
+    const res = isUpdateType
+      ? await updatePost(updatedData, post?.id!)
+      : await createPost(updatedData);
 
-      if (res.success) {
-        setSuccess(res.success);
-        setLoading(false);
+    if (res.error) {
+      setError(res.error);
+      setLoading(false);
+      return;
+    }
+
+    if (res.success) {
+      setSuccess(res.success);
+      setLoading(false);
+      if (isUpdateType) {
         router.refresh();
-      }
-    } else {
-      const res = await createPost(data);
-
-      if (res.error) {
-        setError(res.error);
-        setLoading(false);
-        return;
-      }
-
-      if (res.success) {
+      } else {
         router.push(`/posts/${res.data?.id}`);
       }
     }

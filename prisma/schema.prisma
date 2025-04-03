@@ -33,16 +33,17 @@ model User {
 }
 
 model Admin {
-  id          Int       @id @default(autoincrement())
-  name        String
-  displayName String
-  password    String
-  phone       String    @unique
-  email       String    @unique
-  role        AdminRole
-  joinedAt    DateTime  @default(now())
-  image       Image?
-  post        Post[]
+  id              Int               @id @default(autoincrement())
+  name            String
+  displayName     String
+  password        String
+  phone           String            @unique
+  email           String            @unique
+  role            AdminRole
+  joinedAt        DateTime          @default(now())
+  image           Image?
+  post            Post[]
+  ContactResponse ContactResponse[]
 }
 
 model Tutor {
@@ -552,6 +553,35 @@ enum TicketDepartment {
   FINANCE
   TECHNICAL
   SUGGEST
+}
+
+//! CONTACT ---------------------------------------------------------
+
+model Contact {
+  id              Int              @id @default(autoincrement())
+  fullName        String
+  phone           String
+  email           String
+  subject         String
+  status          ContactStatus    @default(PENDING)
+  message         String           @db.Text
+  createdAt       DateTime         @default(now())
+  ContactResponse ContactResponse?
+}
+
+enum ContactStatus {
+  REPLIED
+  PENDING
+}
+
+model ContactResponse {
+  id           Int      @id @default(autoincrement())
+  message      String   @db.Text
+  respondent   Admin?   @relation(fields: [respondentId], references: [id])
+  respondentId Int?
+  createdAt    DateTime @default(now())
+  contact      Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId    Int?     @unique
 }
 
 //! ASK TUTOR ---------------------------------------------------------
