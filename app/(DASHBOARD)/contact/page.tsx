@@ -24,6 +24,7 @@ const page = async ({ searchParams }: Props) => {
     include: {
       ContactResponse: true,
     },
+    orderBy: { id: "desc" },
     skip,
     take,
   });

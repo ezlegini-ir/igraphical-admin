@@ -12,6 +12,7 @@ import {
   UserPlus,
   UserRoundCheck,
   Users,
+  Wallet,
 } from "lucide-react";
 
 const sideBarMenuItems = [
@@ -62,7 +63,6 @@ const sideBarMenuItems = [
           { label: "Payments", href: "/enrollments/payments" },
         ],
       },
-
       {
         tabName: "Marketing",
         tabHref: "/marketing",
@@ -71,6 +71,12 @@ const sideBarMenuItems = [
           { label: "Coupons", href: "/marketing/coupons" },
           { label: "Overall Off", href: "/marketing/overall-off" },
         ],
+      },
+      {
+        tabName: "Wallet",
+        tabHref: "/wallet",
+        tabIcon: Wallet,
+        subMenuItems: [],
       },
     ],
   },

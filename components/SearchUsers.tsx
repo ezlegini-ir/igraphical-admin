@@ -9,7 +9,7 @@ import SearchField from "./forms/SearchField";
 const SearchUsers = ({
   field,
   userId,
-  placeHolder,
+  placeHolder = "Search Users...",
 }: {
   field: any;
   userId?: number;

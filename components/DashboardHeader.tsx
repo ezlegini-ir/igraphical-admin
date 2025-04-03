@@ -3,7 +3,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getSessionAdmin } from "@/data/admin";
 import { getOnlineUsers } from "@/data/ga";
 import prisma from "@/prisma/client";
-import { Home, MessageCircle } from "lucide-react";
+import { Home, MessageCircle, Phone } from "lucide-react";
 import Link from "next/link";
 import AdminUserBar from "./AdminUserBar";
 
@@ -12,6 +12,10 @@ const DashboardHeader = async () => {
   const onlineUsers = (await getOnlineUsers()).data;
 
   const pendingTicketsCount = await prisma.ticket.count({
+    where: { status: "PENDING" },
+  });
+
+  const pendingContactsCount = await prisma.contact.count({
     where: { status: "PENDING" },
   });
 
@@ -39,29 +43,19 @@ const DashboardHeader = async () => {
           </Link>
         </div>
 
-        {/* <div>
-          <Link href={"/courses/reviews"} className="relative">
-            <Star size={22} />
-            <Badge
-              variant={"blue"}
-              className="p-0 w-4 h-4 absolute -top-[7px] -right-[7px]"
-            >
-              1
-            </Badge>
+        <div>
+          <Link href={"/contact?status=PENDING"} className="relative">
+            <Phone size={22} />
+            {pendingContactsCount > 0 && (
+              <Badge
+                variant={"blue"}
+                className="p-0 w-4 h-4 absolute -top-[7px] -right-[7px]"
+              >
+                {pendingContactsCount}
+              </Badge>
+            )}
           </Link>
         </div>
-
-        <div>
-          <Link href={"/posts/comments"} className="relative">
-            <MessageSquareMore size={22} />
-            <Badge
-              variant={"green"}
-              className="p-0 w-4 h-4 absolute -top-[7px] -right-[7px]"
-            >
-              1
-            </Badge>
-          </Link>
-        </div> */}
 
         <div>
           <Link

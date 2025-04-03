@@ -309,3 +309,13 @@ export const adminFormSchema = z.object({
     }),
 });
 export type AdminFormType = z.infer<typeof adminFormSchema>;
+
+//! WALLET ------------------------
+
+export const walletFormSchema = z.object({
+  userId: z.number().min(1),
+  type: z.enum(["INCREMENT", "DECREMENT"]),
+  amount: z.number().min(1),
+  description: z.string(),
+});
+export type WalletFormType = z.infer<typeof walletFormSchema>;
