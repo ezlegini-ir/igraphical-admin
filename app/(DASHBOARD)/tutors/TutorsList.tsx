@@ -56,7 +56,7 @@ const renderRows = (tutor: TutorType) => {
           <DialogTrigger asChild>
             <EditButton />
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="w-full max-w-screen-lg">
             <DialogHeader className="space-y-6">
               <DialogTitle>Update Admin</DialogTitle>
               <TutorForm type="UPDATE" tutor={tutor} />

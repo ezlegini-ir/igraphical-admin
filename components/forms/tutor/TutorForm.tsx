@@ -40,7 +40,7 @@ const TutorForm = ({ type, tutor }: Props) => {
 
   const form = useForm<TutorFormType>({
     resolver: zodResolver(tutorFormSchema),
-    mode: "onSubmit",
+    mode: "onBlur",
     defaultValues: {
       name: tutor?.name || "",
       displayName: tutor?.displayName || "",
@@ -50,6 +50,7 @@ const TutorForm = ({ type, tutor }: Props) => {
       slug: tutor?.slug || "",
       bio: tutor?.bio || "",
       titles: tutor?.titles || "",
+      profit: tutor?.profit || 0,
     },
   });
 
@@ -73,7 +74,6 @@ const TutorForm = ({ type, tutor }: Props) => {
       toast.success(res.success);
       router.refresh();
       setLoading(false);
-      form.reset();
     }
   };
 
@@ -95,16 +95,19 @@ const TutorForm = ({ type, tutor }: Props) => {
 
   return (
     <Form {...form}>
-      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-        <AvatarField
-          control={form.control}
-          setImagePreview={setImagePreview}
-          setValue={form.setValue}
-          imagePreview={imagePreview}
-          public_id={tutor?.image?.public_id}
-        />
+      <form
+        className="space-y-4 grid grid-cols-2 gap-5"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="space-y-3">
+          <AvatarField
+            control={form.control}
+            setImagePreview={setImagePreview}
+            setValue={form.setValue}
+            imagePreview={imagePreview}
+            public_id={tutor?.image?.public_id}
+          />
 
-        <div className="flex gap-3">
           <FormField
             control={form.control}
             name="name"
@@ -118,6 +121,7 @@ const TutorForm = ({ type, tutor }: Props) => {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="displayName"
@@ -131,51 +135,21 @@ const TutorForm = ({ type, tutor }: Props) => {
               </FormItem>
             )}
           />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Textarea dir="rtl" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="slug"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Slug</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="titles"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Titles</FormLabel>
-              <FormControl>
-                <Textarea dir="rtl" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="slug"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Slug</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex gap-3">
           <FormField
             control={form.control}
             name="email"
@@ -203,41 +177,96 @@ const TutorForm = ({ type, tutor }: Props) => {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {isUpdateType ? "New Password" : "Password"}{" "}
+                </FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} />
+                </FormControl>
+                {isUpdateType && (
+                  <FormDescription className="text-xs">
+                    Leave Empty if you don't want to change password
+                  </FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="profit"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className="text-primary font-semibold">
+                  Profit (%)
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    min={0}
+                    max={100}
+                    type="number"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === "" ? 0 : Number(value));
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {isUpdateType ? "New Password" : "Password"}{" "}
-              </FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
-              </FormControl>
-              {isUpdateType && (
-                <FormDescription className="text-xs">
-                  Leave Empty if you don't want to change password
-                </FormDescription>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-3">
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bio</FormLabel>
+                <FormControl>
+                  <Textarea className="h-48" dir="rtl" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button
-          disabled={
-            !form.formState.isValid || loading || !form.formState.isDirty
-          }
-          className="w-full flex gap-2"
-          type="submit"
-        >
-          {<Loader loading={loading} />}
-          {isUpdateType ? "Update" : "Create"}
-        </Button>
+          <FormField
+            control={form.control}
+            name="titles"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Titles</FormLabel>
+                <FormControl>
+                  <Textarea className="h-28" dir="rtl" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {isUpdateType && <DeleteButton onDelete={onDelete} />}
+          <Button
+            disabled={
+              !form.formState.isValid || loading || !form.formState.isDirty
+            }
+            className="w-full flex gap-2"
+            type="submit"
+          >
+            {<Loader loading={loading} />}
+            {isUpdateType ? "Update" : "Create"}
+          </Button>
+
+          {isUpdateType && <DeleteButton onDelete={onDelete} />}
+        </div>
       </form>
     </Form>
   );

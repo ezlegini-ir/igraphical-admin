@@ -20,6 +20,7 @@ export const createTutor = async (data: TutorFormType) => {
     slug,
     bio,
     titles,
+    profit,
   } = data;
   if (!password) return { error: "Password Required." };
 
@@ -44,6 +45,7 @@ export const createTutor = async (data: TutorFormType) => {
         slug,
         titles,
         bio,
+        profit,
       },
     });
 
@@ -96,6 +98,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
     slug,
     bio,
     titles,
+    profit,
   } = data;
 
   try {
@@ -127,6 +130,7 @@ export const updateTutor = async (data: TutorFormType & { id: number }) => {
         slug,
         bio,
         titles,
+        profit,
       },
       include: { image: true },
     });

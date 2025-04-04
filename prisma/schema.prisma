@@ -57,6 +57,7 @@ model Tutor {
   phone       String     @unique
   email       String     @unique
   joinedAt    DateTime   @default(now())
+  profit      Float      @default(0)
   image       Image?
   courses     Course[]
   askTutor    AskTutor[]
@@ -140,11 +141,14 @@ model File {
   ticketMessageId   Int?              @unique
   askTutorMessage   AskTutorMessages? @relation(fields: [askTutorMessageId], references: [id], onDelete: Cascade)
   askTutorMessageId Int?              @unique
+  certificate       Certificate       @relation(fields: [certificateId], references: [id])
+  certificateId     Int               @unique
 }
 
 enum FileType {
   TICKET_ASSET
   QA_ASSET
+  CERTIFICATE
   OTHER
 }
 
@@ -183,6 +187,7 @@ model PostCategory {
 model Comment {
   id        Int      @id @default(autoincrement())
   content   String   @db.Text
+  fullName  String   @default("hi")
   createdAt DateTime @default(now())
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
@@ -391,6 +396,8 @@ model Certificate {
 
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   enrollmentId Int        @unique
+
+  file File[]
 }
 
 enum EnrollmentStatus {

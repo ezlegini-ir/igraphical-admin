@@ -11,9 +11,10 @@ body {
 
 pre {
   font-family: "KalamehWebFaNum";
-  line-height: 1.8;
-  white-space: "pre-wrap";
-  word-break: "break-word";
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 @layer utilities {

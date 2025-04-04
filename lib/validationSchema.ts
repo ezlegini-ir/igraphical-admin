@@ -283,6 +283,7 @@ export const tutorFormSchema = z.object({
   phone: z.string().min(1),
   bio: z.string().min(1),
   titles: z.string().min(1),
+  profit: z.number().min(0).max(100),
   image,
   password: z
     .string()
