@@ -101,7 +101,27 @@ const TicketForm = ({ type, ticket }: Props) => {
     field: any
   ) => {
     const file = e.target.files?.[0];
+
     if (file) {
+      const allowedFormats = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/zip",
+      ];
+      const maxSize = 5 * 1024 * 1024;
+
+      if (!allowedFormats.includes(file.type)) {
+        toast.error("این فرمت مجاز نمی‌باشد!");
+        return;
+      }
+
+      if (file.size > maxSize) {
+        toast.error("حداکثر حجم فایل 5 مگابایت می‌باشد!");
+        return;
+      }
+
       field.onChange(file);
       setFileName(file.name);
     }
@@ -337,6 +357,7 @@ const TicketForm = ({ type, ticket }: Props) => {
                         <>
                           <hr className="border-dashed border-slate-300" />
                           <Link
+                            target="_blank"
                             href={message.attachment.url}
                             className="flex justify-end gap-2 items-center text-nowrap text-xs text-gray-500"
                           >

@@ -47,20 +47,21 @@ model Admin {
 }
 
 model Tutor {
-  id          Int        @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   name        String
   displayName String
-  slug        String     @unique
+  slug        String       @unique
   password    String
-  bio         String     @db.Text
+  bio         String       @db.Text
   titles      String
-  phone       String     @unique
-  email       String     @unique
-  joinedAt    DateTime   @default(now())
-  profit      Float      @default(0)
+  phone       String       @unique
+  email       String       @unique
+  joinedAt    DateTime     @default(now())
+  profit      Float        @default(0)
   image       Image?
   courses     Course[]
   askTutor    AskTutor[]
+  Settlement  Settlement[]
 }
 
 enum AdminRole {
@@ -96,7 +97,6 @@ model Image {
   size      Int
   createdAt DateTime  @default(now())
 
-  // Relations
   user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int?         @unique
   admin     Admin?       @relation(fields: [adminId], references: [id], onDelete: Cascade)
@@ -141,8 +141,8 @@ model File {
   ticketMessageId   Int?              @unique
   askTutorMessage   AskTutorMessages? @relation(fields: [askTutorMessageId], references: [id], onDelete: Cascade)
   askTutorMessageId Int?              @unique
-  certificate       Certificate       @relation(fields: [certificateId], references: [id])
-  certificateId     Int               @unique
+  certificate       Certificate?      @relation(fields: [certificateId], references: [id])
+  certificateId     Int?              @unique
 }
 
 enum FileType {
@@ -478,6 +478,25 @@ enum PaymentStatus {
   CANCELED
 }
 
+model Settlement {
+  id               Int              @id @default(autoincrement())
+  totalSell        Float
+  totalEnrollments Int
+  profit           Int
+  amount           Float
+  from             DateTime
+  to               DateTime
+  paidAt           DateTime?        @default(now())
+  status           SettlementStatus
+  tutor            Tutor            @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId          Int
+}
+
+enum SettlementStatus {
+  PENDING
+  PAID
+}
+
 //! MARKETING ---------------------------------------------------------
 
 model Coupon {
@@ -639,7 +658,7 @@ model ClassRoom {
   userId       Int
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   enrollmentId Int        @unique
-  askTutor     AskTutor?  @relation(fields: [askTutorId], references: [id])
+  askTutor     AskTutor?  @relation(fields: [askTutorId], references: [id], onDelete: Cascade)
   askTutorId   Int?       @unique
 
   @@unique([userId, enrollmentId, askTutorId])

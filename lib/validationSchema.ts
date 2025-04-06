@@ -4,6 +4,7 @@ const requiredMessage = "Required";
 export const adminRoles = ["ADMIN", "AUTHOR"] as const;
 export const status = ["1", "0"] as const;
 export const lessonsType = ["FILE", "VIDEO", "ASSET"] as const;
+export const settlementStatus = ["PENDING", "PAID"] as const;
 export const paymentStatus = [
   "PENDING",
   "SUCCESS",
@@ -293,6 +294,16 @@ export const tutorFormSchema = z.object({
     }),
 });
 export type TutorFormType = z.infer<typeof tutorFormSchema>;
+
+export const settlementFormSchema = z.object({
+  tutorId: z.string(),
+  status: z.enum(settlementStatus),
+  date: z.object({
+    from: z.date(),
+    to: z.date(),
+  }),
+});
+export type SettlementFormType = z.infer<typeof settlementFormSchema>;
 
 //! ADMINS
 export const adminFormSchema = z.object({

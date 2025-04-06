@@ -53,7 +53,7 @@ const renderRows = (tutor: TutorType) => {
       </TableCell>
       <TableCell className="lg:flex gap-2 hidden ">
         <Dialog>
-          <DialogTrigger asChild>
+          <DialogTrigger asChild className="flex justify-end">
             <EditButton />
           </DialogTrigger>
           <DialogContent className="w-full max-w-screen-lg">

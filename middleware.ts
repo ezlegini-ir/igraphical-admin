@@ -1,67 +1,33 @@
-import { AdminRole } from "@prisma/client";
-import { NextURL } from "next/dist/server/web/next-url";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./auth";
-import {
-  adminDashboardRoute,
-  authApi,
-  authRoutes,
-  privateRoutes,
-  tutorDashboardRoute,
-} from "./data/routes";
-
-const roleBasedRedirect = (role: AdminRole, nextUrl: NextURL) => {
-  return NextResponse.redirect(new URL(adminDashboardRoute, nextUrl));
-};
+import { authApi, authRoutes, privateRoutes } from "./data/routes";
 
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
   const session = await auth();
-  const role = session?.user.role;
   const isLoggedIn = !!session?.user;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(authApi);
-  const isTutorDashboardRoute =
-    nextUrl.pathname.startsWith(tutorDashboardRoute);
-  const isAdminDashboardRoute =
-    nextUrl.pathname.startsWith(adminDashboardRoute);
   const isPrivateRoute = privateRoutes.some((route) =>
     nextUrl.pathname.startsWith(route)
   );
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+  const isAuthRoute = authRoutes.some((route) =>
+    nextUrl.pathname.startsWith(route)
+  );
 
-  // Bypass API authentication routes
-  if (isApiAuthRoute || isAuthRoute) {
-    return null;
+  if (isApiAuthRoute) {
+    return NextResponse.next();
   }
 
-  //  Protect Private Routes
-  if (!isLoggedIn && isPrivateRoute) {
+  if (!isLoggedIn && isPrivateRoute && !isAuthRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  //  HANDLE LOGGED IN USERS
-  if (isAuthRoute && isLoggedIn) {
-    return roleBasedRedirect(role, nextUrl);
+  if (isLoggedIn && isAuthRoute) {
+    return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  // ACCESS TO ADMIN DASHBOARD
-  if (isAdminDashboardRoute) {
-    if (role === "TUTOR") {
-      return roleBasedRedirect(role, nextUrl);
-    }
-  }
-
-  // RACCESS TO TUTOR DASHBOARD
-  if (isTutorDashboardRoute) {
-    if (role === "ADMIN" || role !== "TUTOR") {
-      return null;
-    } else {
-      return roleBasedRedirect(role, nextUrl);
-    }
-  }
-
-  return null;
+  return NextResponse.next();
 }
 
 export const config = {

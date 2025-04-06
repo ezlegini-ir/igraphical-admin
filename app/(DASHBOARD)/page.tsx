@@ -70,7 +70,7 @@ const page = async () => {
   });
   const revenue = aggregateByDay(
     payments,
-    (payment) => payment.paidAt.toISOString().split("T")[0],
+    (payment) => payment.paidAt?.toISOString().split("T")[0] || "",
     (payment) => payment.total
   );
 

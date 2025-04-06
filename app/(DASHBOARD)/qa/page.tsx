@@ -108,9 +108,9 @@ const CourseCard = ({ course, index }: Props) => {
         <li className="flex justify-between py-2 text-gray-500 text-sm">
           <span>Messages</span>
           <span>
-            {(course.askTutor[index]?.messages?.length || 0).toLocaleString(
-              "en-US"
-            )}
+            {course.askTutor
+              .reduce((acc, curr) => acc + (curr.messages?.length || 0), 0)
+              .toLocaleString("en-US")}
           </span>
         </li>
       </ul>

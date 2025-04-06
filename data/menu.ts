@@ -121,7 +121,7 @@ const sideBarMenuItems = [
         tabName: "Tutors",
         tabHref: "/tutors",
         tabIcon: GraduationCap,
-        subMenuItems: [],
+        subMenuItems: [{ label: "Settlements", href: "/tutors/settlements" }],
       },
       {
         tabName: "Admins",
