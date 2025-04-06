@@ -7,7 +7,7 @@ import { getPaymentById } from "@/data/payment";
 import { getUserById } from "@/data/user";
 import { cashBackCalculator, handleError } from "@/lib/utils";
 import { EnrollmentFormType as PaymentFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 //* CREATE -----------------------------------------------------------
 

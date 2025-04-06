@@ -1,7 +1,7 @@
 import Filter from "@/components/Filter";
 import Search from "@/components/Search";
 import { globalPageSize, pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { ContactStatus, Prisma } from "@prisma/client";
 import PostsList from "./ContactsList";
 interface Props {

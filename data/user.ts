@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export const getUserByIdentifier = async (phoneOrEmail: string) => {
   return await prisma.user.findFirst({

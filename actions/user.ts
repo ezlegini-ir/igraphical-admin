@@ -2,7 +2,7 @@
 
 import { getUserById } from "@/data/user";
 import { studentFormSchema, StudentFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { UploadApiResponse } from "cloudinary";
 import { deleteCloudFile, uploadCloudFile } from "./cloudinary";
 

@@ -2,7 +2,7 @@ import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
 import Search from "@/components/Search";
 import PostsList from "./PostsList";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { PostStatus } from "@prisma/client";
 import { getSessionAdmin } from "@/data/admin";
 import { globalPageSize, pagination } from "@/data/pagination";

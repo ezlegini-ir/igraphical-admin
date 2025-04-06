@@ -3,7 +3,7 @@ import TicketList from "./TicketList";
 import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
 import { globalPageSize, pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { Prisma, TicketDepartment, TicketStatus } from "@prisma/client";
 import { ticketDepartment, ticketStatus } from "@/lib/validationSchema";
 import Search from "@/components/Search";

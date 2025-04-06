@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import CategoriesList from "./CategoriesList";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { globalPageSize, pagination } from "@/data/pagination";
 
 interface Props {

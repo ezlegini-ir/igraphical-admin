@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { SlidersHorizontal } from "lucide-react";
 import CoursesList from "./CoursesList";
 import { Prisma, Status } from "@prisma/client";

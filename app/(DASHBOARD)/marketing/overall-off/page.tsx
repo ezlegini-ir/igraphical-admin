@@ -1,5 +1,5 @@
 import OverallOffForm from "@/components/forms/marketing/OverallOffForm";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 const page = async () => {
   const overallOff = await prisma.overallOff.findFirst();

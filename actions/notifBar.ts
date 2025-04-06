@@ -3,7 +3,7 @@
 //* CREATE ------------------------------------------------------------
 
 import { NotifbarFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export const createNotifBar = async (data: NotifbarFormType) => {
   const { active, bgColor, content, link, textColor } = data;

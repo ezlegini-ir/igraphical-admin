@@ -1,5 +1,5 @@
 import TicketForm from "@/components/forms/ticket/TicketForm";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { notFound } from "next/navigation";
 
 interface Props {

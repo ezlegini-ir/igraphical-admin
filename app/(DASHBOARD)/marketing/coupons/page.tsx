@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import CouponsList from "./CouponsList";
 import { Prisma } from "@prisma/client";
 interface Props {

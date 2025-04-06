@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getSessionAdmin } from "@/data/admin";
 import { getOnlineUsers } from "@/data/ga";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { Home, MessageCircle, Phone } from "lucide-react";
 import Link from "next/link";
 import AdminUserBar from "./AdminUserBar";

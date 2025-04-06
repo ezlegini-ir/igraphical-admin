@@ -1,7 +1,7 @@
 "use server";
 
 import { newUserFormSchema, NewUserFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export async function registerUser(options: NewUserFormType) {
   const { email, firstName, lastName, nationalId, phone } = options;

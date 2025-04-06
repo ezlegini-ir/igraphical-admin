@@ -1,5 +1,5 @@
 import PostForm from "@/components/forms/dashboard/post/PostForm";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import React from "react";
 
 const page = async () => {

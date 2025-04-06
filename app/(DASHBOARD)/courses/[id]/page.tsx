@@ -1,7 +1,7 @@
 import CourseForm from "@/components/forms/dashboard/course/CourseForm/CourseForm";
 import { getCourseById } from "@/data/course";
 import { getAllTutors } from "@/data/tutor";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { notFound } from "next/navigation";
 
 interface Props {

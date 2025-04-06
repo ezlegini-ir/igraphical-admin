@@ -1,6 +1,6 @@
 import CourseForm from "@/components/forms/dashboard/course/CourseForm/CourseForm";
 import { getAllTutors } from "@/data/tutor";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 const page = async () => {
   const tutors = await getAllTutors();

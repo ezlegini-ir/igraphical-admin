@@ -1,6 +1,6 @@
 import React from "react";
 import QaChat from "./QaChat";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/date";
 import { Separator } from "@/components/ui/separator";

@@ -2,7 +2,7 @@
 
 import { getTutorById, getTutorByIdentifier } from "@/data/tutor";
 import { TutorFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import bcrypt from "bcrypt";
 import { deleteCloudFile, uploadCloudFile } from "./cloudinary";
 import { UploadApiResponse } from "cloudinary";

@@ -1,4 +1,4 @@
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import TransactionsList from "./TransactionsList";
 import { globalPageSize, pagination } from "@/data/pagination";
 import { Prisma, TransactionType } from "@prisma/client";

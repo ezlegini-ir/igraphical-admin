@@ -1,7 +1,7 @@
 "use server";
 
 import { SlidersFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { SliderType } from "@prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import { deleteCloudFile, uploadManyCloudFiles } from "./cloudinary";

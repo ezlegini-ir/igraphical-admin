@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import CategoriesList from "./CategoriesList";
 import { globalPageSize, pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 interface Props {
   searchParams: Promise<{ page: string }>;

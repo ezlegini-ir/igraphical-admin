@@ -8,7 +8,7 @@ import {
 } from "@/data/category";
 import { encodeUrl as encodeSlug } from "@/lib/utils";
 import { CategoryFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export type CategoryFor = "POST" | "COURSE";
 

@@ -1,4 +1,4 @@
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import bcrypt from "bcrypt";
 import { sendOtpSms } from "./sms";
 import { sendOtpEmail } from "./mail";

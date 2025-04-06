@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { Prisma } from "@prisma/client";
 
 export const getTutorByIdentifier = async (identifier: string) => {

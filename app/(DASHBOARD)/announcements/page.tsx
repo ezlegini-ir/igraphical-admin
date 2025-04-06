@@ -1,7 +1,7 @@
 import MainSlidersForm from "@/components/forms/announcement/MainSlidersForm";
 import NotifBarForm from "@/components/forms/announcement/NotifBarForm";
 import PanelSlidersForm from "@/components/forms/announcement/PanelSlidersForm";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 const page = async () => {
   const mainSliders = await prisma.slider.findMany({

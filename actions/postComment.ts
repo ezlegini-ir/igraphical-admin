@@ -1,7 +1,7 @@
 "use server";
 
 import { CommentFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 //* CREATE ------------------------------------------------------------
 

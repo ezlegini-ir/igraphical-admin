@@ -2,7 +2,7 @@
 
 import { getAdminById, getAdminByIdentifier } from "@/data/admin";
 import { AdminFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import bcrypt from "bcrypt";
 import { UploadApiResponse } from "cloudinary";
 import { deleteCloudFile, uploadCloudFile } from "./cloudinary";

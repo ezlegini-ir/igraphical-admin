@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export const getCourseByUrl = async (url: string) => {
   return await prisma.course.findUnique({

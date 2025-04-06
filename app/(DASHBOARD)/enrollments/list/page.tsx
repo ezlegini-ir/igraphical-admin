@@ -1,7 +1,7 @@
 import Filter from "@/components/Filter";
 import NewButton from "@/components/NewButton";
 import Search from "@/components/Search";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import EnrollmentsList from "./EnrollmentsList";
 import { globalPageSize, pagination } from "@/data/pagination";
 import { EnrollmentStatus, Prisma } from "@prisma/client";

@@ -1,7 +1,7 @@
 "use server";
 
 import { WalletFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export const updateWallet = async (data: WalletFormType) => {
   const { amount, description, type, userId } = data;

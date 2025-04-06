@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export async function getPostByUrl(url: string) {
   return await prisma.post.findUnique({

@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { globalPageSize, pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import SettlementsList from "./SettlementsList";
 import Filter from "@/components/Filter";
 import Search from "@/components/Search";

@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { AdminRole } from "@prisma/client";
 import AdminsList from "./AdminsList";
 import { globalPageSize, pagination } from "@/data/pagination";

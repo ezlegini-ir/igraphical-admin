@@ -1,7 +1,7 @@
 "use server";
 
 import { OverallOffFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export const updateOverallOff = async (
   data: OverallOffFormType,

@@ -1,4 +1,4 @@
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 

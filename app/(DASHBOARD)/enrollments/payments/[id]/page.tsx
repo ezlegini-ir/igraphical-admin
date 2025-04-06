@@ -1,5 +1,5 @@
 import EnrollmentForm from "@/components/forms/payment/PaymentForm";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { notFound } from "next/navigation";
 
 interface Props {

@@ -2,7 +2,7 @@
 
 import { getModelById } from "@/data/getModel";
 import { TicketFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { File as FileType, Ticket, TicketMessage } from "@prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import { deleteManyCloudFiles, uploadCloudFile } from "./cloudinary";

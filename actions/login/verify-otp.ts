@@ -2,7 +2,7 @@
 
 import { getOtpByIdentifier } from "@/data/otp";
 import { getAdminByIdentifier } from "@/data/admin";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import bcrypt from "bcrypt";
 
 export const verifyOtp = async (otp: string, identifier: string) => {

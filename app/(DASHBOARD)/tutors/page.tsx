@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import TutorsList from "./TutorsList";
 import { globalPageSize, pagination } from "@/data/pagination";
 interface Props {

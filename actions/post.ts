@@ -2,7 +2,7 @@
 
 import { getPostById, getPostByUrl } from "@/data/post";
 import { PostFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { UploadApiResponse } from "cloudinary";
 import { deleteCloudFile, uploadCloudFile } from "./cloudinary";
 import { encodeUrl } from "@/lib/utils";

@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 
 export const getCouponByCode = async (code: string) => {
   return await prisma.coupon.findUnique({

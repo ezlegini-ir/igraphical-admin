@@ -3,7 +3,7 @@
 import { getCourseByUrl } from "@/data/course";
 import { encodeUrl } from "@/lib/utils";
 import { CourseFormType } from "@/lib/validationSchema";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { DiscountType } from "@prisma/client";
 import { UploadApiResponse } from "cloudinary";
 import {

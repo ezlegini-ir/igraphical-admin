@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { redirect } from "next/navigation";
 
 export const getAdmins = async () => {

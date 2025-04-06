@@ -1,6 +1,6 @@
 import PostForm from "@/components/forms/dashboard/post/PostForm";
 import { getPostById } from "@/data/post";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { notFound } from "next/navigation";
 
 interface Props {

@@ -1,6 +1,6 @@
 import { getGAViewsAndSessions, getTopPages } from "@/data/ga";
 import { aggregateByDay } from "@/lib/utils";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { User } from "@prisma/client";
 import { addDays, format, startOfMonth, startOfYear, subDays } from "date-fns";
 import GraduateVsEnrolled from "../../components/GraduateVsEnrolled";

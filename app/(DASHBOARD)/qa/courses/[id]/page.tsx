@@ -4,7 +4,7 @@ import Search from "@/components/Search";
 import { Button } from "@/components/ui/button";
 import { getCourseById } from "@/data/course";
 import { pagination } from "@/data/pagination";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import {
   AskTutor,
   AskTutorMessages,

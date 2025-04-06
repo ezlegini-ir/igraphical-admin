@@ -2,7 +2,7 @@
 
 import { getSessionUser } from "@/data/user";
 import { sendEmail } from "@/lib/mail";
-import prisma from "@/prisma/client";
+import { prisma } from "@igraphical/core";
 import { ContactStatus } from "@prisma/client";
 
 //* SEND ------------------------------------------------
