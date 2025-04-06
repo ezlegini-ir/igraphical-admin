@@ -25,7 +25,7 @@ import Loader from "@/components/Loader";
 import { Badge } from "@/components/ui/badge";
 import { getCouponByCode } from "@/data/coupon";
 import useLoading from "@/hooks/useLoading";
-import { cashBackCalculator, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { Coupon, CouponType, User, Wallet } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -33,6 +33,7 @@ import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { CourseType, PaymentType } from "./PaymentForm";
 import { Switch } from "@/components/ui/switch";
+import { cashBackCalculator } from "@igraphical/core";
 
 export interface priceType {
   price: number;

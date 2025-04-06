@@ -1,4 +1,3 @@
-import { prisma } from "@igraphical/core";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -23,25 +22,6 @@ export function formatDuration(minutes: number): string {
   }
 }
 
-export async function generateUniqueSerial(): Promise<string> {
-  let isUnique = false;
-  let serial = "";
-
-  while (!isUnique) {
-    serial = `ig-${Math.floor(10000000 + Math.random() * 90000000)}`;
-
-    const existingCertificate = await prisma.certificate.findUnique({
-      where: { serial },
-    });
-
-    if (!existingCertificate) {
-      isUnique = true;
-    }
-  }
-
-  return serial;
-}
-
 export function formatPrice(
   price: number | undefined,
   options?: { noValuePlaceholder?: string; showNumber?: boolean }
@@ -50,11 +30,6 @@ export function formatPrice(
     return options?.showNumber ? 0 + " t" : options?.noValuePlaceholder || "--";
 
   return price.toLocaleString("en-US") + " t";
-}
-
-export function handleError(error: unknown): { error: string } {
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  return { error: `Error 500: ${errorMessage}` };
 }
 
 export function truncateFileName(name: string, maxLength = 20) {
@@ -74,7 +49,7 @@ export function truncateFileName(name: string, maxLength = 20) {
  * @param getValue - A function that extracts a numeric value from an item.
  * @returns Array of objects in the form { date: string, value: number }.
  */
-import { subDays, addDays, format } from "date-fns";
+import { addDays, format, subDays } from "date-fns";
 
 export function aggregateByDay<T>(
   items: T[],
@@ -142,14 +117,9 @@ export const getSumByTimeRange = (
     );
 };
 
-export function calculateSum(values: any[], key: string) {
-  return values.reduce((acc, curr) => acc + curr[key], 0);
-}
-
-export function cashBackCalculator(price: number): number {
-  if (!price) return 0;
-
-  // For every 100,000 Tomans, returns 10,000 Tomans
-  const x = Math.floor(price / 100_000);
-  return x < 0 ? 0 : x * 10_000;
+export function calculateSum(
+  values: Array<Record<string, number | string>>,
+  key: string
+): number {
+  return values.reduce((acc, curr) => acc + +curr[key], 0);
 }

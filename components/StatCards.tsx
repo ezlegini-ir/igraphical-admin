@@ -2,7 +2,7 @@
 
 import { CreditCard, MessageCircle, Users } from "lucide-react";
 import StatCard from "./StatCard";
-import { calculateSum } from "@/lib/utils";
+import { calculateSum } from "@igraphical/core";
 
 type statsDataType = {
   date: string;

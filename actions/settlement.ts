@@ -1,5 +1,7 @@
 "use server";
 
+import { paidSettlmentSmsText } from "@/data/sms";
+import { sendSms } from "@/lib/sms";
 import { SettlementFormType } from "@/lib/validationSchema";
 import { prisma } from "@igraphical/core";
 
@@ -64,6 +66,9 @@ export const updateSettlement = async (
   try {
     const existingSettlement = await prisma.settlement.findFirst({
       where: { id: settlementId },
+      include: {
+        tutor: true,
+      },
     });
 
     if (!existingSettlement) throw new Error("No Settlement Found");
@@ -75,6 +80,15 @@ export const updateSettlement = async (
         paidAt: status === "PENDING" ? null : new Date(),
       },
     });
+
+    if (status === "PAID")
+      sendSms({
+        message: paidSettlmentSmsText(
+          existingSettlement.tutor.displayName,
+          existingSettlement.amount
+        ),
+        receptor: existingSettlement.tutor.phone,
+      });
 
     return { success: "Status of Settlement Updated Successfully" };
   } catch (error) {

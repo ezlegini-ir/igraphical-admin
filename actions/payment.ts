@@ -5,9 +5,8 @@ import { getCouponByCode } from "@/data/coupon";
 import { getAllCoursesByIds } from "@/data/course";
 import { getPaymentById } from "@/data/payment";
 import { getUserById } from "@/data/user";
-import { cashBackCalculator, handleError } from "@/lib/utils";
 import { EnrollmentFormType as PaymentFormType } from "@/lib/validationSchema";
-import { prisma } from "@igraphical/core";
+import { cashBackCalculator, prisma } from "@igraphical/core";
 
 //* CREATE -----------------------------------------------------------
 
@@ -232,7 +231,7 @@ export const deleteEnrollment = async (id: number) => {
 
     return { success: "Enrollment Deleted Successfully" };
   } catch (error) {
-    return handleError(error);
+    return { error: String(error) };
   }
 };
 
