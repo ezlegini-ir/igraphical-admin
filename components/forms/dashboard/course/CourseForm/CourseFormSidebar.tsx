@@ -51,7 +51,6 @@ import { CourseType, TutorType } from "./CourseForm";
 import { toast } from "sonner";
 
 interface Props {
-  success: string;
   loading: boolean;
   error: string;
   tutors: TutorType[];

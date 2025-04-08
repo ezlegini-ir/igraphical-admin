@@ -134,13 +134,14 @@ export const courseFormSchema = z.object({
     })
     .optional(),
 
-  // Curriculum Schema
   curriculum: z
     .array(
       z.object({
+        id: z.number().optional(),
         sectionTitle: z.string().min(1, "Section title is required"),
         lessons: z.array(
           z.object({
+            id: z.number().optional(),
             title: z.string().min(1, "Lesson title is required"),
             duration: z
               .number()

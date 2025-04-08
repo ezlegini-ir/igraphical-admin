@@ -7,7 +7,6 @@ import { createCourse, updateCourse } from "@/actions/course";
 import { Form } from "@/components/ui/form";
 import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
-import useSuccess from "@/hooks/useSuccess";
 import { CourseFormType, courseFormSchema } from "@/lib/validationSchema";
 import {
   Course,
@@ -24,9 +23,9 @@ import {
 import { addDays } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import CourseFormBody from "./CourseFormBody";
 import CourseFormSidebar from "./CourseFormSidebar";
-import { toast } from "sonner";
 
 export interface TutorType extends Tutor {
   image: ImageType | null;
@@ -55,7 +54,6 @@ const CourseForm = ({ type, course, tutors, categories }: Props) => {
   const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
 
-  const { success, setSuccess } = useSuccess();
   const [disocuntDateEnabled, setDiscountDateEnabled] = useState(
     !!course?.discount?.from || !!course?.discount?.to
   );
@@ -108,11 +106,15 @@ const CourseForm = ({ type, course, tutors, categories }: Props) => {
               to: addDays(new Date(), 4),
             },
           },
+
+      // CURRICULUM with IDs added
       curriculum: course?.curriculum?.length
         ? course.curriculum.map((section) => ({
+            id: section.id, // <- Include section ID
             sectionTitle: section.sectionTitle || "",
             lessons: section.lessons?.length
               ? section.lessons.map((lesson) => ({
+                  id: lesson.id, // <- Include lesson ID
                   title: lesson.title,
                   duration: lesson.duration || 0,
                   url: lesson.url,
@@ -192,7 +194,6 @@ const CourseForm = ({ type, course, tutors, categories }: Props) => {
             setDiscountDateEnabled={setDiscountDateEnabled}
             setError={setError}
             setGalleryPreviews={setGalleryPreviews}
-            success={success}
             tutors={tutors}
             type={type}
             course={course}
