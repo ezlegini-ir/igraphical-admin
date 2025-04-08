@@ -1,7 +1,6 @@
 "use client";
 
 import { verifyLogin } from "@/actions/login/verify-login";
-import Error from "@/components/Error";
 import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,12 +12,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import { LoginFormType, loginFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { toast } from "sonner";
 
 interface Props {
   setIdentifier: Dispatch<React.SetStateAction<string>>;
@@ -27,7 +27,6 @@ interface Props {
 
 const InputForm = ({ setLoginStep, setIdentifier }: Props) => {
   // HOOKS
-  const { error, setError } = useError();
   const { loading, setLoading } = useLoading();
 
   const form = useForm<LoginFormType>({
@@ -37,21 +36,38 @@ const InputForm = ({ setLoginStep, setIdentifier }: Props) => {
       password: "",
     },
   });
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const sendOtp = async (data: LoginFormType) => {
-    setError("");
     setLoading(true);
 
-    const res = await verifyLogin(data.phoneOrEmail, data.password);
+    if (!executeRecaptcha) {
+      if (!executeRecaptcha) {
+        toast.error("reCaptcha Not Loaded, Please Try Again...");
+        setLoading(false);
+        return;
+      }
+    }
+
+    const recaptchaToken = await executeRecaptcha("login_form");
+
+    const res = await verifyLogin(
+      data.phoneOrEmail,
+      data.password,
+      recaptchaToken
+    );
 
     if (res?.error) {
-      setError(res.error);
+      toast.error(res.error);
       setLoading(false);
       return;
     }
 
-    setLoginStep?.("OTP");
-    setIdentifier?.(data.phoneOrEmail);
+    if (res.success) {
+      setLoginStep?.("OTP");
+      toast.success(res.success);
+      setIdentifier?.(data.phoneOrEmail);
+    }
   };
 
   return (
@@ -100,7 +116,6 @@ const InputForm = ({ setLoginStep, setIdentifier }: Props) => {
             {<Loader loading={loading} />}
             Continue
           </Button>
-          <Error error={error} />
         </form>
       </Form>
     </>

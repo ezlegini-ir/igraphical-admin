@@ -3,7 +3,6 @@
 import { authenticator } from "@/actions/login/authenticator";
 import { verifyOtp } from "@/actions/login/verify-otp";
 import CountdownTimer from "@/components/CountDown";
-import Error from "@/components/Error";
 import Loader from "@/components/Loader";
 import Success from "@/components/Success";
 import { Button } from "@/components/ui/button";
@@ -19,16 +18,16 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import useError from "@/hooks/useError";
 import useLoading from "@/hooks/useLoading";
 import useSuccess from "@/hooks/useSuccess";
 import { OtpType, otpFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { CircleCheckBig, PartyPopper } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 interface Props {
   setLoginStep: Dispatch<SetStateAction<"INPUT" | "OTP">>;
@@ -37,9 +36,7 @@ interface Props {
 
 const OtpForm = ({ setLoginStep, identifier }: Props) => {
   // HOOKS
-  const router = useRouter();
   const { loading, setLoading } = useLoading();
-  const { error, setError } = useError();
   const { success } = useSuccess();
 
   const form = useForm<OtpType>({
@@ -49,16 +46,26 @@ const OtpForm = ({ setLoginStep, identifier }: Props) => {
       otp: "",
     },
   });
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const onVeifyOtp = async (data: OtpType) => {
     setLoading(true);
-    setError("");
+
+    if (!executeRecaptcha) {
+      if (!executeRecaptcha) {
+        toast.error("reCaptcha Not Loaded, Please Try Again...");
+        setLoading(false);
+        return;
+      }
+    }
+
+    const recaptchaToken = await executeRecaptcha("otp_form");
 
     // VERIFY OTP
-    const res = await verifyOtp(data.otp, identifier);
+    const res = await verifyOtp(data.otp, identifier, recaptchaToken);
 
     if (res.error) {
-      setError(res.error);
+      toast.error(res.error);
       setLoading(false);
       form.reset();
       return;
@@ -66,7 +73,7 @@ const OtpForm = ({ setLoginStep, identifier }: Props) => {
 
     const auth = await authenticator(identifier);
     if (auth?.error) {
-      setError(auth.error);
+      toast.error(auth.error);
       setLoading(false);
       return;
     }
@@ -140,7 +147,6 @@ const OtpForm = ({ setLoginStep, identifier }: Props) => {
               {<Loader loading={loading} />}
               Log In
             </Button>
-            <Error error={error} />
             <Success success={success} icon={<PartyPopper size={20} />} />
 
             <Button

@@ -12,7 +12,7 @@ export const getUserByIdentifier = async (phoneOrEmail: string) => {
 };
 
 export const getUserById = async (id: number) => {
-  return await prisma.user.findUnique({
+  return await prisma.admin.findUnique({
     where: {
       id,
     },

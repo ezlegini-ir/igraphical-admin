@@ -12,7 +12,9 @@ export const sendContactResponse = async (options: {
   contactId: number;
 }) => {
   const { contactId, email, message } = options;
+  const user = await getSessionUser();
   const respondentId = (await getSessionUser())?.id;
+  console.log(user);
   if (!respondentId) return { error: "Admin Id is missing." };
 
   try {

@@ -4,9 +4,16 @@ import { getOtpByIdentifier } from "@/data/otp";
 import { getAdminByIdentifier } from "@/data/admin";
 import { prisma } from "@igraphical/core";
 import bcrypt from "bcrypt";
+import { isHumanOrNot } from "@/lib/recaptcha";
 
-export const verifyOtp = async (otp: string, identifier: string) => {
+export const verifyOtp = async (
+  otp: string,
+  identifier: string,
+  recaptchaToken: string
+) => {
   try {
+    await isHumanOrNot(recaptchaToken);
+
     // OTP LOOK UP
     const existingOtp = await getOtpByIdentifier(identifier);
 

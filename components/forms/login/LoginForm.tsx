@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import InputForm from "./InputForm";
-import OtpForm from "./OtpForm";
 import useIdentifier from "@/hooks/useIdentifier";
 import useLoginStep from "@/hooks/useLoginStep";
+import InputForm from "./InputForm";
+import OtpForm from "./OtpForm";
 
 const LoginForm = () => {
   // HOOKS

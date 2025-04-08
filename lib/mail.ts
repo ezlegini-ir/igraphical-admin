@@ -1,15 +1,5 @@
-import nodemailer from "nodemailer";
+import { mailer } from "@/config/mailer";
 import { generateEmailOtp } from "./otp";
-
-const transporter = nodemailer.createTransport({
-  host: "mail.igraphical.ir",
-  port: 465,
-  secure: true,
-  auth: {
-    user: "test@igraphical.ir",
-    pass: process.env.NEXT_PUBLIC_MAIL_PASS,
-  },
-});
 
 export const sendEmail = async ({
   to,
@@ -21,7 +11,7 @@ export const sendEmail = async ({
   html: string;
 }) => {
   try {
-    const info = await transporter.sendMail({
+    const info = await mailer.sendMail({
       from: `"آی‌گرافیکال" <test@igraphical.ir>`,
       to,
       subject,
@@ -38,8 +28,8 @@ export const sendEmail = async ({
 export const sendOtpEmail = async (email: string) => {
   const { plainOtp } = await generateEmailOtp(email);
 
-  await transporter.sendMail({
-    from: `"آی‌گرافیکال" <test@igraphical.ir>`,
+  await mailer.sendMail({
+    from: `"آی‌گرافیکال" <${process.env.MAIL_USER}>`,
     to: email,
     subject: `کد تایید شما: ${plainOtp}`,
     html: `<p>کد تایید شما: ${plainOtp}</p>`,
