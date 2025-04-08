@@ -14,8 +14,6 @@ export async function verifyRecaptcha(token: string): Promise<boolean> {
     }
   );
 
-  console.log(data);
-
   return data.success && data.score > 0.7;
 }
 

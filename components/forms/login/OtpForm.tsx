@@ -24,7 +24,7 @@ import { OtpType, otpFormSchema } from "@/lib/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { CircleCheckBig, PartyPopper } from "lucide-react";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
@@ -48,7 +48,7 @@ const OtpForm = ({ setLoginStep, identifier }: Props) => {
   });
   const { executeRecaptcha } = useGoogleReCaptcha();
 
-  const onVeifyOtp = async (data: OtpType) => {
+  const onVerifyOtp = async (data: OtpType) => {
     setLoading(true);
 
     if (!executeRecaptcha) {
@@ -71,13 +71,30 @@ const OtpForm = ({ setLoginStep, identifier }: Props) => {
       return;
     }
 
-    const auth = await authenticator(identifier);
-    if (auth?.error) {
-      toast.error(auth.error);
-      setLoading(false);
-      return;
+    if (res.success) {
+      const auth = await authenticator(identifier);
+
+      if (auth?.error) {
+        toast.error(auth.error);
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Welcome Back, Logged In Successfuly!");
     }
   };
+
+  const otpValue = form.watch("otp");
+
+  useEffect(() => {
+    const autoSubmit = async () => {
+      if (otpValue.length === 6) {
+        await onVerifyOtp({ otp: otpValue });
+      }
+    };
+
+    autoSubmit();
+  }, [otpValue]);
 
   return (
     <>
@@ -102,7 +119,7 @@ const OtpForm = ({ setLoginStep, identifier }: Props) => {
       </div>
 
       <Form {...form}>
-        <form className="space-y-8" onSubmit={form.handleSubmit(onVeifyOtp)}>
+        <form className="space-y-8" onSubmit={form.handleSubmit(onVerifyOtp)}>
           <FormField
             control={form.control}
             name="otp"
